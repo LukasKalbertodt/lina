@@ -5,3 +5,4 @@ edition = "2018"
 
 [dependencies]
 bytemuck = { version = "1.7.2", features = ["min_const_generics"] }
+num-traits = "0.2.14"

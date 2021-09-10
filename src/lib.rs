@@ -2,7 +2,6 @@
 mod vec;
 mod util;
 pub mod named_scalar;
-pub mod num;
 
 pub use self::{
     vec::{

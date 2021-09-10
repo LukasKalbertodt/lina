@@ -1,6 +1,7 @@
 use bytemuck::{Pod, Zeroable};
+use num_traits::{One, Zero};
 
-use crate::{Vector, num::{One, Zero}, util::zip_map};
+use crate::{Vector, util::zip_map};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents

@@ -1,9 +1,9 @@
 use bytemuck::{Pod, Zeroable};
+use num_traits::{One, Zero};
 
 use crate::{
     Point,
     named_scalar::{HasX, HasY, HasZ, HasW},
-    num::{One, Zero},
     util::zip_map,
 };
 
