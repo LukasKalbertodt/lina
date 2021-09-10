@@ -126,13 +126,13 @@ pub fn vec2<T>(x: T, y: T) -> Vec2<T> {
 }
 
 /// Shorthand for `Vec3::new(...)`.
-pub fn vec3<T>(x: T, y: T) -> Vec2<T> {
-    Vec2::new(x, y)
+pub fn vec3<T>(x: T, y: T, z: T) -> Vec3<T> {
+    Vec3::new(x, y, z)
 }
 
 /// Shorthand for `Vec4::new(...)`.
-pub fn vec4<T>(x: T, y: T) -> Vec2<T> {
-    Vec2::new(x, y)
+pub fn vec4<T>(x: T, y: T, z: T, w: T) -> Vec4<T> {
+    Vec4::new(x, y, z, w)
 }
 
 
@@ -183,8 +183,8 @@ pub fn point2<T>(x: T, y: T) -> Point2<T> {
 }
 
 /// Shorthand for `Point3::new(...)`.
-pub fn point3<T>(x: T, y: T) -> Point2<T> {
-    Point2::new(x, y)
+pub fn point3<T>(x: T, y: T, z: T) -> Point3<T> {
+    Point3::new(x, y, z)
 }
 
 
