@@ -90,3 +90,9 @@ impl<T: ops::SubAssign<U>, U, const N: usize> ops::SubAssign<Vector<U, N>> for P
     }
 }
 
+impl<T: ops::Sub<U>, U, const N: usize> ops::Sub<Point<U, N>> for Point<T, N> {
+    type Output = Vector<T::Output, N>;
+    fn sub(self, rhs: Point<U, N>) -> Self::Output {
+        Vector(zip_map(self.0, rhs.0, |l, r| l - r))
+    }
+}
