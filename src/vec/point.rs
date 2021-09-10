@@ -36,6 +36,14 @@ impl<T, const N: usize> Point<T, N> {
         Self([(); N].map(|_| T::zero()))
     }
 
+    /// Converts this point into a vector without changing the component values.
+    /// Semantically equivalent to `self - Point::origin()`. Please think twice
+    /// before using this method as it blindly changes the semantics of your
+    /// value.
+    pub fn to_vec(self) -> Vector<T, N> {
+        Vector(self.0)
+    }
+
     shared_methods!(Point, "point");
 }
 

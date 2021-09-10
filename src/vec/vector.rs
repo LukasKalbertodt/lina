@@ -1,6 +1,7 @@
 use bytemuck::{Pod, Zeroable};
 
 use crate::{
+    Point,
     named_scalar::{HasX, HasY, HasZ, HasW},
     num::{One, Zero},
     util::zip_map,
@@ -107,6 +108,14 @@ impl<T, const N: usize> Vector<T, N> {
         let mut out = Self::zero();
         *out.w_mut() = T::one();
         out
+    }
+
+    /// Converts this vector into a point without changing the component values.
+    /// Semantically equivalent to `Point::origin() + self`. Please think twice
+    /// before using this method as it blindly changes the semantics of your
+    /// value.
+    pub fn to_point(self) -> Point<T, N> {
+        Point(self.0)
     }
 
     shared_methods!(Vector, "vector");
