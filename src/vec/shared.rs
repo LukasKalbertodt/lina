@@ -29,7 +29,7 @@ macro_rules! shared_impls {
     ($ty:ident, $tys_lower:literal, $debug:literal) => {
         use std::{
             fmt,
-            ops::{Index, IndexMut},
+            ops::{self, Index, IndexMut},
         };
 
         impl<T, const N: usize> Index<usize> for $ty<T, N> {
@@ -79,6 +79,47 @@ macro_rules! shared_impls {
                     e.fmt(f)?;
                 }
                 write!(f, "]")
+            }
+        }
+
+        impl<T: ops::Neg, const N: usize> ops::Neg for $ty<T, N> {
+            type Output = $ty<T::Output, N>;
+            fn neg(self) -> Self::Output {
+                self.map(|c| -c)
+            }
+        }
+
+        /// Scalar multipliation: `vector * scalar`.
+        impl<S: Clone, T: ops::Mul<S>, const N: usize> ops::Mul<S> for $ty<T, N> {
+            type Output = $ty<T::Output, N>;
+            fn mul(self, rhs: S) -> Self::Output {
+                self.map(|c| c * rhs.clone())
+            }
+        }
+
+        /// Scalar multipliation: `vector *= scalar`.
+        impl<S: Clone, T: ops::MulAssign<S>, const N: usize> ops::MulAssign<S> for $ty<T, N> {
+            fn mul_assign(&mut self, rhs: S) {
+                for c in &mut self.0 {
+                    *c *= rhs.clone();
+                }
+            }
+        }
+
+        /// Scalar division: `vector / scalar`.
+        impl<S: Clone, T: ops::Div<S>, const N: usize> ops::Div<S> for $ty<T, N> {
+            type Output = $ty<T::Output, N>;
+            fn div(self, rhs: S) -> Self::Output {
+                self.map(|c| c / rhs.clone())
+            }
+        }
+
+        /// Scalar division: `vector /= scalar`.
+        impl<S: Clone, T: ops::DivAssign<S>, const N: usize> ops::DivAssign<S> for $ty<T, N> {
+            fn div_assign(&mut self, rhs: S) {
+                for c in &mut self.0 {
+                    *c /= rhs.clone();
+                }
             }
         }
     };
