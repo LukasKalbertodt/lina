@@ -1,7 +1,6 @@
 use bytemuck::{Pod, Zeroable};
-use num_traits::{One, Zero};
 
-use crate::{Vector, util::zip_map};
+use crate::{Vector, Scalar, util::zip_map};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents
@@ -29,12 +28,9 @@ unsafe impl<T: Zeroable, const N: usize> Zeroable for Point<T, N> {}
 /// `T: Pod`.
 unsafe impl<T: Pod, const N: usize> Pod for Point<T, N> {}
 
-impl<T, const N: usize> Point<T, N> {
+impl<T: Scalar, const N: usize> Point<T, N> {
     /// Returns a point with all coordinates being zero (representing the origin).
-    pub fn origin() -> Self
-    where
-        T: Zero,
-    {
+    pub fn origin() -> Self {
         Self([(); N].map(|_| T::zero()))
     }
 
@@ -55,10 +51,7 @@ impl<T, const N: usize> Point<T, N> {
     /// let centroid = Point::centroid([point2(0.0, 8.0), point2(1.0, 6.0)]);
     /// assert_eq!(centroid, Some(point2(0.5, 7.0)));
     /// ```
-    pub fn centroid(points: impl IntoIterator<Item = Self>) -> Option<Self>
-    where
-        T: Clone + One + ops::Add<Output = T> + ops::Div<Output = T>,
-    {
+    pub fn centroid(points: impl IntoIterator<Item = Self>) -> Option<Self> {
         let mut it = points.into_iter();
         let mut total_displacement = it.next()?.to_vec();
         let mut count = T::one();
@@ -73,11 +66,11 @@ impl<T, const N: usize> Point<T, N> {
     shared_methods!(Point, "point");
 }
 
-impl<T> Point<T, 2> {
+impl<T: Scalar> Point<T, 2> {
     shared_methods2!(Point, "point");
 }
 
-impl<T> Point<T, 3> {
+impl<T: Scalar> Point<T, 3> {
     shared_methods3!(Point, "point");
 }
 
@@ -85,12 +78,12 @@ impl<T> Point<T, 3> {
 shared_impls!(Point, "point", "Point");
 
 /// Shorthand for `Point2::new(...)`.
-pub fn point2<T>(x: T, y: T) -> Point2<T> {
+pub fn point2<T: Scalar>(x: T, y: T) -> Point2<T> {
     Point2::new(x, y)
 }
 
 /// Shorthand for `Point3::new(...)`.
-pub fn point3<T>(x: T, y: T, z: T) -> Point3<T> {
+pub fn point3<T: Scalar>(x: T, y: T, z: T) -> Point3<T> {
     Point3::new(x, y, z)
 }
 

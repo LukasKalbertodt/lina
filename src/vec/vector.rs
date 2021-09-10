@@ -1,8 +1,7 @@
 use bytemuck::{Pod, Zeroable};
-use num_traits::{One, real::Real, Zero};
 
 use crate::{
-    Point,
+    Point, Scalar, Real,
     named_scalar::{HasX, HasY, HasZ, HasW},
     util::zip_map,
 };
@@ -42,12 +41,9 @@ unsafe impl<T: Zeroable, const N: usize> Zeroable for Vector<T, N> {}
 /// `T: Pod`.
 unsafe impl<T: Pod, const N: usize> Pod for Vector<T, N> {}
 
-impl<T, const N: usize> Vector<T, N> {
+impl<T: Scalar, const N: usize> Vector<T, N> {
     /// Returns the zero vector.
-    pub fn zero() -> Self
-    where
-        T: Zero,
-    {
+    pub fn zero() -> Self {
         Self([(); N].map(|_| T::zero()))
     }
 
@@ -58,7 +54,6 @@ impl<T, const N: usize> Vector<T, N> {
     /// ```
     pub fn unit_x() -> Self
     where
-        T: Zero + One,
         Self: HasX<Scalar = T>,
     {
         let mut out = Self::zero();
@@ -73,7 +68,6 @@ impl<T, const N: usize> Vector<T, N> {
     /// ```
     pub fn unit_y() -> Self
     where
-        T: Zero + One,
         Self: HasY<Scalar = T>,
     {
         let mut out = Self::zero();
@@ -88,7 +82,6 @@ impl<T, const N: usize> Vector<T, N> {
     /// ```
     pub fn unit_z() -> Self
     where
-        T: Zero + One,
         Self: HasZ<Scalar = T>,
     {
         let mut out = Self::zero();
@@ -103,7 +96,6 @@ impl<T, const N: usize> Vector<T, N> {
     /// ```
     pub fn unit_w() -> Self
     where
-        T: Zero + One,
         Self: HasW<Scalar = T>,
     {
         let mut out = Self::zero();
@@ -123,12 +115,8 @@ impl<T, const N: usize> Vector<T, N> {
     /// [`length`][Self::length] as no sqrt operation is required. And since
     /// the square root is continious, if you only need to compare two lengths,
     /// you can use this method.
-    pub fn length2(&self) -> T
-    where
-        T: Zero,
-        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T>,
-    {
-        self.0.iter().map(|c| c * c).fold(T::zero(), |acc, e| acc + e)
+    pub fn length2(&self) -> T {
+        self.0.iter().map(|&c| c * c).fold(T::zero(), |acc, e| acc + e)
     }
 
     /// Returns the length of this vector. If you only need to compare two
@@ -136,7 +124,6 @@ impl<T, const N: usize> Vector<T, N> {
     pub fn length(&self) -> T
     where
         T: Real,
-        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T>,
     {
         self.length2().sqrt()
     }
@@ -146,7 +133,6 @@ impl<T, const N: usize> Vector<T, N> {
     pub fn normalized(mut self) -> Self
     where
         T: Real,
-        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T> + ops::Div<Output = T>,
     {
         self.normalize();
         self
@@ -157,7 +143,6 @@ impl<T, const N: usize> Vector<T, N> {
     pub fn normalize(&mut self)
     where
         T: Real,
-        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T> + ops::Div<Output = T>,
     {
         *self = *self / self.length();
     }
@@ -165,15 +150,15 @@ impl<T, const N: usize> Vector<T, N> {
     shared_methods!(Vector, "vector");
 }
 
-impl<T> Vector<T, 2> {
+impl<T: Scalar> Vector<T, 2> {
     shared_methods2!(Vector, "vector");
 }
 
-impl<T> Vector<T, 3> {
+impl<T: Scalar> Vector<T, 3> {
     shared_methods3!(Vector, "vector");
 }
 
-impl<T> Vector<T, 4> {
+impl<T: Scalar> Vector<T, 4> {
     /// Returns a 4D vector from the given coordinates.
     pub fn new(x: T, y: T, z: T, w: T) -> Self {
         Self([x, y, z, w])
@@ -183,17 +168,17 @@ impl<T> Vector<T, 4> {
 shared_impls!(Vector, "vector", "Vec");
 
 /// Shorthand for `Vec2::new(...)`.
-pub fn vec2<T>(x: T, y: T) -> Vec2<T> {
+pub fn vec2<T: Scalar>(x: T, y: T) -> Vec2<T> {
     Vec2::new(x, y)
 }
 
 /// Shorthand for `Vec3::new(...)`.
-pub fn vec3<T>(x: T, y: T, z: T) -> Vec3<T> {
+pub fn vec3<T: Scalar>(x: T, y: T, z: T) -> Vec3<T> {
     Vec3::new(x, y, z)
 }
 
 /// Shorthand for `Vec4::new(...)`.
-pub fn vec4<T>(x: T, y: T, z: T, w: T) -> Vec4<T> {
+pub fn vec4<T: Scalar>(x: T, y: T, z: T, w: T) -> Vec4<T> {
     Vec4::new(x, y, z, w)
 }
 
@@ -227,16 +212,16 @@ impl<T: ops::SubAssign<U>, U, const N: usize> ops::SubAssign<Vector<U, N>> for V
     }
 }
 
-impl<T: ops::Neg, const N: usize> ops::Neg for Vector<T, N> {
-    type Output = Vector<T::Output, N>;
+impl<T: Scalar + ops::Neg, const N: usize> ops::Neg for Vector<T, N> {
+    type Output = Vector<<T as ops::Neg>::Output, N>;
     fn neg(self) -> Self::Output {
         self.map(|c| -c)
     }
 }
 
 /// Scalar multipliation: `vector * scalar`.
-impl<S: Clone, T: ops::Mul<S>, const N: usize> ops::Mul<S> for Vector<T, N> {
-    type Output = Vector<T::Output, N>;
+impl<S: Clone, T: Scalar + ops::Mul<S>, const N: usize> ops::Mul<S> for Vector<T, N> {
+    type Output = Vector<<T as ops::Mul<S>>::Output, N>;
     fn mul(self, rhs: S) -> Self::Output {
         self.map(|c| c * rhs.clone())
     }
@@ -252,8 +237,8 @@ impl<S: Clone, T: ops::MulAssign<S>, const N: usize> ops::MulAssign<S> for Vecto
 }
 
 /// Scalar division: `vector / scalar`.
-impl<S: Clone, T: ops::Div<S>, const N: usize> ops::Div<S> for Vector<T, N> {
-    type Output = Vector<T::Output, N>;
+impl<S: Clone, T: Scalar + ops::Div<S>, const N: usize> ops::Div<S> for Vector<T, N> {
+    type Output = Vector<<T as ops::Div<S>>::Output, N>;
     fn div(self, rhs: S) -> Self::Output {
         self.map(|c| c / rhs.clone())
     }
