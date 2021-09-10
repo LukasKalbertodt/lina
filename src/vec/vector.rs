@@ -9,7 +9,7 @@ use crate::{
 /// An `N`-dimensional vector with scalar type `T`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Vector<T, const N: usize>([T; N]);
+pub struct Vector<T, const N: usize>(pub(crate) [T; N]);
 
 /// A 2-dimensional vector.
 pub type Vec2<T> = Vector<T, 2>;

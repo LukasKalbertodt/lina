@@ -1,12 +1,12 @@
 use bytemuck::{Pod, Zeroable};
 
-use crate::num::Zero;
+use crate::{Vector, num::Zero, util::zip_map};
 
 
 /// A point in `N`-dimensional space with scalar type `T`.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Point<T, const N: usize>([T; N]);
+pub struct Point<T, const N: usize>(pub(crate) [T; N]);
 
 /// A point in 2-dimensional space.
 pub type Point2<T> = Point<T, 2>;
@@ -59,3 +59,34 @@ pub fn point2<T>(x: T, y: T) -> Point2<T> {
 pub fn point3<T>(x: T, y: T, z: T) -> Point3<T> {
     Point3::new(x, y, z)
 }
+
+impl<T: ops::Add<U>, U, const N: usize> ops::Add<Vector<U, N>> for Point<T, N> {
+    type Output = Point<T::Output, N>;
+    fn add(self, rhs: Vector<U, N>) -> Self::Output {
+        Point(zip_map(self.0, rhs.0, |l, r| l + r))
+    }
+}
+
+impl<T: ops::AddAssign<U>, U, const N: usize> ops::AddAssign<Vector<U, N>> for Point<T, N> {
+    fn add_assign(&mut self, rhs: Vector<U, N>) {
+        for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
+            *lhs += rhs;
+        }
+    }
+}
+
+impl<T: ops::Sub<U>, U, const N: usize> ops::Sub<Vector<U, N>> for Point<T, N> {
+    type Output = Point<T::Output, N>;
+    fn sub(self, rhs: Vector<U, N>) -> Self::Output {
+        Point(zip_map(self.0, rhs.0, |l, r| l - r))
+    }
+}
+
+impl<T: ops::SubAssign<U>, U, const N: usize> ops::SubAssign<Vector<U, N>> for Point<T, N> {
+    fn sub_assign(&mut self, rhs: Vector<U, N>) {
+        for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
+            *lhs -= rhs;
+        }
+    }
+}
+

@@ -1,6 +1,34 @@
 use crate::*;
 
 #[test]
+fn add_point_vec() {
+    assert_eq!(point2(1, 2) + vec2(3, 5), point2(4, 7));
+    assert_eq!(point3(1, 2, 3) + vec3(3, 5, 7), point3(4, 7, 10));
+
+    let mut x = point2(1.0, 2.0);
+    x += vec2(3.0, 5.0);
+    assert_eq!(x, point2(4.0, 7.0));
+
+    let mut x = point3(1.0, 2.0, 3.0);
+    x += vec3(3.0, 5.0, 7.0);
+    assert_eq!(x, point3(4.0, 7.0, 10.0));
+}
+
+#[test]
+fn sub_point_vec() {
+    assert_eq!(point2(4, 7) - vec2(3, 5), point2(1, 2));
+    assert_eq!(point3(4, 7, 10) - vec3(3, 5, 7), point3(1, 2, 3));
+
+    let mut x = point2(4.0, 7.0);
+    x -= vec2(3.0, 5.0);
+    assert_eq!(x, point2(1.0, 2.0));
+
+    let mut x = point3(4.0, 7.0, 10.0);
+    x -= vec3(3.0, 5.0, 7.0);
+    assert_eq!(x, point3(1.0, 2.0, 3.0));
+}
+
+#[test]
 fn mul() {
     assert_eq!(vec2(1, 2) * 3, vec2(3, 6));
     assert_eq!(vec3(1, 2, 3) * 3, vec3(3, 6, 9));
