@@ -8,7 +8,8 @@ use crate::{
 };
 
 
-/// An `N`-dimensional vector with scalar type `T`.
+/// An `N`-dimensional vector with scalar type `T`. This represents
+/// a *displacement* in space.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Vector<T, const N: usize>(pub(crate) [T; N]);

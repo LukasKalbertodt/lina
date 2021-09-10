@@ -101,3 +101,14 @@ fn neg() {
     assert_eq!(-vec2(9.0, -4.3), vec2(-9.0, 4.3));
     assert_eq!(-point2(9.0, -4.3), point2(-9.0, 4.3));
 }
+
+#[test]
+fn centroid() {
+    assert_eq!(Point3f::centroid([]), None);
+    assert_eq!(Point::centroid([point2(3.5, 1.0)]), Some(point2(3.5, 1.0)));
+    assert_eq!(Point::centroid([point2(0.0, 0.0), point2(4.0, 8.0)]), Some(point2(2.0, 4.0)));
+    assert_eq!(
+        Point::centroid([point2(-1.0, 9.0), point2(2.0, 0.0), point2(8.0, 3.0)]),
+        Some(point2(3.0, 4.0)),
+    );
+}

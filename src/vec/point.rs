@@ -1,9 +1,10 @@
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Vector, num::Zero, util::zip_map};
+use crate::{Vector, num::{One, Zero}, util::zip_map};
 
 
-/// A point in `N`-dimensional space with scalar type `T`.
+/// A point in `N`-dimensional space with scalar type `T`. It represents
+/// a *location* in space.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Point<T, const N: usize>(pub(crate) [T; N]);
@@ -42,6 +43,30 @@ impl<T, const N: usize> Point<T, N> {
     /// value.
     pub fn to_vec(self) -> Vector<T, N> {
         Vector(self.0)
+    }
+
+    /// Returns the centroid ("average") of all given points or `None` if the
+    /// given iterator is empty.
+    ///
+    /// ```
+    /// use lina::{Point, point2};
+    ///
+    /// let centroid = Point::centroid([point2(0.0, 8.0), point2(1.0, 6.0)]);
+    /// assert_eq!(centroid, Some(point2(0.5, 7.0)));
+    /// ```
+    pub fn centroid(points: impl IntoIterator<Item = Self>) -> Option<Self>
+    where
+        T: Clone + One + ops::Add<Output = T> + ops::Div<Output = T>,
+    {
+        let mut it = points.into_iter();
+        let mut total_displacement = it.next()?.to_vec();
+        let mut count = T::one();
+        for p in it {
+            total_displacement = total_displacement + p.to_vec();
+            count = count + T::one();
+        }
+
+        Some((total_displacement / count).to_point())
     }
 
     shared_methods!(Point, "point");
