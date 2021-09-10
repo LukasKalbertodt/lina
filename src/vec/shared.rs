@@ -1,5 +1,10 @@
 macro_rules! shared_methods {
     ($ty:ident, $tys_lower:literal) => {
+        #[doc = concat!(
+            "Applies the given function to each component and returns the resulting ",
+            $tys_lower,
+            ". Very similar to `[T; N]::map`.",
+        )]
         pub fn map<R, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N> {
             $ty(self.0.map(f))
         }
