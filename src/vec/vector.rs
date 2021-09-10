@@ -3,6 +3,7 @@ use bytemuck::{Pod, Zeroable};
 use crate::{
     named_scalar::{HasX, HasY, HasZ, HasW},
     num::{One, Zero},
+    util::zip_map,
 };
 
 
@@ -141,4 +142,34 @@ pub fn vec3<T>(x: T, y: T, z: T) -> Vec3<T> {
 /// Shorthand for `Vec4::new(...)`.
 pub fn vec4<T>(x: T, y: T, z: T, w: T) -> Vec4<T> {
     Vec4::new(x, y, z, w)
+}
+
+impl<T: ops::Add<U>, U, const N: usize> ops::Add<Vector<U, N>> for Vector<T, N> {
+    type Output = Vector<T::Output, N>;
+    fn add(self, rhs: Vector<U, N>) -> Self::Output {
+        Vector(zip_map(self.0, rhs.0, |l, r| l + r))
+    }
+}
+
+impl<T: ops::AddAssign<U>, U, const N: usize> ops::AddAssign<Vector<U, N>> for Vector<T, N> {
+    fn add_assign(&mut self, rhs: Vector<U, N>) {
+        for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
+            *lhs += rhs;
+        }
+    }
+}
+
+impl<T: ops::Sub<U>, U, const N: usize> ops::Sub<Vector<U, N>> for Vector<T, N> {
+    type Output = Vector<T::Output, N>;
+    fn sub(self, rhs: Vector<U, N>) -> Self::Output {
+        Vector(zip_map(self.0, rhs.0, |l, r| l - r))
+    }
+}
+
+impl<T: ops::SubAssign<U>, U, const N: usize> ops::SubAssign<Vector<U, N>> for Vector<T, N> {
+    fn sub_assign(&mut self, rhs: Vector<U, N>) {
+        for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
+            *lhs -= rhs;
+        }
+    }
 }
