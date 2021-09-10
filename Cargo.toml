@@ -1,0 +1,7 @@
+[package]
+name = "lina"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+bytemuck = { version = "1.7.2", features = ["min_const_generics"] }
