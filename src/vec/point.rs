@@ -5,7 +5,7 @@ use crate::num::Zero;
 
 
 /// A point in `N`-dimensional space with scalar type `T`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Point<T, const N: usize>([T; N]);
 

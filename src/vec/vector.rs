@@ -8,7 +8,7 @@ use crate::{
 
 
 /// An `N`-dimensional vector with scalar type `T`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Vector<T, const N: usize>([T; N]);
 

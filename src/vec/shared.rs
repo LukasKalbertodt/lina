@@ -45,5 +45,23 @@ macro_rules! shared_impls {
                 Self(src)
             }
         }
+
+        impl<T, const N: usize> Into<[T; N]> for $ty<T, N> {
+            fn into(self) -> [T; N] {
+                self.0
+            }
+        }
+
+        impl<T, const N: usize> AsRef<[T; N]> for $ty<T, N> {
+            fn as_ref(&self) -> &[T; N] {
+                &self.0
+            }
+        }
+
+        impl<T, const N: usize> AsMut<[T; N]> for $ty<T, N> {
+            fn as_mut(&mut self) -> &mut [T; N] {
+                &mut self.0
+            }
+        }
     };
 }
