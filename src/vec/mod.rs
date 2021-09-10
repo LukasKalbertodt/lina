@@ -55,7 +55,7 @@ macro_rules! shared {
 // ===== Vector
 // ===============================================================================================
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Vector<T, const N: usize>([T; N]);
 
@@ -140,7 +140,7 @@ pub fn vec4<T>(x: T, y: T) -> Vec2<T> {
 // ===== Point
 // ===============================================================================================
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Point<T, const N: usize>([T; N]);
 
