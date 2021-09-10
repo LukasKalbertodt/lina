@@ -1,5 +1,5 @@
 use bytemuck::{Pod, Zeroable};
-use num_traits::{One, Zero};
+use num_traits::{One, real::Real, Zero};
 
 use crate::{
     Point,
@@ -117,6 +117,49 @@ impl<T, const N: usize> Vector<T, N> {
     /// value.
     pub fn to_point(self) -> Point<T, N> {
         Point(self.0)
+    }
+
+    /// Returns the *squared* length of this vector. This is faster than
+    /// [`length`][Self::length] as no sqrt operation is required. And since
+    /// the square root is continious, if you only need to compare two lengths,
+    /// you can use this method.
+    pub fn length2(&self) -> T
+    where
+        T: Zero,
+        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T>,
+    {
+        self.0.iter().map(|c| c * c).fold(T::zero(), |acc, e| acc + e)
+    }
+
+    /// Returns the length of this vector. If you only need to compare two
+    /// lengths, [`length2`][Self::length2] is faster.
+    pub fn length(&self) -> T
+    where
+        T: Real,
+        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T>,
+    {
+        self.length2().sqrt()
+    }
+
+    /// Returns a normalized version of this vector (i.e. a vector with the same
+    /// direction, but length 1). Also see [`normalize`][Self::normalize].
+    pub fn normalized(mut self) -> Self
+    where
+        T: Real,
+        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T> + ops::Div<Output = T>,
+    {
+        self.normalize();
+        self
+    }
+
+    /// Normalizes the vector *in place* (i.e. maintain the direction but make
+    /// it length 1). Also see [`normalized`][Self::normalized].
+    pub fn normalize(&mut self)
+    where
+        T: Real,
+        for<'a> &'a T: ops::Mul<Output = T> + ops::Add<Output = T> + ops::Div<Output = T>,
+    {
+        *self = *self / self.length();
     }
 
     shared_methods!(Vector, "vector");
