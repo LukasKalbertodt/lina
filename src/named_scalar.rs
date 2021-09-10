@@ -1,5 +1,5 @@
 //! Helper types and traits to access specific coordinates of vectors of points
-//! by name `x`, `y`, `z` and `w`.
+//! by name (`x`, `y`, `z` and `w`).
 //!
 //! This only works with a small set of vectors/points with specific dimension.
 //! Thus, it is not something you can rely on in generic contexts, but is

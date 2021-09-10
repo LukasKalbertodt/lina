@@ -4,14 +4,19 @@ use bytemuck::{Pod, Zeroable};
 use crate::num::Zero;
 
 
+/// A point in `N`-dimensional space with scalar type `T`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Point<T, const N: usize>([T; N]);
 
+/// A point in 2-dimensional space.
 pub type Point2<T> = Point<T, 2>;
+/// A point in 3-dimensional space.
 pub type Point3<T> = Point<T, 3>;
 
+/// A point in 2-dimensional space with scalar type `f32`.
 pub type Point2f = Point2<f32>;
+/// A point in 3-dimensional space with scalar type `f32`.
 pub type Point3f = Point3<f32>;
 
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype

@@ -7,17 +7,29 @@ use crate::{
 };
 
 
+/// An `N`-dimensional vector with scalar type `T`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Vector<T, const N: usize>([T; N]);
 
+/// A 2-dimensional vector.
 pub type Vec2<T> = Vector<T, 2>;
+
+/// A 3-dimensional vector.
 pub type Vec3<T> = Vector<T, 3>;
+
+/// A 4-dimensional vector.
 pub type Vec4<T> = Vector<T, 4>;
 
+/// A 2-dimensional vector with scalar type `f32`.
 pub type Vec2f = Vec2<f32>;
+
+/// A 3-dimensional vector with scalar type `f32`.
 pub type Vec3f = Vec3<f32>;
+
+/// A 4-dimensional vector with scalar type `f32`.
 pub type Vec4f = Vec4<f32>;
+
 
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
 /// wrapper around an array with `repr(transparent)`.
