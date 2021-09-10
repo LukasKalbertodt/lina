@@ -5,7 +5,7 @@ macro_rules! shared_methods {
             $tys_lower,
             ". Very similar to `[T; N]::map`.",
         )]
-        pub fn map<R, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N> {
+        pub fn map<R: Scalar, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N> {
             $ty(self.0.map(f))
         }
     };
@@ -37,44 +37,44 @@ macro_rules! shared_impls {
             ops::{self, Index, IndexMut},
         };
 
-        impl<T, const N: usize> Index<usize> for $ty<T, N> {
+        impl<T: Scalar, const N: usize> Index<usize> for $ty<T, N> {
             type Output = T;
             fn index(&self, index: usize) -> &Self::Output {
                 &self.0[index]
             }
         }
 
-        impl<T, const N: usize> IndexMut<usize> for $ty<T, N> {
+        impl<T: Scalar, const N: usize> IndexMut<usize> for $ty<T, N> {
             fn index_mut(&mut self, index: usize) -> &mut Self::Output {
                 &mut self.0[index]
             }
         }
 
-        impl<T, const N: usize> From<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize> From<[T; N]> for $ty<T, N> {
             fn from(src: [T; N]) -> Self {
                 Self(src)
             }
         }
 
-        impl<T, const N: usize> Into<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize> Into<[T; N]> for $ty<T, N> {
             fn into(self) -> [T; N] {
                 self.0
             }
         }
 
-        impl<T, const N: usize> AsRef<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize> AsRef<[T; N]> for $ty<T, N> {
             fn as_ref(&self) -> &[T; N] {
                 &self.0
             }
         }
 
-        impl<T, const N: usize> AsMut<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize> AsMut<[T; N]> for $ty<T, N> {
             fn as_mut(&mut self) -> &mut [T; N] {
                 &mut self.0
             }
         }
 
-        impl<T: fmt::Debug, const N: usize> fmt::Debug for $ty<T, N> {
+        impl<T: Scalar, const N: usize> fmt::Debug for $ty<T, N> {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "{} [", $debug)?;
                 for (i, e) in self.0.iter().enumerate() {

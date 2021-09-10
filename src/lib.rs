@@ -28,7 +28,7 @@ pub use self::{
 /// - Floats: `f32` and `f64`
 /// - Signed integers: `i8`, `i16`, `i32`, `i64`, `i128`, `isize`
 /// - Unsigned integers: `u8`, `u16`, `u32`, `u64`, `u128`, `usize`
-pub trait Scalar: Num + Clone + Copy + Debug {}
+pub trait Scalar: Num + Clone + Copy + Debug + AddAssign + SubAssign + MulAssign + DivAssign {}
 
 impl<T> Scalar for T
 where

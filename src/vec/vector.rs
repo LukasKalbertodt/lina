@@ -11,7 +11,7 @@ use crate::{
 /// a *displacement* in space.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Vector<T, const N: usize>(pub(crate) [T; N]);
+pub struct Vector<T: Scalar, const N: usize>(pub(crate) [T; N]);
 
 /// A 2-dimensional vector.
 pub type Vec2<T> = Vector<T, 2>;
@@ -34,12 +34,12 @@ pub type Vec4f = Vec4<f32>;
 
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
 /// wrapper around an array with `repr(transparent)`.
-unsafe impl<T: Zeroable, const N: usize> Zeroable for Vector<T, N> {}
+unsafe impl<T: Scalar + Zeroable, const N: usize> Zeroable for Vector<T, N> {}
 
 /// The struct is marked as `repr(transparent)` so is guaranteed to have the
 /// same layout as `[T; N]`. And `bytemuck` itself has an impl for arrays where
 /// `T: Pod`.
-unsafe impl<T: Pod, const N: usize> Pod for Vector<T, N> {}
+unsafe impl<T: Scalar + Pod, const N: usize> Pod for Vector<T, N> {}
 
 impl<T: Scalar, const N: usize> Vector<T, N> {
     /// Returns the zero vector.
@@ -182,37 +182,40 @@ pub fn vec4<T: Scalar>(x: T, y: T, z: T, w: T) -> Vec4<T> {
     Vec4::new(x, y, z, w)
 }
 
-impl<T: ops::Add<U>, U, const N: usize> ops::Add<Vector<U, N>> for Vector<T, N> {
-    type Output = Vector<T::Output, N>;
-    fn add(self, rhs: Vector<U, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Add<Vector<T, N>> for Vector<T, N> {
+    type Output = Vector<T, N>;
+    fn add(self, rhs: Vector<T, N>) -> Self::Output {
         Vector(zip_map(self.0, rhs.0, |l, r| l + r))
     }
 }
 
-impl<T: ops::AddAssign<U>, U, const N: usize> ops::AddAssign<Vector<U, N>> for Vector<T, N> {
-    fn add_assign(&mut self, rhs: Vector<U, N>) {
+impl<T: Scalar, const N: usize> ops::AddAssign<Vector<T, N>> for Vector<T, N> {
+    fn add_assign(&mut self, rhs: Vector<T, N>) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs += rhs;
         }
     }
 }
 
-impl<T: ops::Sub<U>, U, const N: usize> ops::Sub<Vector<U, N>> for Vector<T, N> {
-    type Output = Vector<T::Output, N>;
-    fn sub(self, rhs: Vector<U, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Sub<Vector<T, N>> for Vector<T, N> {
+    type Output = Vector<T, N>;
+    fn sub(self, rhs: Vector<T, N>) -> Self::Output {
         Vector(zip_map(self.0, rhs.0, |l, r| l - r))
     }
 }
 
-impl<T: ops::SubAssign<U>, U, const N: usize> ops::SubAssign<Vector<U, N>> for Vector<T, N> {
-    fn sub_assign(&mut self, rhs: Vector<U, N>) {
+impl<T: Scalar, const N: usize> ops::SubAssign<Vector<T, N>> for Vector<T, N> {
+    fn sub_assign(&mut self, rhs: Vector<T, N>) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs -= rhs;
         }
     }
 }
 
-impl<T: Scalar + ops::Neg, const N: usize> ops::Neg for Vector<T, N> {
+impl<T: Scalar + ops::Neg, const N: usize> ops::Neg for Vector<T, N>
+where
+    <T as ops::Neg>::Output: Scalar,
+{
     type Output = Vector<<T as ops::Neg>::Output, N>;
     fn neg(self) -> Self::Output {
         self.map(|c| -c)
@@ -220,16 +223,16 @@ impl<T: Scalar + ops::Neg, const N: usize> ops::Neg for Vector<T, N> {
 }
 
 /// Scalar multipliation: `vector * scalar`.
-impl<S: Clone, T: Scalar + ops::Mul<S>, const N: usize> ops::Mul<S> for Vector<T, N> {
-    type Output = Vector<<T as ops::Mul<S>>::Output, N>;
-    fn mul(self, rhs: S) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Mul<T> for Vector<T, N> {
+    type Output = Vector<T, N>;
+    fn mul(self, rhs: T) -> Self::Output {
         self.map(|c| c * rhs.clone())
     }
 }
 
 /// Scalar multipliation: `vector *= scalar`.
-impl<S: Clone, T: ops::MulAssign<S>, const N: usize> ops::MulAssign<S> for Vector<T, N> {
-    fn mul_assign(&mut self, rhs: S) {
+impl<T: Scalar, const N: usize> ops::MulAssign<T> for Vector<T, N> {
+    fn mul_assign(&mut self, rhs: T) {
         for c in &mut self.0 {
             *c *= rhs.clone();
         }
@@ -237,18 +240,18 @@ impl<S: Clone, T: ops::MulAssign<S>, const N: usize> ops::MulAssign<S> for Vecto
 }
 
 /// Scalar division: `vector / scalar`.
-impl<S: Clone, T: Scalar + ops::Div<S>, const N: usize> ops::Div<S> for Vector<T, N> {
-    type Output = Vector<<T as ops::Div<S>>::Output, N>;
-    fn div(self, rhs: S) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Div<T> for Vector<T, N> {
+    type Output = Vector<T, N>;
+    fn div(self, rhs: T) -> Self::Output {
         self.map(|c| c / rhs.clone())
     }
 }
 
 /// Scalar division: `vector /= scalar`.
-impl<S: Clone, T: ops::DivAssign<S>, const N: usize> ops::DivAssign<S> for Vector<T, N> {
-    fn div_assign(&mut self, rhs: S) {
+impl<T: Scalar, const N: usize> ops::DivAssign<T> for Vector<T, N> {
+    fn div_assign(&mut self, rhs: T) {
         for c in &mut self.0 {
-            *c /= rhs.clone();
+            *c /= rhs;
         }
     }
 }

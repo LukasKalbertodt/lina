@@ -7,7 +7,7 @@ use crate::{Vector, Scalar, util::zip_map};
 /// a *location* in space.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Point<T, const N: usize>(pub(crate) [T; N]);
+pub struct Point<T: Scalar, const N: usize>(pub(crate) [T; N]);
 
 /// A point in 2-dimensional space.
 pub type Point2<T> = Point<T, 2>;
@@ -21,12 +21,12 @@ pub type Point3f = Point3<f32>;
 
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
 /// wrapper around an array with `repr(transparent)`.
-unsafe impl<T: Zeroable, const N: usize> Zeroable for Point<T, N> {}
+unsafe impl<T: Scalar + Zeroable, const N: usize> Zeroable for Point<T, N> {}
 
 /// The struct is marked as `repr(transparent)` so is guaranteed to have the
 /// same layout as `[T; N]`. And `bytemuck` itself has an impl for arrays where
 /// `T: Pod`.
-unsafe impl<T: Pod, const N: usize> Pod for Point<T, N> {}
+unsafe impl<T: Scalar + Pod, const N: usize> Pod for Point<T, N> {}
 
 impl<T: Scalar, const N: usize> Point<T, N> {
     /// Returns a point with all coordinates being zero (representing the origin).
@@ -87,39 +87,39 @@ pub fn point3<T: Scalar>(x: T, y: T, z: T) -> Point3<T> {
     Point3::new(x, y, z)
 }
 
-impl<T: ops::Add<U>, U, const N: usize> ops::Add<Vector<U, N>> for Point<T, N> {
-    type Output = Point<T::Output, N>;
-    fn add(self, rhs: Vector<U, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Add<Vector<T, N>> for Point<T, N> {
+    type Output = Point<T, N>;
+    fn add(self, rhs: Vector<T, N>) -> Self::Output {
         Point(zip_map(self.0, rhs.0, |l, r| l + r))
     }
 }
 
-impl<T: ops::AddAssign<U>, U, const N: usize> ops::AddAssign<Vector<U, N>> for Point<T, N> {
-    fn add_assign(&mut self, rhs: Vector<U, N>) {
+impl<T: Scalar, const N: usize> ops::AddAssign<Vector<T, N>> for Point<T, N> {
+    fn add_assign(&mut self, rhs: Vector<T, N>) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs += rhs;
         }
     }
 }
 
-impl<T: ops::Sub<U>, U, const N: usize> ops::Sub<Vector<U, N>> for Point<T, N> {
-    type Output = Point<T::Output, N>;
-    fn sub(self, rhs: Vector<U, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Sub<Vector<T, N>> for Point<T, N> {
+    type Output = Point<T, N>;
+    fn sub(self, rhs: Vector<T, N>) -> Self::Output {
         Point(zip_map(self.0, rhs.0, |l, r| l - r))
     }
 }
 
-impl<T: ops::SubAssign<U>, U, const N: usize> ops::SubAssign<Vector<U, N>> for Point<T, N> {
-    fn sub_assign(&mut self, rhs: Vector<U, N>) {
+impl<T: Scalar, const N: usize> ops::SubAssign<Vector<T, N>> for Point<T, N> {
+    fn sub_assign(&mut self, rhs: Vector<T, N>) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs -= rhs;
         }
     }
 }
 
-impl<T: ops::Sub<U>, U, const N: usize> ops::Sub<Point<U, N>> for Point<T, N> {
-    type Output = Vector<T::Output, N>;
-    fn sub(self, rhs: Point<U, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Sub<Point<T, N>> for Point<T, N> {
+    type Output = Vector<T, N>;
+    fn sub(self, rhs: Point<T, N>) -> Self::Output {
         Vector(zip_map(self.0, rhs.0, |l, r| l - r))
     }
 }
