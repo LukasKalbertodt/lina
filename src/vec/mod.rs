@@ -9,7 +9,7 @@ use crate::num::{One, Zero};
 // ===============================================================================================
 
 macro_rules! shared {
-    ($ty:ident) => {
+    ($ty:ident, $tys_lower:literal) => {
         impl<T, const N: usize> $ty<T, N> {
             pub fn map<R, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N> {
                 $ty(self.0.map(f))
@@ -18,12 +18,14 @@ macro_rules! shared {
         }
 
         impl<T> $ty<T, 2> {
+            #[doc = concat!("Returns a 2D ", $tys_lower, " from the given coordinates.")]
             pub fn new(x: T, y: T) -> Self {
                 Self([x, y])
             }
         }
 
         impl<T> $ty<T, 3> {
+            #[doc = concat!("Returns a 3D ", $tys_lower, " from the given coordinates.")]
             pub fn new(x: T, y: T, z: T) -> Self {
                 Self([x, y, z])
             }
@@ -77,48 +79,89 @@ unsafe impl<T: Zeroable, const N: usize> Zeroable for Vector<T, N> {}
 unsafe impl<T: Pod, const N: usize> Pod for Vector<T, N> {}
 
 impl<T, const N: usize> Vector<T, N> {
+    /// Returns the zero vector.
     pub fn zero() -> Self
     where
         T: Zero,
     {
         Self([(); N].map(|_| T::zero()))
     }
-}
 
-macro_rules! impl_unit_ctor {
-    ($name:ident, $val:expr) => {
-        pub fn $name() -> Self
-        where
-            T: Zero + One,
-        {
-            Self($val)
-        }
-    };
+    /// Returns a unit vector in x direction.
+    ///
+    /// ```
+    /// assert_eq!(lina::Vec2f::unit_x(), lina::vec2(1.0, 0.0));
+    /// ```
+    pub fn unit_x() -> Self
+    where
+        T: Zero + One,
+        Self: HasX<Scalar = T>,
+    {
+        let mut out = Self::zero();
+        *out.x_mut() = T::one();
+        out
+    }
+
+    /// Returns a unit vector in y direction.
+    ///
+    /// ```
+    /// assert_eq!(lina::Vec3f::unit_y(), lina::vec3(0.0, 1.0, 0.0));
+    /// ```
+    pub fn unit_y() -> Self
+    where
+        T: Zero + One,
+        Self: HasY<Scalar = T>,
+    {
+        let mut out = Self::zero();
+        *out.y_mut() = T::one();
+        out
+    }
+
+    /// Returns a unit vector in z direction.
+    ///
+    /// ```
+    /// assert_eq!(lina::Vec3f::unit_z(), lina::vec3(0.0, 0.0, 1.0));
+    /// ```
+    pub fn unit_z() -> Self
+    where
+        T: Zero + One,
+        Self: HasZ<Scalar = T>,
+    {
+        let mut out = Self::zero();
+        *out.z_mut() = T::one();
+        out
+    }
+
+    /// Returns a unit vector in w direction.
+    ///
+    /// ```
+    /// assert_eq!(lina::Vec4f::unit_w(), lina::vec4(0.0, 0.0, 0.0, 1.0));
+    /// ```
+    pub fn unit_w() -> Self
+    where
+        T: Zero + One,
+        Self: HasW<Scalar = T>,
+    {
+        let mut out = Self::zero();
+        *out.w_mut() = T::one();
+        out
+    }
 }
 
 impl<T> Vector<T, 2> {
-    impl_unit_ctor!(unit_x, [T::one(), T::zero()]);
-    impl_unit_ctor!(unit_y, [T::zero(), T::one()]);
 }
 
 impl<T> Vector<T, 3> {
-    impl_unit_ctor!(unit_x, [T::one(), T::zero(), T::zero()]);
-    impl_unit_ctor!(unit_y, [T::zero(), T::one(), T::zero()]);
-    impl_unit_ctor!(unit_z, [T::zero(), T::zero(), T::one()]);
 }
 
 impl<T> Vector<T, 4> {
+    /// Returns a 4D vector from the given coordinates.
     pub fn new(x: T, y: T, z: T, w: T) -> Self {
         Self([x, y, z, w])
     }
-
-    impl_unit_ctor!(unit_x, [T::one(), T::zero(), T::zero(), T::zero()]);
-    impl_unit_ctor!(unit_y, [T::zero(), T::one(), T::zero(), T::zero()]);
-    impl_unit_ctor!(unit_z, [T::zero(), T::zero(), T::one(), T::zero()]);
-    impl_unit_ctor!(unit_w, [T::zero(), T::zero(), T::zero(), T::one()]);
 }
 
-shared!(Vector);
+shared!(Vector, "vector");
 
 /// Shorthand for `Vec2::new(...)`.
 pub fn vec2<T>(x: T, y: T) -> Vec2<T> {
@@ -160,6 +203,7 @@ unsafe impl<T: Zeroable, const N: usize> Zeroable for Point<T, N> {}
 unsafe impl<T: Pod, const N: usize> Pod for Point<T, N> {}
 
 impl<T, const N: usize> Point<T, N> {
+    /// Returns a point with all coordinates being zero (representing the origin).
     pub fn origin() -> Self
     where
         T: Zero,
@@ -175,7 +219,7 @@ impl<T> Point<T, 3> {
 }
 
 
-shared!(Point);
+shared!(Point, "point");
 
 /// Shorthand for `Point2::new(...)`.
 pub fn point2<T>(x: T, y: T) -> Point2<T> {
@@ -265,3 +309,60 @@ impl_view_deref!(Vector, 3, View3);
 impl_view_deref!(Vector, 4, View4);
 impl_view_deref!(Point, 2, View2);
 impl_view_deref!(Point, 3, View3);
+
+pub trait HasX {
+    type Scalar;
+    fn x(&self) -> &Self::Scalar;
+    fn x_mut(&mut self) -> &mut Self::Scalar;
+}
+
+pub trait HasY {
+    type Scalar;
+    fn y(&self) -> &Self::Scalar;
+    fn y_mut(&mut self) -> &mut Self::Scalar;
+}
+
+pub trait HasZ {
+    type Scalar;
+    fn z(&self) -> &Self::Scalar;
+    fn z_mut(&mut self) -> &mut Self::Scalar;
+}
+
+pub trait HasW {
+    type Scalar;
+    fn w(&self) -> &Self::Scalar;
+    fn w_mut(&mut self) -> &mut Self::Scalar;
+}
+
+macro_rules! impl_has_axis {
+    ($ty:ident, $d:expr, $trait:ident, $i:expr, $axis:ident, $axis_mut:ident) => {
+        impl<T> $trait for $ty<T, $d> {
+            type Scalar = T;
+            fn $axis(&self) -> &Self::Scalar {
+                &self[$i]
+            }
+            fn $axis_mut(&mut self) -> &mut Self::Scalar {
+                &mut self[$i]
+            }
+        }
+    };
+}
+
+impl_has_axis!(Vector, 2, HasX, 0, x, x_mut);
+impl_has_axis!(Vector, 3, HasX, 0, x, x_mut);
+impl_has_axis!(Vector, 4, HasX, 0, x, x_mut);
+impl_has_axis!(Point, 2, HasX, 0, x, x_mut);
+impl_has_axis!(Point, 3, HasX, 0, x, x_mut);
+
+impl_has_axis!(Vector, 2, HasY, 1, y, y_mut);
+impl_has_axis!(Vector, 3, HasY, 1, y, y_mut);
+impl_has_axis!(Vector, 4, HasY, 1, y, y_mut);
+impl_has_axis!(Point, 2, HasY, 1, y, y_mut);
+impl_has_axis!(Point, 3, HasY, 1, y, y_mut);
+
+impl_has_axis!(Vector, 3, HasZ, 2, z, z_mut);
+impl_has_axis!(Vector, 4, HasZ, 2, z, z_mut);
+impl_has_axis!(Point, 3, HasZ, 2, z, z_mut);
+
+impl_has_axis!(Vector, 4, HasW, 3, w, w_mut);
+
