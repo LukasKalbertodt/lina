@@ -1,11 +1,10 @@
-use std::ops::{Index, IndexMut};
 use bytemuck::{Pod, Zeroable};
 
 use crate::num::Zero;
 
 
 /// A point in `N`-dimensional space with scalar type `T`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Point<T, const N: usize>([T; N]);
 
@@ -49,7 +48,7 @@ impl<T> Point<T, 3> {
 }
 
 
-shared_impls!(Point, "point");
+shared_impls!(Point, "point", "Point");
 
 /// Shorthand for `Point2::new(...)`.
 pub fn point2<T>(x: T, y: T) -> Point2<T> {

@@ -1,4 +1,3 @@
-use std::ops::{Index, IndexMut};
 use bytemuck::{Pod, Zeroable};
 
 use crate::{
@@ -8,7 +7,7 @@ use crate::{
 
 
 /// An `N`-dimensional vector with scalar type `T`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Vector<T, const N: usize>([T; N]);
 
@@ -127,7 +126,7 @@ impl<T> Vector<T, 4> {
     }
 }
 
-shared_impls!(Vector, "vector");
+shared_impls!(Vector, "vector", "Vec");
 
 /// Shorthand for `Vec2::new(...)`.
 pub fn vec2<T>(x: T, y: T) -> Vec2<T> {

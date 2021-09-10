@@ -26,7 +26,12 @@ macro_rules! shared_methods3 {
 }
 
 macro_rules! shared_impls {
-    ($ty:ident, $tys_lower:literal) => {
+    ($ty:ident, $tys_lower:literal, $debug:literal) => {
+        use std::{
+            fmt,
+            ops::{Index, IndexMut},
+        };
+
         impl<T, const N: usize> Index<usize> for $ty<T, N> {
             type Output = T;
             fn index(&self, index: usize) -> &Self::Output {
@@ -61,6 +66,19 @@ macro_rules! shared_impls {
         impl<T, const N: usize> AsMut<[T; N]> for $ty<T, N> {
             fn as_mut(&mut self) -> &mut [T; N] {
                 &mut self.0
+            }
+        }
+
+        impl<T: fmt::Debug, const N: usize> fmt::Debug for $ty<T, N> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "{} [", $debug)?;
+                for (i, e) in self.0.iter().enumerate() {
+                    if i != 0 {
+                        write!(f, ", ")?;
+                    }
+                    e.fmt(f)?;
+                }
+                write!(f, "]")
             }
         }
     };
