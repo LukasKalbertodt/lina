@@ -49,6 +49,11 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
         Self([(); N].map(|_| T::zero()))
     }
 
+    /// Returns `true` if this vector is the zero vector (all components 0).
+    pub fn is_zero(&self) -> bool {
+        self.0.iter().all(|c| c.is_zero())
+    }
+
     /// Returns a unit vector in x direction.
     ///
     /// ```
