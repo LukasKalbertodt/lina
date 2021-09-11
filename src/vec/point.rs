@@ -1,6 +1,6 @@
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Vector, Scalar, util::zip_map};
+use crate::{Vector, Scalar, Real, util::zip_map};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents
@@ -32,6 +32,39 @@ impl<T: Scalar, const N: usize> Point<T, N> {
     /// Returns a point with all coordinates being zero (representing the origin).
     pub fn origin() -> Self {
         Self([(); N].map(|_| T::zero()))
+    }
+
+    /// Returns the *squared* distance between `self` and `other`, i.e.
+    /// `|self - other|²`. If you only need to compare two distances, this can
+    /// be used as a faster alternative to [`distance_from`][Self::distance_from],
+    /// since the sqrt function is continious.
+    ///
+    /// ```
+    /// use lina::point2;
+    ///
+    /// let d = point2(1.0, 5.5).distance2_from(point2(4.0, 1.5));
+    /// assert_eq!(d, 25.0);
+    /// ```
+    pub fn distance2_from(self, other: Self) -> T {
+        (self - other).length2()
+    }
+
+    /// Returns the distance between `self` and `other`, i.e. `|self - other|`.
+    ///
+    /// If you only need to compare two distances, you may use the faster
+    /// [`distance2_from`][Self::distance2_from].
+    ///
+    /// ```
+    /// use lina::point2;
+    ///
+    /// let d = point2(1.0, 5.5).distance_from(point2(4.0, 1.5));
+    /// assert_eq!(d, 5.0);
+    /// ```
+    pub fn distance_from(self, other: Self) -> T
+    where
+        T: Real,
+    {
+        (self - other).length()
     }
 
     /// Converts this point into a vector without changing the component values.
