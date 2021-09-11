@@ -60,11 +60,11 @@ pub trait Angle: Copy + Debug
 }
 
 /// An angle in radians. A full rotation is 2π radians.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Radians<T: Float>(pub T);
 
 /// An angle in degrees. A full rotation is 360°.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Degrees<T: Float>(pub T);
 
 impl<T: Float> Angle for Radians<T> {
