@@ -2,6 +2,7 @@ use std::{
     fmt::Debug,
     ops::{AddAssign, SubAssign, MulAssign, DivAssign},
 };
+use bytemuck::Pod;
 use num_traits::Num;
 
 mod vec;
@@ -28,11 +29,13 @@ pub use self::{
 /// - Floats: `f32` and `f64`
 /// - Signed integers: `i8`, `i16`, `i32`, `i64`, `i128`, `isize`
 /// - Unsigned integers: `u8`, `u16`, `u32`, `u64`, `u128`, `usize`
-pub trait Scalar: Num + Clone + Copy + Debug + AddAssign + SubAssign + MulAssign + DivAssign {}
+pub trait Scalar:
+    Num + Clone + Copy + Debug + AddAssign + SubAssign + MulAssign + DivAssign + Pod
+{}
 
 impl<T> Scalar for T
 where
-    T: Num + Clone + Copy + Debug + AddAssign + SubAssign + MulAssign + DivAssign,
+    T: Num + Clone + Copy + Debug + AddAssign + SubAssign + MulAssign + DivAssign + Pod,
 {}
 
 /// A scalar that approximates the real numbers.

@@ -68,13 +68,13 @@ unsafe impl<T: Pod> Pod for View4<T> {}
 // `Deref` and `DerefMut` impls to enable `.x` like field access.
 macro_rules! impl_view_deref {
     ($ty:ident, $n:expr, $view_ty:ident) => {
-        impl<T: Scalar + Pod> Deref for $ty<T, $n> {
+        impl<T: Scalar> Deref for $ty<T, $n> {
             type Target = $view_ty<T>;
             fn deref(&self) -> &Self::Target {
                 bytemuck::cast_ref(self)
             }
         }
-        impl<T: Scalar + Pod> DerefMut for $ty<T, $n> {
+        impl<T: Scalar> DerefMut for $ty<T, $n> {
             fn deref_mut(&mut self) -> &mut Self::Target {
                 bytemuck::cast_mut(self)
             }
