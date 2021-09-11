@@ -113,3 +113,11 @@ pub fn dot<T: Scalar, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> T {
     }
     out
 }
+
+/// The [`atan2` function](https://en.wikipedia.org/wiki/Atan2).
+///
+/// This returns the angle between the positive x axis and the vector `[x, y]`
+/// (mind the switched order of the function arguments).
+pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
+    Radians(T::atan2(y, x))
+}
