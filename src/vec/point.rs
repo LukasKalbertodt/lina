@@ -19,6 +19,11 @@ pub type Point2f = Point2<f32>;
 /// A point in 3-dimensional space with scalar type `f32`.
 pub type Point3f = Point3<f32>;
 
+/// A point in 2-dimensional space with scalar type `f64`.
+pub type Point2d = Point2<f64>;
+/// A point in 3-dimensional space with scalar type `f64`.
+pub type Point3d = Point3<f64>;
+
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
 /// wrapper around an array with `repr(transparent)`.
 unsafe impl<T: Scalar + Zeroable, const N: usize> Zeroable for Point<T, N> {}

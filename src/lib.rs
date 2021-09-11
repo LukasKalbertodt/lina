@@ -13,8 +13,10 @@ pub mod named_scalar;
 pub use self::{
     angle::{Angle, Degrees, Radians},
     vec::{
-        point::{Point, Point2, Point2f, Point3, Point3f, point2, point3},
-        vector::{Vector, Vec2, Vec2f, Vec3, Vec3f, Vec4, Vec4f, vec2, vec3, vec4},
+        point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
+        vector::{
+            Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, Vec4, Vec4f, Vec4d, vec2, vec3, vec4
+        },
     },
 };
 
