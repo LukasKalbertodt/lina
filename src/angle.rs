@@ -1,11 +1,18 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops};
 use num_traits::Float as _;
 
 use crate::Float;
 
 
 /// Values representing an angle. Implemented by [`Radians`] and [`Degrees`].
-pub trait Angle: From<Radians<Self::Unitless>> + From<Degrees<Self::Unitless>> + Copy + Debug {
+pub trait Angle: Copy + Debug
+    + From<Radians<Self::Unitless>> + From<Degrees<Self::Unitless>>
+    + ops::Add<Self, Output = Self> + ops::AddAssign
+    + ops::Sub<Self, Output = Self> + ops::SubAssign
+    + ops::Mul<Self::Unitless, Output = Self> + ops::MulAssign<Self::Unitless>
+    + ops::Div<Self::Unitless, Output = Self> + ops::DivAssign<Self::Unitless>
+    + ops::Neg
+{
     type Unitless: Float;
 
     /// A full rotation: 2π radians or 360°.
@@ -40,7 +47,7 @@ pub trait Angle: From<Radians<Self::Unitless>> + From<Degrees<Self::Unitless>> +
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Radians<T: Float>(pub T);
 
-/// An angle in degree. A full rotation is 360°.
+/// An angle in degrees. A full rotation is 360°.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Degrees<T: Float>(pub T);
 
@@ -89,3 +96,70 @@ impl<T: Float> From<Radians<T>> for Degrees<T> {
         src.to_degrees()
     }
 }
+
+macro_rules! impl_ops {
+    ($ty:ident) => {
+        impl<T: Float> ops::Mul<T> for $ty<T> {
+            type Output = Self;
+            fn mul(self, rhs: T) -> Self {
+                Self(self.0 * rhs)
+            }
+        }
+
+        impl<T: Float> ops::MulAssign<T> for $ty<T> {
+            fn mul_assign(&mut self, rhs: T) {
+                self.0 *= rhs;
+            }
+        }
+
+
+        impl<T: Float> ops::Div<T> for $ty<T> {
+            type Output = Self;
+            fn div(self, rhs: T) -> Self {
+                Self(self.0 / rhs)
+            }
+        }
+
+        impl<T: Float> ops::DivAssign<T> for $ty<T> {
+            fn div_assign(&mut self, rhs: T) {
+                self.0 /= rhs;
+            }
+        }
+
+        impl<T: Float> ops::Neg for $ty<T> {
+            type Output = Self;
+            fn neg(self) -> Self {
+                Self(-self.0)
+            }
+        }
+
+        impl<T: Float> ops::Add for $ty<T> {
+            type Output = Self;
+            fn add(self, rhs: Self) -> Self {
+                Self(self.0 + rhs.0)
+            }
+        }
+
+        impl<T: Float> ops::AddAssign for $ty<T> {
+            fn add_assign(&mut self, rhs: Self) {
+                self.0 += rhs.0;
+            }
+        }
+
+        impl<T: Float> ops::Sub for $ty<T> {
+            type Output = Self;
+            fn sub(self, rhs: Self) -> Self {
+                Self(self.0 - rhs.0)
+            }
+        }
+
+        impl<T: Float> ops::SubAssign for $ty<T> {
+            fn sub_assign(&mut self, rhs: Self) {
+                self.0 -= rhs.0;
+            }
+        }
+    };
+}
+
+impl_ops!(Radians);
+impl_ops!(Degrees);
