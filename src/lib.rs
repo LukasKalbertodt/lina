@@ -50,3 +50,28 @@ impl<T> Real for T
 where
     T: Scalar + num_traits::real::Real,
 {}
+
+/// Returns the [cross product][wiki] `a ⨯ b`, a vector perpendicular to both
+/// input vectors.
+///
+/// ```
+/// use lina::{cross, vec3};
+///
+/// assert_eq!(
+///     cross(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)),
+///     vec3(0.0, 0.0, 1.0),
+/// );
+/// assert_eq!(
+///     cross(vec3(2.0, 0.0, 2.0), vec3(2.0, 0.0, -2.0)),
+///     vec3(0.0, 8.0, 0.0),
+/// );
+/// ```
+///
+/// [wiki]: https://en.wikipedia.org/wiki/Cross_product
+pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
+    vec3(
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x,
+    )
+}
