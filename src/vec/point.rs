@@ -1,6 +1,6 @@
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Vector, Scalar, Real, util::zip_map};
+use crate::{Vector, Scalar, Float, util::zip_map};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents
@@ -62,7 +62,7 @@ impl<T: Scalar, const N: usize> Point<T, N> {
     /// ```
     pub fn distance_from(self, other: Self) -> T
     where
-        T: Real,
+        T: Float,
     {
         (self - other).length()
     }

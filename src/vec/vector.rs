@@ -1,7 +1,7 @@
 use bytemuck::{Pod, Zeroable};
 
 use crate::{
-    Point, Scalar, Real,
+    Point, Scalar, Float,
     named_scalar::{HasX, HasY, HasZ, HasW},
 };
 
@@ -122,7 +122,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
     /// lengths, [`length2`][Self::length2] is faster.
     pub fn length(&self) -> T
     where
-        T: Real,
+        T: Float,
     {
         self.length2().sqrt()
     }
@@ -131,7 +131,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
     /// direction, but length 1). Also see [`normalize`][Self::normalize].
     pub fn normalized(mut self) -> Self
     where
-        T: Real,
+        T: Float,
     {
         self.normalize();
         self
@@ -141,7 +141,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
     /// it length 1). Also see [`normalized`][Self::normalized].
     pub fn normalize(&mut self)
     where
-        T: Real,
+        T: Float,
     {
         *self = *self / self.length();
     }

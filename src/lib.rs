@@ -38,17 +38,17 @@ where
     T: Num + Clone + Copy + Debug + AddAssign + SubAssign + MulAssign + DivAssign + Pod,
 {}
 
-/// A scalar that approximates the real numbers.
+/// A floating point scalar.
 ///
 /// This is similar to [`Scalar`] as it defines coarse requirements for using
 /// functions of this library. It is used whenever `Scalar` is not sufficient,
 /// which is basically whenever a function does not make sense for integers.
 /// This trait is implemented for at least `f32` and `f64`.
-pub trait Real: Scalar + num_traits::real::Real {}
+pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {}
 
-impl<T> Real for T
+impl<T> Float for T
 where
-    T: Scalar + num_traits::real::Real,
+    T: Scalar + num_traits::Float + num_traits::FloatConst,
 {}
 
 /// Returns the [cross product][wiki] `a ⨯ b`, a vector perpendicular to both
