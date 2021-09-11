@@ -75,3 +75,39 @@ pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
         a.x * b.y - a.y * b.x,
     )
 }
+
+/// Returns the [dot product][wiki] `a · b`, a scalar value.
+///
+/// The dot product is equal to the product of the vectors lengths/magnitudes
+/// and the cosine of the angle between the two vectors. So if both input
+/// vectors are normalized, the dot product is exactly `cos(a)` with `a` being
+/// the angle between the two vectors.
+///
+/// Another way to think about the dot product is to imagine one vector being
+/// projected onto the other one. The dot product is incredible useful in many
+/// scenarios.
+///
+/// This function panics if `N = 0` as dot products of 0-dimensional vectors
+/// make little sense.
+///
+/// ```
+/// use lina::{dot, vec2, vec3};
+///
+/// assert_eq!(dot(vec2(0, 0), vec2(1, 1)), 0);     // dot product of zero vectors are 0
+/// assert_eq!(dot(vec2(-2, 0), vec2(3, 0)), -6);   // product of lengths times cos(180°) = -1
+/// assert_eq!(dot(vec2(8, 0), vec2(0, 5)), 0);     // angle is 90°, cos(90°) = 0
+/// assert_eq!(dot(vec2(1, 1), vec2(4, 0)), 4);
+/// ```
+///
+/// [wiki]: https://en.wikipedia.org/wiki/Dot_product
+pub fn dot<T: Scalar, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> T {
+    if N == 0 {
+        panic!("the dot product of 0-dimensional vectors is not useful");
+    }
+
+    let mut out = a[0] * b[0];
+    for i in 1..N {
+        out += a[i] * b[i];
+    }
+    out
+}
