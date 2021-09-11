@@ -93,7 +93,7 @@ pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
 /// make little sense.
 ///
 /// ```
-/// use lina::{dot, vec2, vec3};
+/// use lina::{dot, vec2};
 ///
 /// assert_eq!(dot(vec2(0, 0), vec2(1, 1)), 0);     // dot product of zero vectors are 0
 /// assert_eq!(dot(vec2(-2, 0), vec2(3, 0)), -6);   // product of lengths times cos(180°) = -1
@@ -120,4 +120,24 @@ pub fn dot<T: Scalar, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> T {
 /// (mind the switched order of the function arguments).
 pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
     Radians(T::atan2(y, x))
+}
+
+/// Returns the angle between the two given vectors. Returns garbage if either
+/// vector has length 0.
+///
+/// If you already know the vectors are normalized, it's faster to manually
+/// calculate `Radians::acos(dot(a, b))`, as this skips calculating the
+/// vectors' lengths.
+///
+///
+/// ```
+/// use lina::{angle_between, vec2, Radians};
+/// use std::f32::consts::PI;
+///
+/// assert_eq!(angle_between(vec2(1.0, 0.0), vec2(3.0, 0.0)), Radians(0.0));
+/// assert_eq!(angle_between(vec2(-2.0, 0.0), vec2(3.0, 0.0)), Radians(PI));       // 180°
+/// assert_eq!(angle_between(vec2(0.2, 0.0), vec2(0.0, 7.3)), Radians(PI / 2.0));  // 90°
+/// ```
+pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> Radians<T> {
+    Radians::acos(dot(a, b) / (a.length() * b.length()))
 }
