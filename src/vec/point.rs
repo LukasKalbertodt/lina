@@ -63,7 +63,7 @@ impl<T: Scalar, const N: usize> Point<T, N> {
         Some((total_displacement / count).to_point())
     }
 
-    shared_methods!(Point, "point");
+    shared_methods!(Point, "point", "point3");
 }
 
 impl<T: Scalar> Point<T, 2> {

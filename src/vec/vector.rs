@@ -3,7 +3,6 @@ use bytemuck::{Pod, Zeroable};
 use crate::{
     Point, Scalar, Real,
     named_scalar::{HasX, HasY, HasZ, HasW},
-    util::zip_map,
 };
 
 
@@ -147,7 +146,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
         *self = *self / self.length();
     }
 
-    shared_methods!(Vector, "vector");
+    shared_methods!(Vector, "vector", "vec3");
 }
 
 impl<T: Scalar> Vector<T, 2> {
@@ -185,7 +184,7 @@ pub fn vec4<T: Scalar>(x: T, y: T, z: T, w: T) -> Vec4<T> {
 impl<T: Scalar, const N: usize> ops::Add<Vector<T, N>> for Vector<T, N> {
     type Output = Vector<T, N>;
     fn add(self, rhs: Vector<T, N>) -> Self::Output {
-        Vector(zip_map(self.0, rhs.0, |l, r| l + r))
+        self.zip_map(rhs, |l, r| l + r)
     }
 }
 
@@ -200,7 +199,7 @@ impl<T: Scalar, const N: usize> ops::AddAssign<Vector<T, N>> for Vector<T, N> {
 impl<T: Scalar, const N: usize> ops::Sub<Vector<T, N>> for Vector<T, N> {
     type Output = Vector<T, N>;
     fn sub(self, rhs: Vector<T, N>) -> Self::Output {
-        Vector(zip_map(self.0, rhs.0, |l, r| l - r))
+        self.zip_map(rhs, |l, r| l - r)
     }
 }
 

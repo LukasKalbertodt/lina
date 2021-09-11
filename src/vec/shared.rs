@@ -1,12 +1,41 @@
 macro_rules! shared_methods {
-    ($ty:ident, $tys_lower:literal) => {
-        #[doc = concat!(
-            "Applies the given function to each component and returns the resulting ",
-            $tys_lower,
-            ". Very similar to `[T; N]::map`.",
-        )]
+    ($ty:ident, $tys_lower:literal, $ctor3:literal) => {
+        /// Applies the given function to each component and returns the resulting
+        #[doc = concat!(" ", $tys_lower, ".")]
+        /// Very similar to `[T; N]::map`.
+        ///
+        /// ```
+        #[doc = concat!("use lina::", $ctor3, ";")]
+        ///
+        #[doc = concat!("let r = ", $ctor3, "(1.0, 2.0, 3.0).map(|c| c * 2.0);")]
+        #[doc = concat!("assert_eq!(r, ", $ctor3, "(2.0, 4.0, 6.0));")]
+        /// ```
         pub fn map<R: Scalar, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N> {
             $ty(self.0.map(f))
+        }
+
+        /// Pairs up the components of `self` and `other`, applies the given
+        /// function to each pair and returns the resulting
+        #[doc = concat!(" ", $tys_lower, ".")]
+        ///
+        /// This can be used for all "component-wise" operations, like
+        /// multiplication:
+        ///
+        /// ```
+        #[doc = concat!("use lina::", $ctor3, ";")]
+        ///
+        #[doc = concat!("let a = ", $ctor3, "(1, 2, 3);")]
+        #[doc = concat!("let b = ", $ctor3, "(4, 5, 6);")]
+        /// let r = a.zip_map(b, |ac, bc| ac * bc);
+        #[doc = concat!("assert_eq!(r, ", $ctor3, "(4, 10, 18));")]
+        /// ```
+        pub fn zip_map<U, R, F>(self, other: $ty<U, N>, f: F) -> $ty<R, N>
+        where
+            U: Scalar,
+            R: Scalar,
+            F: FnMut(T, U) -> R,
+        {
+            $ty(crate::util::zip_map(self.0, other.0, f))
         }
     };
 }
