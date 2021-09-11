@@ -143,3 +143,17 @@ pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
 pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> Radians<T> {
     Radians::acos(dot(a, b) / (a.length() * b.length()))
 }
+
+/// Clamps `val` into the range `min..=max`.
+///
+/// The trait bound *should* technically be `Ord`, but that's inconvenient when
+/// dealing with floats. When you pass a `NaN` you will get a strange result.
+pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
+    assert!(min < max);
+
+    match () {
+        () if val < min => min,
+        () if val > max => max,
+        _ => val,
+    }
+}
