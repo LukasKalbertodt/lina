@@ -1,5 +1,5 @@
 use std::{fmt::Debug, ops};
-use num_traits::Float as _;
+use num_traits::{Float as _, Zero};
 
 use crate::Float;
 
@@ -21,6 +21,7 @@ pub trait Angle: Copy + Debug
     fn to_radians(self) -> Radians<Self::Unitless>;
     fn to_degrees(self) -> Degrees<Self::Unitless>;
     fn unitless(self) -> Self::Unitless;
+    fn from_unitless(v: Self::Unitless) -> Self;
 
     fn sin(self) -> Self::Unitless {
         self.to_radians().unitless().sin()
@@ -40,6 +41,21 @@ pub trait Angle: Copy + Debug
     }
     fn atan(v: Self::Unitless) -> Self {
         Radians(v.atan()).into()
+    }
+
+    /// Returns the angle normalized into the range `0..Self::full_turn()`.
+    fn normalized(self) -> Self {
+        let rem = self.unitless() % Self::full_turn().unitless();
+        if rem < Self::Unitless::zero() {
+            Self::from_unitless(rem + Self::full_turn().unitless())
+        } else {
+            Self::from_unitless(rem)
+        }
+    }
+
+    /// Normalizes this angle *in-place* into the range `0..Self::full_turn()`.
+    fn normalize(&mut self) {
+        *self = (*self).normalized();
     }
 }
 
@@ -66,6 +82,9 @@ impl<T: Float> Angle for Radians<T> {
     fn unitless(self) -> Self::Unitless {
         self.0
     }
+    fn from_unitless(v: Self::Unitless) -> Self {
+        Self(v)
+    }
 }
 
 impl<T: Float> Angle for Degrees<T> {
@@ -82,6 +101,9 @@ impl<T: Float> Angle for Degrees<T> {
     }
     fn unitless(self) -> Self::Unitless {
         self.0
+    }
+    fn from_unitless(v: Self::Unitless) -> Self {
+        Self(v)
     }
 }
 
