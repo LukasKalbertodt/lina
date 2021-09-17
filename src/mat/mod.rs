@@ -1,10 +1,15 @@
-use std::ops::{self, Index, IndexMut};
+use std::{fmt, ops::{self, Index, IndexMut}};
 
 use crate::{Scalar, Vector, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
 /// Column-major memory layout.
+///
+/// *Note*: the `Debug` output (via `{:?}`) prints the matrix in row-major
+/// order, i.e. row-by-row. This is more intuitive when reading matrices. You
+/// can also use the "alternate" flat `#` (i.e. `{:#?}`) which avoids that
+/// confusion by using one actual line per matrix row.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Matrix<T: Scalar, const C: usize, const R: usize>([[T; R]; C]);
@@ -289,5 +294,30 @@ where
     type Output = Matrix<<T as ops::Neg>::Output, C, R>;
     fn neg(self) -> Self::Output {
         self.map(|elem| -elem)
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        /// Helper type to format an array as a single line, regardless of
+        /// alternate flag.
+        struct Row<T, const N: usize>([T; N]);
+
+        impl<T: fmt::Debug, const N: usize> fmt::Debug for Row<T, N> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "[")?;
+                for (i, elem) in self.0.iter().enumerate() {
+                    if i != 0 {
+                        write!(f, ", ")?;
+                    }
+                    elem.fmt(f)?;
+                }
+                write!(f, "]")
+            }
+        }
+
+        write!(f, "Matrix ")?;
+        let rows = (0..R).map(|i| Row(self.row(i).into()));
+        f.debug_list().entries(rows).finish()
     }
 }
