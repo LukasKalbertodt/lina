@@ -70,6 +70,30 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         out
     }
 
+    /// Returns a matrix with the specified columns. This matches the memory
+    /// layout but is usually more difficult to read in code. Consider using
+    /// `Matrix::from_rows` instead.
+    ///
+    /// ```
+    /// use lina::{Matrix, vec2};
+    ///
+    /// let m = <Matrix<_, 2, 3>>::from_cols([
+    ///     [1, 2, 3],
+    ///     [4, 5, 6],
+    /// ]);
+    ///
+    ///
+    /// assert_eq!(m.row(0), vec2(1, 4));
+    /// assert_eq!(m.row(1), vec2(2, 5));
+    /// assert_eq!(m.row(2), vec2(3, 6));
+    /// ```
+    pub fn from_cols<V>(cols: [V; C]) -> Self
+    where
+        V: Into<Vector<T, R>>,
+    {
+        Self(cols.map(|v| v.into().into()))
+    }
+
     /// Returns the column with index `idx`.
     pub fn col(&self, idx: usize) -> Vector<T, R> {
         self[idx].into()
