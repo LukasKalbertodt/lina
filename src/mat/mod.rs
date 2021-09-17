@@ -260,6 +260,32 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     pub fn transpose(&mut self) {
         *self = self.transposed();
     }
+
+    /// Returns a homogeneous transformation matrix that scales all axis by
+    /// `factor`. Example for `Mat4` (with `f` being `factor`):
+    ///
+    /// ```text
+    /// ⎡ f 0 0 0 ⎤
+    /// ⎢ 0 f 0 0 ⎥
+    /// ⎢ 0 0 f 0 ⎥
+    /// ⎣ 0 0 0 1 ⎦
+    /// ```
+    ///
+    /// ```
+    /// use lina::{Mat4f, vec4};
+    ///
+    /// let m = Mat4f::homogeneous_scale(3.5);
+    ///
+    /// assert_eq!(m.row(0), vec4(3.5, 0.0, 0.0, 0.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 3.5, 0.0, 0.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 3.5, 0.0));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
+    /// ```
+    pub fn homogeneous_scale(factor: T) -> Self {
+        let mut diag = [factor; N];
+        diag[N - 1] = T::one();
+        Self::from_diagonal(diag)
+    }
 }
 
 
