@@ -115,6 +115,27 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         }
     }
 
+    /// Returns the transposed version of this matrix (swapping rows and
+    /// columns). Also see [`Matrix::transpose`].
+    ///
+    /// ```
+    /// use lina::{Matrix, vec2};
+    ///
+    /// let m = Matrix::from_rows([
+    ///     [1, 2, 3],
+    ///     [4, 5, 6],
+    /// ]);
+    /// let t = m.transposed();
+    ///
+    /// assert_eq!(t.row(0), vec2(1, 4));
+    /// assert_eq!(t.row(1), vec2(2, 5));
+    /// assert_eq!(t.row(2), vec2(3, 6));
+    /// ```
+    #[must_use = "to transpose in-place, use `Matrix::transpose`, not `transposed`"]
+    pub fn transposed(self) -> Matrix<T, R, C> {
+        Matrix::from_rows(self.0)
+    }
+
     /// Applies the given function to each element and returns the resulting new
     /// matrix.
     ///
@@ -233,6 +254,11 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
         for i in 0..N {
             self[i][i] = v[i];
         }
+    }
+
+    /// Transposes this matrix in-place. Also see [`Matrix::transposed`].
+    pub fn transpose(&mut self) {
+        *self = self.transposed();
     }
 }
 
