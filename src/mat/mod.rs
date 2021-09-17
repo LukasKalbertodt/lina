@@ -255,3 +255,39 @@ impl<T: Scalar, const C: usize, const R: usize> ops::SubAssign for Matrix<T, C, 
         *self = *self - rhs;
     }
 }
+
+impl<T: Scalar, const C: usize, const R: usize> ops::Mul<T> for Matrix<T, C, R> {
+    type Output = Matrix<T, C, R>;
+    fn mul(self, rhs: T) -> Self::Output {
+        self.map(|elem| elem * rhs)
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::MulAssign<T> for Matrix<T, C, R> {
+    fn mul_assign(&mut self, rhs: T) {
+        *self = *self * rhs;
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::Div<T> for Matrix<T, C, R> {
+    type Output = Matrix<T, C, R>;
+    fn div(self, rhs: T) -> Self::Output {
+        self.map(|elem| elem / rhs)
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::DivAssign<T> for Matrix<T, C, R> {
+    fn div_assign(&mut self, rhs: T) {
+        *self = *self / rhs;
+    }
+}
+
+impl<T: Scalar + ops::Neg, const C: usize, const R: usize> ops::Neg for Matrix<T, C, R>
+where
+    <T as ops::Neg>::Output: Scalar,
+{
+    type Output = Matrix<<T as ops::Neg>::Output, C, R>;
+    fn neg(self) -> Self::Output {
+        self.map(|elem| -elem)
+    }
+}
