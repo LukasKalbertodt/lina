@@ -176,8 +176,23 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// assert_eq!(mat.row(2), vec3(0.0, 0.0, 1.0));
     /// ```
     pub fn identity() -> Self {
+        Self::from_diagonal([T::one(); N])
+    }
+
+    /// Returns a matrix with the given diagonal and all other elements set to 0.
+    ///
+    /// ```
+    /// use lina::{Mat3, vec3};
+    ///
+    /// let mat = Mat3::from_diagonal([1, 2, 3]);
+    ///
+    /// assert_eq!(mat.row(0), vec3(1, 0, 0));
+    /// assert_eq!(mat.row(1), vec3(0, 2, 0));
+    /// assert_eq!(mat.row(2), vec3(0, 0, 3));
+    /// ```
+    pub fn from_diagonal(v: impl Into<Vector<T, N>>) -> Self {
         let mut m = Self::zero();
-        m.set_diagonal([T::one(); N]);
+        m.set_diagonal(v);
         m
     }
 
