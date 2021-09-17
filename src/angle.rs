@@ -44,6 +44,7 @@ pub trait Angle: Copy + Debug
     }
 
     /// Returns the angle normalized into the range `0..Self::full_turn()`.
+    #[must_use = "to normalize in-place, use `Angle::normalize`, not `normalized`"]
     fn normalized(self) -> Self {
         let rem = self.unitless() % Self::full_turn().unitless();
         if rem < Self::Unitless::zero() {

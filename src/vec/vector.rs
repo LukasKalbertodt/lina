@@ -137,6 +137,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
 
     /// Returns a normalized version of this vector (i.e. a vector with the same
     /// direction, but length 1). Also see [`normalize`][Self::normalize].
+    #[must_use = "to normalize in-place, use `Vector::normalize`, not `normalized`"]
     pub fn normalized(mut self) -> Self
     where
         T: Float,
