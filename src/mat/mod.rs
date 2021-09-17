@@ -321,3 +321,7 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
         f.debug_list().entries(rows).finish()
     }
 }
+
+
+#[cfg(test)]
+mod tests;
