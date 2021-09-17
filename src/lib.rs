@@ -6,12 +6,14 @@ use bytemuck::Pod;
 use num_traits::Num;
 
 mod angle;
+mod mat;
 mod vec;
 mod util;
 pub mod named_scalar;
 
 pub use self::{
     angle::{Angle, Degrees, Radians},
+    mat::{Matrix},
     vec::{
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
         vector::{
