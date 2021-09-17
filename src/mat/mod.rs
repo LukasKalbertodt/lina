@@ -1,6 +1,6 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{self, Index, IndexMut};
 
-use crate::{Scalar, Vector, util::array_from_index};
+use crate::{Scalar, Vector, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -124,6 +124,38 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     pub fn map<U: Scalar, F: FnMut(T) -> U>(self, mut f: F) -> Matrix<U, C, R> {
         Matrix(self.0.map(|col| col.map(&mut f)))
     }
+
+    /// Pairs up the same elements from `self` and `other`, applies the given
+    /// function to each and returns the resulting matrix. Useful for
+    /// element-wise operations.
+    ///
+    /// ```
+    /// use lina::{Mat3f, vec3};
+    ///
+    /// let a = Mat3f::from_rows([
+    ///     [1.0, 2.0, 3.0],
+    ///     [4.0, 5.0, 6.0],
+    ///     [7.0, 8.0, 9.0],
+    /// ]);
+    /// let b = Mat3f::identity();
+    /// let c = a.zip_map(b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
+    ///
+    /// assert_eq!(c.row(0), vec3(1.0, 0.0, 0.0));
+    /// assert_eq!(c.row(1), vec3(0.0, 5.0, 0.0));
+    /// assert_eq!(c.row(2), vec3(0.0, 0.0, 9.0));
+    /// ```
+    pub fn zip_map<U, O, F>(self, other: Matrix<U, C, R>, mut f: F) -> Matrix<O, C, R>
+    where
+        U: Scalar,
+        O: Scalar,
+        F: FnMut(T, U) -> O,
+    {
+        Matrix(
+            zip_map(self.0, other.0, |lcol, rcol| {
+                zip_map(lcol, rcol, |l, r| f(l, r))
+            })
+        )
+    }
 }
 
 impl<T: Scalar, const N: usize> Matrix<T, N, N> {
@@ -195,5 +227,31 @@ impl<T: Scalar, const C: usize, const R: usize> Index<usize> for Matrix<T, C, R>
 impl<T: Scalar, const C: usize, const R: usize> IndexMut<usize> for Matrix<T, C, R> {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
         &mut self.0[idx]
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::Add for Matrix<T, C, R> {
+    type Output = Matrix<T, C, R>;
+    fn add(self, rhs: Self) -> Self::Output {
+        self.zip_map(rhs, |l, r| l + r)
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::AddAssign for Matrix<T, C, R> {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::Sub for Matrix<T, C, R> {
+    type Output = Matrix<T, C, R>;
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.zip_map(rhs, |l, r| l - r)
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::SubAssign for Matrix<T, C, R> {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
     }
 }
