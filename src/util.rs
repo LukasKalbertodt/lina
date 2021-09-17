@@ -60,6 +60,18 @@ where
     out
 }
 
+/// Creates an array from the given function that maps the index to an element.
+pub(crate) fn array_from_index<T, const N: usize>(mut f: impl FnMut(usize) -> T) -> [T; N] {
+    // We use the fact that `array::map` visits each element in order. That way,
+    // we can advance an index.
+    let mut i = 0;
+    [(); N].map(|_| {
+        let out = f(i);
+        i += 1;
+        out
+    })
+}
+
 
 #[cfg(test)]
 mod tests {
