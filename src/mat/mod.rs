@@ -1,5 +1,7 @@
 use std::{fmt, ops::{self, Index, IndexMut}};
 
+use bytemuck::{Pod, Zeroable};
+
 use crate::{Scalar, Vector, util::{array_from_index, zip_map}};
 
 
@@ -312,6 +314,14 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     }
 }
 
+/// The inner array implements `Zeroable` and `Matrix` is just a newtype wrapper
+/// around that array with `repr(transparent)`.
+unsafe impl<T: Scalar + Zeroable, const C: usize, const R: usize> Zeroable for Matrix<T, C, R> {}
+
+/// The struct is marked as `repr(transparent)` so is guaranteed to have the
+/// same layout as `[[T; R]; C]`. And `bytemuck` itself has an impl for arrays
+/// where `T: Pod`.
+unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for Matrix<T, C, R> {}
 
 impl<T: Scalar, const C: usize, const R: usize> Index<usize> for Matrix<T, C, R> {
     type Output = [T; R];
