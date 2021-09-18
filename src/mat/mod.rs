@@ -287,6 +287,40 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
         *self = self.transposed();
     }
 
+    /// Checks whether this matrix is *symmetric*, i.e. whether transposing
+    /// does *not* change the matrix.
+    ///
+    /// ```
+    /// use lina::{Mat3f, Mat2};
+    ///
+    /// assert!(Mat3f::identity().is_symmetric());
+    /// assert!(!Mat2::from_rows([[1, 2], [3, 4]]).is_symmetric());
+    /// ```
+    pub fn is_symmetric(&self) -> bool {
+        for c in 1..N {
+            for r in 0..c {
+                if self[c][r] != self[r][c] {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
+    /// Returns the *trace* of the matrix, i.e. the sum of all elements on the
+    /// diagonal.
+    ///
+    /// ```
+    /// use lina::{Mat2, Mat3f};
+    ///
+    /// assert_eq!(Mat3f::identity().trace(), 3.0);
+    /// assert_eq!(Mat2::from_rows([[1, 2], [3, 4]]).trace(), 5);
+    /// ```
+    pub fn trace(&self) -> T {
+        self.diagonal().as_ref().iter().fold(T::zero(), |a, b| a + *b)
+    }
+
     /// Returns a homogeneous transformation matrix that scales all axis by
     /// `factor`. Example for `Mat4` (with `f` being `factor`):
     ///
