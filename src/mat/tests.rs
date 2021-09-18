@@ -53,3 +53,48 @@ fn neg() {
     let c = Matrix::from_rows([[ 1.0, -2.0, -3.0], [-4.0,  5.0, -6.0]]);
     assert_eq!(-a, c);
 }
+
+#[test]
+fn mul_matrix() {
+    // 2x2 mul 2x2 -> 2x2
+    assert_eq!(
+        Mat2::from_rows([[8, 9], [5, -1]]) * Mat2::from_rows([[-2, 3], [4, 0]]),
+        Mat2::from_rows([[20, 24], [-14, 15]]),
+    );
+
+    // 3x2 mul 2x3 -> 2x2
+    assert_eq!(
+        Matrix::from_rows([[0, -1, 2], [4, 11, 2]]) * Matrix::from_rows([[3, -1], [1, 2], [6, 1]]),
+        Matrix::from_rows([[11, 0], [35, 20]]),
+    );
+
+    // 2x3 mul 3x2 -> 3x3
+    assert_eq!(
+        Matrix::from_rows([[3, -1], [1, 2], [6, 1]]) * Matrix::from_rows([[0, -1, 2], [4, 11, 2]]),
+        Matrix::from_rows([[-4, -14, 4], [8, 21, 6], [4, 5, 14]]),
+    );
+
+    let a = Matrix::from_rows([
+        [ 0,  2,  4,  6],
+        [ 1,  3,  5,  7],
+        [17, 19, 21, 23],
+        [25, 27, 29, 31],
+    ]);
+    let b = Matrix::from_rows([
+        [ 8, 10, 12, 14],
+        [ 9, 11, 13, 15],
+        [16, 18, 20, 22],
+        [24, 26, 28, 30],
+    ]);
+    assert_eq!(a * b, Matrix::from_rows([
+        [ 226,  250,  274,  298],
+        [ 283,  315,  347,  379],
+        [1195, 1355, 1515, 1675],
+        [1651, 1875, 2099, 2323],
+    ]));
+    assert_eq!(a * Matrix::identity(), a);
+    assert_eq!(Matrix::identity() * a, a);
+    assert_eq!(b * Matrix::identity(), b);
+    assert_eq!(Matrix::identity() * b, b);
+}
+

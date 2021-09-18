@@ -423,6 +423,30 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
     }
 }
 
+impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<T, C, S>>
+    for Matrix<T, S, R>
+{
+    type Output = Matrix<T, C, R>;
+    fn mul(self, rhs: Matrix<T, C, S>) -> Self::Output {
+        // This is the straight-forward n³ algorithm. Using more sophisticated
+        // algorithms with sub cubic runtime is not worth it for small
+        // matrices. However, this can certainly be micro-optimized. In
+        // particular, using SSE seems like a good idea, but "requires" all
+        // columns to be properly aligned in memory.
+        //
+        // TODO: try to optimize
+        let mut out = Self::Output::zero();
+        for c in 0..C {
+            for r in 0..R {
+                for s in 0..S {
+                    out[c][r] += self[s][r] * rhs[c][s];
+                }
+            }
+        }
+        out
+    }
+}
+
 
 #[cfg(test)]
 mod tests;
