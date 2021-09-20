@@ -1,8 +1,8 @@
-use std::{fmt, ops::{self, Index, IndexMut}};
+use std::{fmt, ops::{self, Index, IndexMut, RangeInclusive}};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Float, Point3, Scalar, Vec3, Vector, cross, dot, util::{array_from_index, zip_map}};
+use crate::{Float, Point3, Radians, Scalar, Vec3, Vector, cross, dot, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -547,8 +547,8 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
 }
 
 impl<T: Scalar> Mat4<T> {
-    /// Returns a matrix representing a transformation from 3D world space
-    /// (with homogeneous coordinates) into camera/view space.
+    /// Returns a matrix for transformation of 3D homogeneous world space points
+    /// into camera/view space.
     ///
     /// In view space, the camera is at the origin, +x points right, +y points
     /// up. This view space is right-handed, and thus, +z points outside of the
@@ -597,6 +597,109 @@ impl<T: Scalar> Mat4<T> {
             [      u.x,       u.y,       u.z, -dot(eye, u)],
             [     -d.x,      -d.y,      -d.z,  dot(eye, d)],
             [T::zero(), T::zero(), T::zero(),     T::one()],
+        ])
+    }
+
+    /// Returns a matrix for perspective transformation from view space to NDC
+    /// (using homogeneous coordinates).
+    ///
+    /// View space is assumed to be right-handed, i.e. +y pointing up and -z
+    /// pointing into the screen (satisfied by [`Matrix::look_into`]). In NDC,
+    /// `x/w` and `y/w` are in range -1 to 1  and denote the horizontal and
+    /// vertical screen position, respectively. The +x axis points to the right,
+    /// the +y axis points up. `z` represents the depth and `z/w` is in range
+    /// `depth_range_out`.
+    ///
+    /// **Function inputs**:
+    ///
+    /// - `vertical_fov`: the vertical field of view of your projection. Has to
+    ///   be less than half a turn (π radians or 180°)!
+    ///
+    /// - `aspect_ratio`: `width / height` of your target surface, e.g. screen
+    ///   or application window. Has to be positive!
+    ///
+    /// - `depth_range_in`: the near and far plane of the projection, in world
+    ///   or view space (equivalent since the view matrix does not change
+    ///   distances). The far plane may be ∞ (e.g. `f32::INFINITY`), which is
+    ///   handled properly by this function.
+    ///
+    /// - `depth_range_out`: the `z` range after the transformation. For `a..=b`,
+    ///   `a` is what the near plane is mapped to and `b` is what the far plane
+    ///   is mapped to. Usually, only the following values make sense:
+    ///   - `0.0..=1.0` as default for WebGPU, Direct3D, Metal, Vulkan.
+    ///   - `-1.0..=1.0` as default for OpenGL.
+    ///   - `1.0..=0.0` for *reverse z* projection. Using this together with a
+    ///     floating point depth buffer is **strongly recommended** as it vastly
+    ///     improves depth precision.
+    ///
+    /// If your view space has left-handed or if you want your +y axis pointing
+    /// down in NDC (e.g. for Vulkan), you just have to multiply the matrix
+    /// returned by this function with a matrix flipping the z or y sign. (Mind
+    /// the order of multiplication.)
+    ///
+    /// # Example
+    ///
+    /// (The finite near and far plane values in this example are probably not
+    /// what you would want for your application.)
+    ///
+    /// ```
+    /// use lina::{Degrees, Mat4f, vec4};
+    ///
+    /// let m = Mat4f::perspective(Degrees(90.0), 2.0, 0.1..=f32::INFINITY, 1.0..=0.0);
+    /// assert_eq!(m.row(0), vec4(0.5, 0.0,  0.0, 0.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 1.0,  0.0, 0.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0,  0.0, 0.1));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0, -1.0, 0.0));
+    ///
+    /// let m = Mat4f::perspective(Degrees(90.0), 1.0, 0.1..=100.0, 0.0..=1.0);
+    /// assert_eq!(m.row(0), vec4(1.0, 0.0,       0.0,        0.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 1.0,       0.0,        0.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0, -1.001001, -0.1001001));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0,      -1.0,        0.0));
+    /// ```
+    ///
+    ///
+    pub fn perspective(
+        vertical_fov: impl Into<Radians<T>>,
+        aspect_ratio: T,
+        depth_range_in: RangeInclusive<T>,
+        depth_range_out: RangeInclusive<T>,
+    ) -> Self
+    where
+        T: Float,
+    {
+        use crate::Angle;
+
+        let vertical_fov = vertical_fov.into();
+        assert!(vertical_fov.0 < T::PI(), "`vertical_fov` has to be < π radians/180°");
+        assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");
+        assert!(aspect_ratio > T::zero(), "`aspect_ratio` needs to be positive");
+
+        let t = (vertical_fov / (T::one() + T::one())).tan();
+        let sy = T::one() / t;
+        let sx = sy / aspect_ratio;
+
+        // We calculate the a and b elements of the matrix according to the
+        // depth mapping (from `depth_range_in` to `depth_range_out`). This
+        // article might help with understanding how these formulas came to be:
+        // https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
+        let (near_in, far_in) = depth_range_in.into_inner();
+        let (near_out, far_out) = depth_range_out.into_inner();
+        let (a, b);
+        if far_in.is_infinite() {
+            // Curiously, this does not depend on the sign of `far_in`.
+            a = -far_out;
+            b = -near_in * (far_out - near_out);
+        } else {
+            a = (far_in * far_out - near_in * near_out) / (near_in - far_in);
+            b = (near_in * far_in * (far_out - near_out)) / (near_in - far_in);
+        }
+
+        Self::from_rows([
+            [       sx, T::zero(), T::zero(), T::zero()],
+            [T::zero(),        sy, T::zero(), T::zero()],
+            [T::zero(), T::zero(),         a,         b],
+            [T::zero(), T::zero(), -T::one(), T::zero()],
         ])
     }
 }
