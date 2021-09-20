@@ -1,5 +1,40 @@
 macro_rules! shared_methods {
-    ($ty:ident, $tys_lower:literal, $ctor3:literal) => {
+    ($ty:ident, $tys_lower:literal, $ctor2:literal, $ctor3:literal) => {
+        /// Returns a
+        #[doc = concat!(" ", $tys_lower, " ")]
+        /// with dimension `N + 1` by adding `new` as new component.
+        ///
+        /// ```
+        #[doc = concat!("use lina::{", $ctor2, ", ", $ctor3, "};")]
+        ///
+        #[doc = concat!("assert_eq!(", $ctor2, "(2i32, 4).extend(9), ", $ctor3, "(2, 4, 9));")]
+        /// ```
+        pub fn extend(self, new: T) -> $ty<T, { N + 1 }> {
+            let mut out = [T::zero(); N + 1];
+            for i in 0..N {
+                out[i] = self[i];
+            }
+            out[N] = new;
+            out.into()
+        }
+
+        /// Returns a
+        #[doc = concat!(" ", $tys_lower, " ")]
+        /// with dimension `N - 1` by removing the last dimension.
+        ///
+        /// ```
+        #[doc = concat!("use lina::{", $ctor2, ", ", $ctor3, "};")]
+        ///
+        #[doc = concat!("assert_eq!(", $ctor3, "(2i32, 4, 9).truncate(), ", $ctor2, "(2, 4));")]
+        /// ```
+        pub fn truncate(self) -> $ty<T, { N - 1 }> {
+            let mut out = [T::zero(); N - 1];
+            for i in 0..N - 1 {
+                out[i] = self[i];
+            }
+            out.into()
+        }
+
         /// Applies the given function to each component and returns the resulting
         #[doc = concat!(" ", $tys_lower, ".")]
         /// Very similar to `[T; N]::map`.

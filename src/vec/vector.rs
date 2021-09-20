@@ -155,7 +155,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
         *self = *self / self.length();
     }
 
-    shared_methods!(Vector, "vector", "vec3");
+    shared_methods!(Vector, "vector", "vec2", "vec3");
 }
 
 impl<T: Scalar> Vector<T, 2> {
