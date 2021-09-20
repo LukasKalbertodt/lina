@@ -321,8 +321,9 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
         self.diagonal().as_ref().iter().fold(T::zero(), |a, b| a + *b)
     }
 
-    /// Returns a homogeneous transformation matrix that scales all axis by
-    /// `factor`. Example for `Mat4` (with `f` being `factor`):
+    /// Returns a transformation matrix for homogeneous coordinates that scales
+    /// all axis by `factor`. For the cartesian coordinate version, see
+    /// [`Matrix::cc_scale`]. Example for `Mat4` (with `f` being `factor`):
     ///
     /// ```text
     /// ⎡ f 0 0 0 ⎤
@@ -334,17 +335,129 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// ```
     /// use lina::{Mat4f, vec4};
     ///
-    /// let m = Mat4f::homogeneous_scale(3.5);
+    /// let m = Mat4f::hc_scale(3.5);
     ///
     /// assert_eq!(m.row(0), vec4(3.5, 0.0, 0.0, 0.0));
     /// assert_eq!(m.row(1), vec4(0.0, 3.5, 0.0, 0.0));
     /// assert_eq!(m.row(2), vec4(0.0, 0.0, 3.5, 0.0));
     /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
     /// ```
-    pub fn homogeneous_scale(factor: T) -> Self {
+    pub fn hc_scale(factor: T) -> Self {
         let mut diag = [factor; N];
         diag[N - 1] = T::one();
         Self::from_diagonal(diag)
+    }
+
+    /// Returns a transformation matrix for homogeneous coordinates that scales
+    /// axis according to `factors`. For the cartesian coordinate version, see
+    /// [`Matrix::cc_nonuniform_scale`]. Example for `Mat4` (with `factors`
+    /// being `[x, y, z]`):
+    ///
+    /// ```text
+    /// ⎡ x 0 0 0 ⎤
+    /// ⎢ 0 y 0 0 ⎥
+    /// ⎢ 0 0 z 0 ⎥
+    /// ⎣ 0 0 0 1 ⎦
+    /// ```
+    ///
+    /// ```
+    /// use lina::{Mat4f, vec4};
+    ///
+    /// let m = Mat4f::hc_nonuniform_scale([2.0f32, 3.0, 8.0]);
+    ///
+    /// assert_eq!(m.row(0), vec4(2.0, 0.0, 0.0, 0.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 3.0, 0.0, 0.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 8.0, 0.0));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
+    /// ```
+    pub fn hc_nonuniform_scale(factors: impl Into<Vector<T, { N - 1 }>>) -> Self {
+        let mut diag = [T::one(); N];
+        let factors = factors.into();
+        for i in 0..N - 1 {
+            diag[i] = factors[i];
+        }
+        Self::from_diagonal(diag)
+    }
+
+    /// Returns a transformation matrix for homogeneous coordinates that
+    /// translates according to `v`. Example for `Mat4` (with `v` being
+    /// `[x, y, z]`):
+    ///
+    /// ```text
+    /// ⎡ 1 0 0 a ⎤
+    /// ⎢ 0 1 0 b ⎥
+    /// ⎢ 0 0 1 c ⎥
+    /// ⎣ 0 0 0 1 ⎦
+    /// ```
+    ///
+    /// ```
+    /// use lina::{Mat4f, vec4};
+    ///
+    /// let m = Mat4f::hc_translate([2.0f32, 3.0, 8.0]);
+    ///
+    /// assert_eq!(m.row(0), vec4(1.0, 0.0, 0.0, 2.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 1.0, 0.0, 3.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 1.0, 8.0));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
+    /// ```
+    pub fn hc_translate(v: impl Into<Vector<T, { N - 1}>>) -> Self {
+        let mut m = Self::identity();
+        let v = v.into();
+        for i in 0..N - 1 {
+            m[N - 1][i] = v[i];
+        }
+        m
+    }
+
+    /// Returns a transformation matrix for cartesian coordinates that scales
+    /// all axis by `factor`. For the homogeneous coordinate version, see
+    /// [`Matrix::hc_scale`]. Example for `Mat4` (with `f` being `factor`):
+    ///
+    /// ```text
+    /// ⎡ f 0 0 0 ⎤
+    /// ⎢ 0 f 0 0 ⎥
+    /// ⎢ 0 0 f 0 ⎥
+    /// ⎣ 0 0 0 f ⎦
+    /// ```
+    ///
+    /// ```
+    /// use lina::{Mat4f, vec4};
+    ///
+    /// let m = Mat4f::cc_scale(3.5);
+    ///
+    /// assert_eq!(m.row(0), vec4(3.5, 0.0, 0.0, 0.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 3.5, 0.0, 0.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 3.5, 0.0));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 3.5));
+    /// ```
+    pub fn cc_scale(factor: T) -> Self {
+        Self::from_diagonal([factor; N])
+    }
+
+    /// Returns a transformation matrix for cartesian coordinates that scales
+    /// axis according to `factors`. For the homogeneous coordinate version,
+    /// see [`Matrix::hc_nonuniform_scale`]. Equivalent to [`Matrix::from_diagonal`].
+    /// Example for `Mat4` (with `factors` being `[x, y, z, w]`):
+    ///
+    /// ```text
+    /// ⎡ x 0 0 0 ⎤
+    /// ⎢ 0 y 0 0 ⎥
+    /// ⎢ 0 0 z 0 ⎥
+    /// ⎣ 0 0 0 w ⎦
+    /// ```
+    ///
+    /// ```
+    /// use lina::{Mat4f, vec4};
+    ///
+    /// let m = Mat4f::cc_nonuniform_scale([2.0f32, 3.0, 8.0, 5.0]);
+    ///
+    /// assert_eq!(m.row(0), vec4(2.0, 0.0, 0.0, 0.0));
+    /// assert_eq!(m.row(1), vec4(0.0, 3.0, 0.0, 0.0));
+    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 8.0, 0.0));
+    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 5.0));
+    /// ```
+    pub fn cc_nonuniform_scale(factors: impl Into<Vector<T, N>>) -> Self {
+        Self::from_diagonal(factors)
     }
 }
 
