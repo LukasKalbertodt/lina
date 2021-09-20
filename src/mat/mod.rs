@@ -162,6 +162,41 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         Matrix::from_rows(self.0)
     }
 
+    /// Combines the transformations of two matrices into a single
+    /// transformation matrix. First the transformation of `self` is applied,
+    /// then the one of `second`. In the language of math, this is just matrix
+    /// multiplication: `second * self`. You can also use the overloaded `*`
+    /// operator instead, but this method exists for those who find the matrix
+    /// multiplication order unintuitive and this method call easier to read.
+    ///
+    /// ```
+    /// use lina::Mat2;
+    ///
+    /// // Rotation by 90° counter clock wise.
+    /// let rotate = Mat2::from_rows([
+    ///     [0, -1],
+    ///     [1,  0],
+    /// ]);
+    ///
+    /// // Scale x-axis by 2, y-axis by 3.
+    /// let scale = Mat2::from_rows([
+    ///     [2, 0],
+    ///     [0, 3],
+    /// ]);
+    ///
+    /// assert_eq!(rotate.and_then(scale), Mat2::from_rows([
+    ///     [0, -2],
+    ///     [3,  0],
+    /// ]));
+    /// assert_eq!(scale.and_then(rotate), Mat2::from_rows([
+    ///     [0, -3],
+    ///     [2,  0],
+    /// ]));
+    /// ```
+    pub fn and_then<const R2: usize>(self, second: Matrix<T, R, R2>) -> Matrix<T, C, R2> {
+        second * self
+    }
+
     /// Applies the given function to each element and returns the resulting new
     /// matrix.
     ///
