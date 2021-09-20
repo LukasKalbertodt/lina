@@ -2,7 +2,7 @@ use std::{fmt, ops::{self, Index, IndexMut}};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Scalar, Vector, util::{array_from_index, zip_map}};
+use crate::{Scalar, Vector, dot, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -655,6 +655,7 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
     }
 }
 
+/// `matrix * matrix` multiplication. You can also use [`Matrix::and_then`].
 impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<T, C, S>>
     for Matrix<T, S, R>
 {
@@ -676,6 +677,16 @@ impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<
             }
         }
         out
+    }
+}
+
+/// `matrix * vector` multiplication. **Important**: does not consider
+/// homogeneous coordinates and thus does not divide by `w`!
+impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Vector<T, C>> for Matrix<T, C, R> {
+    type Output = Vector<T, R>;
+    fn mul(self, rhs: Vector<T, C>) -> Self::Output {
+        // TODO: check generated assembly and optimize if necessary.
+        array_from_index(|i| dot(self.row(i), rhs)).into()
     }
 }
 
