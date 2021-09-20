@@ -12,6 +12,56 @@ use crate::{Scalar, Vector, util::{array_from_index, zip_map}};
 /// order, i.e. row-by-row. This is more intuitive when reading matrices. You
 /// can also use the "alternate" flat `#` (i.e. `{:#?}`) which avoids that
 /// confusion by using one actual line per matrix row.
+///
+///
+/// # Matrices as transformations
+///
+/// Matrices in computer graphics are usually used to represent and carry out
+/// *transformations*. In its simplest form, a matrix can represent a
+/// *linear* transformation, which includes rotation and scaling, but *not*
+/// translation. To learn more about this, I strongly recommend watching
+/// [3blue1brown's series "Essence of Linear Algebra"][3b1b-lina], in
+/// particular [Chapter 3: Linear transformations and matrices][3b1b-transform].
+///
+/// ## Homogeneous coordinates & affine transformations
+///
+/// In computer graphics, non-linear transformations (like translations and
+/// perspective projection) are often important as well. To be able to
+/// represent those in a matrix (along with linear transformations), we use
+/// [*homogeneous coordinates*][hc-wiki] (instead of standard cartesian
+/// coordinates). To do that, we increase the dimension of our vectors and
+/// matrices by 1, e.g. having a 4D vector and 4x4 matrices to talk about 3D
+/// space. This allows matrices to represent *affine* transformations.
+///
+/// There are a couple of associated functions returning transformation
+/// matrices. Be mindful of the prefix `hc_` or `cc_` which denotes the intended
+/// coordinate system. If you're working in 3D space, you usually want to use
+/// `hc_` versions for 4x4 matrices and `cc_` versions for 3x3 matrices.
+///
+/// ## Transforming a point or vector
+///
+/// TODO
+///
+/// ## Combining transformations
+///
+/// Oftentimes you want to apply multiple transformations to a set of points or
+/// vectors. You can save processing time by combining all
+/// transformation-matrices into a single matrix. That's the beauty and
+/// convenience of representing transformations as matrix: it's always possible
+/// to combine all of them into a single matrix.
+///
+/// Mathematically, this composition is *matrix multiplication*: `A * B` results
+/// in a matrix that represents the combined transformation of *first* `B`,
+/// *then* `A`. Yes, matrix multiplication is not commutative, i.e. the order of
+/// operands matters. And it's also in an non-intuitive order, with the
+/// rightmost transformation being applied first. For that reason, you can also
+/// use [`Matrix::and_then`] instead of the overloaded operator `*`. Use what
+/// you think is easier to read.
+///
+///
+/// [3b1b-lina]: https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab
+/// [3b1b-transform]: https://www.youtube.com/watch?v=kYB8IZa5AuE
+/// [hc-wiki]: https://en.wikipedia.org/wiki/Homogeneous_coordinates#Use_in_computer_graphics_and_computer_vision
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Matrix<T: Scalar, const C: usize, const R: usize>([[T; R]; C]);
@@ -74,7 +124,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
 
     /// Returns a matrix with the specified columns. This matches the memory
     /// layout but is usually more difficult to read in code. Consider using
-    /// `Matrix::from_rows` instead.
+    /// [`Matrix::from_rows`] instead.
     ///
     /// ```
     /// use lina::{Matrix, vec2};
