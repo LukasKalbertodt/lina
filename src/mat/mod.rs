@@ -2,7 +2,7 @@ use std::{fmt, ops::{self, Index, IndexMut}};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Scalar, Vector, dot, util::{array_from_index, zip_map}};
+use crate::{Float, Point3, Scalar, Vec3, Vector, cross, dot, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -545,6 +545,62 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
         Self::from_diagonal(factors)
     }
 }
+
+impl<T: Scalar> Mat4<T> {
+    /// Returns a matrix representing a transformation from 3D world space
+    /// (with homogeneous coordinates) into camera/view space.
+    ///
+    /// In view space, the camera is at the origin, +x points right, +y points
+    /// up. This view space is right-handed, and thus, +z points outside of the
+    /// screen and -z points into the screen. Please see [the part on
+    /// handedness in the crate docs](../#choice-of-view-space--handedness) for
+    /// more information. The returned matrix only translates and rotates,
+    /// meaning that sizes and angles are unchanged compared to world space.
+    ///
+    /// The following camera properties have to be given:
+    /// - `eye`: the position of the camera.
+    /// - `direction`: the direction the camera is looking in. **Must not** be
+    ///   the zero vector. Does not have to be normalized.
+    /// - `up`: a usually artificial vector defining "up" in camera
+    ///   space. **Must not** be the zero vector and **must not** be linearly
+    ///   dependent to `direction` (i.e. they must not point into the same or
+    ///   exactly opposite directions). Does not have to be normalized.
+    ///
+    /// To avoid float precision problems, `direction` and `up` should not have
+    /// a tiny length and should not point in *almost* the same direction.
+    pub fn look_into(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> Self
+    where
+        T: Float,
+    {
+        // This function is unlikely to be called often, so we improve developer
+        // experience by having these checks and normalizations.
+        assert!(!direction.is_zero(), "direction vector must not be the zero vector");
+        assert!(!up.is_zero(), "up vector must not be the zero vector");
+        let dir = direction.normalized();
+
+        let right = cross(dir, up);
+        assert!(!right.is_zero(), "direction and up vector must be linearly independent");
+
+        let r = right.normalized();
+        let u = cross(r, dir);
+        let d = dir;
+        let eye = eye.to_vec();
+
+        // This is the inverse of this:
+        //
+        // ⎡ r.x  u.x  d.x  eye.x ⎤
+        // ⎢ r.y  u.x  d.x  eye.x ⎥
+        // ⎢ r.z  u.x  d.x  eye.x ⎥
+        // ⎣   0    0    0      1 ⎦
+        Self::from_rows([
+            [      r.x,       r.y,       r.z, -dot(eye, r)],
+            [      u.x,       u.y,       u.z, -dot(eye, u)],
+            [     -d.x,      -d.y,      -d.z,  dot(eye, d)],
+            [T::zero(), T::zero(), T::zero(),     T::one()],
+        ])
+    }
+}
+
 
 /// The inner array implements `Zeroable` and `Matrix` is just a newtype wrapper
 /// around that array with `repr(transparent)`.
