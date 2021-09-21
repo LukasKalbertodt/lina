@@ -53,10 +53,12 @@ pub struct Radians<T: Float>(pub T);
 pub struct Degrees<T: Float>(pub T);
 
 impl<T: Float> Radians<T> {
+    /// Returns 2π rad.
     pub fn full_turn() -> Self {
         Self(T::PI() + T::PI())
     }
 
+    /// Converts this angle to degrees (`rad * 180/π`).
     pub fn to_degrees(self) -> Degrees<T> {
         Degrees(self.0.to_degrees())
     }
@@ -65,9 +67,12 @@ impl<T: Float> Radians<T> {
 }
 
 impl<T: Float> Degrees<T> {
+    /// Returns 360°.
     pub fn full_turn() -> Self {
         Self(num_traits::cast(360.0).unwrap())
     }
+
+    /// Converts this angle to radians (`degrees * π/180`).
     pub fn to_radians(self) -> Radians<T> {
         Radians(self.0.to_radians())
     }
