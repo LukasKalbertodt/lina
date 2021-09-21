@@ -676,8 +676,6 @@ impl<T: Scalar> Mat4<T> {
     where
         T: Float,
     {
-        use crate::Angle;
-
         let vertical_fov = vertical_fov.into();
         assert!(vertical_fov.0 < T::PI(), "`vertical_fov` has to be < π radians/180°");
         assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");

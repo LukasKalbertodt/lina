@@ -171,7 +171,7 @@ mod util;
 pub mod named_scalar;
 
 pub use self::{
-    angle::{Angle, Degrees, Radians},
+    angle::{Degrees, Radians},
     mat::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
     vec::{
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
