@@ -1,4 +1,4 @@
-use std::{fmt::Debug, ops};
+use std::{fmt, ops};
 
 use crate::Float;
 
@@ -45,11 +45,11 @@ macro_rules! shared_methods {
 
 
 /// An angle in radians. A full rotation is 2π rad.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Radians<T: Float>(pub T);
 
 /// An angle in degrees. A full rotation is 360°.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Degrees<T: Float>(pub T);
 
 impl<T: Float> Radians<T> {
@@ -86,6 +86,27 @@ impl<T: Float> From<Radians<T>> for Degrees<T> {
         src.to_degrees()
     }
 }
+
+macro_rules! impl_debug_display {
+    ($ty:ident, $unit:literal) => {
+        impl<T: Float> fmt::Debug for $ty<T> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                self.0.fmt(f)?;
+                f.write_str($unit)
+            }
+        }
+
+        impl<T: Float + fmt::Display> fmt::Display for $ty<T> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                fmt::Display::fmt(&self.0, f)?;
+                f.write_str($unit)
+            }
+        }
+    };
+}
+
+impl_debug_display!(Radians, " rad");
+impl_debug_display!(Degrees, "°");
 
 macro_rules! impl_ops {
     ($ty:ident) => {
