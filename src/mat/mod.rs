@@ -568,6 +568,27 @@ impl<T: Scalar> Mat4<T> {
     ///
     /// To avoid float precision problems, `direction` and `up` should not have
     /// a tiny length and should not point in *almost* the same direction.
+    ///
+    ///
+    /// ## A note on the `up` vector
+    ///
+    /// There are two main types of cameras in games that are distinguished by
+    /// whether or not they can "fly a loop" (think airplane game with
+    /// out-of-cockpit camera).
+    ///
+    /// In most games, this looping ability is not necessary: in those games, if
+    /// you move the mouse/controller all the way up or down, the camera stops
+    /// turning once you look almost straight down or up. Those are usually
+    /// games with a clear "down" direction (e.g. gravity). In these cases, you
+    /// usually just pass `(0, 0, 1)` (or `(0, 1, 0)` if you prefer your +y up)
+    /// as `up` vector and make sure the player cannot look exactly up or down.
+    /// The latter you can achieve by just having a min and max vertical angle
+    /// (e.g. 1° and 179°).
+    ///
+    /// In games where a looping camera is required, you have to maintain and
+    /// evolve the `up` vector over time. For example, if the player moves the
+    /// mouse/controller you don't just adjust the look direction, but also the
+    /// up vector.
     pub fn look_into(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> Self
     where
         T: Float,
