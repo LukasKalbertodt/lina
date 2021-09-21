@@ -18,18 +18,22 @@
 //! - **Model space**: one object that has not been placed in your scene/world
 //!   yet. For example, its center is usually around the origin (0, 0, 0) and
 //!   is usually in upright position.
+//!
 //! - **World space**: this is the most intuitive space and where most of your
 //!   game logic will happen. Here, all objects have been placed in the world by
 //!   moving (translating), rotating and scaling them.
+//!
 //! - **View space**: an intermediate space where, by convention, the camera
 //!   sits at the origin (0, 0, 0) and looks down the z axis (-z or +z, see
 //!   below). This simplifies later calculations and makes some operations
 //!   easier. The world has been translated and rotated, but not scaled or
 //!   otherwise transformed. Angles from world space are preserved.
+//!
 //! - **NDC**: this is very close to screen space, with `x` and `y` describing
 //!   the horizontal and vertical position on your screen (or rather, the
 //!   application window), respectively. The `z` axis points into or out of your
 //!   screen and is used for depth testing and such things.
+//!
 //! - **screen space**: 2D space with `x` and `y` being horizontal and vertical
 //!   position in pixel units. Converting NDC to screen space is straight
 //!   forward and is done internally by your graphics API.
@@ -49,21 +53,24 @@
 //! In practice, you use matrices for almost all transformations from one space
 //! to another. We do not discuss the *model → world* transformation here, as
 //! this depends a lot on your application. The *world → view* and *view → NDC*
-//! transformation is typically done like this:
+//! transformations are typically done like this:
 //!
 //! You place a virtual camera in your scene which has properties like a
-//! position and a direction in which it looks. You also have "global"
+//! position and the direction in which it looks. You also have "global"
 //! properties like the field of view (FoV) you want to render with. From those
-//! values, you create two matrices: the view matrix (world → view) and the
-//! projection matrix (view → NDC). TODO: how to get matrices?
+//! values, you create two matrices: the view matrix (world → view, via
+//! [`Matrix::look_into`]) and the projection matrix (view → NDC, via
+//! [`Matrix::perspective`]).
 //!
 //! You pass both of those matrices to your shader as uniform value or push
 //! constant. Inside the vertex shader, you extend your 3D vertex position with
 //! a `w` coordinate with value 1, giving you a 4D vector representing
-//! homogeneous coordinates in 3D space. You then multiple that 4D vector with
-//! the view matrix, then with the projection matrix, giving you another 4D
-//! vector which `w` component might not be 1. This is what you "return" from
-//! the shader (e.g. assign to `gl_Position`).
+//! homogeneous coordinates in 3D space. Next, multiple that 4D vector with the
+//! view matrix, then with the projection matrix, giving you another 4D vector
+//! which `w` component might not be 1. This is what you "return" from the
+//! shader (e.g. assign to `gl_Position`). Your graphics API will then perform
+//! the "perspective divide" automatically: divide `x`, `y` and `z` by `w`,
+//! which are the final 3D NDC coordinates.
 //!
 //! It's also possible to pre-multiply both matrices in your application and
 //! only pass the combined matrix to the shader. You can do that if you don't
@@ -95,6 +102,13 @@
 //! Since you are responsible for creating the point in NDC, your
 //! view-projection matrix depends on the API you are using.
 //!
+//! The above values are the defaults for the respective APIs. Some APIs might
+//! allow you to configure these things. For example, in OpenGL, the widely
+//! supported [`ARB_clip_control`][gl-clip-control] allows you to change the +y
+//! direction and z-range.
+//!
+//! [gl-clip-control]: https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_clip_control.txt
+//!
 //!
 //! ## Choice of view space & handedness
 //!
@@ -114,20 +128,21 @@
 //! an appropriate projection matrix in order to transform your points
 //! correctly into the NDC of your graphics API. View and projection matrix
 //! need to fit to one another and to your API's NDC. If you perform any
-//! calculations in view space, the handedness of your view space might also be
-//! important to you. But other than that, it's arbitrary.
+//! calculations in view space, you might merely need to know about the
+//! handedness of your view space. But other than that, it's arbitrary.
 //!
 //! [`Matrix::look_into`] returns a view matrix that transforms into the
 //! right-handed view space. Similarly, [`Matrix::perspective`] assumes a
 //! right-handed view space.
 //!
-//! Left-handed versions of these functions do not exist because the choice is
-//! arbitrary and you can easily get a left-handed version yourself. For the
-//! view matrix, just pass `-direction` as direction to `look_into`. To get a
-//! projection matrix that works with a left-handed view space, just flip the
-//! sign of your view space as a transformation before the projection matrix.
-//! That means your projection matrix would be `Matrix::perspective
-//! (...) * flip` where `flip` is this matrix:
+//! Left-handed versions of these functions are not offered in this library
+//! because the choice is arbitrary and you can easily get a left-handed
+//! version yourself. For the view matrix, just pass `-direction` as direction
+//! to `look_into`. To get a projection matrix that works with a left-handed
+//! view space, just flip the sign of your view space as a transformation
+//! before the projection matrix. That means your projection matrix would be
+//! `Matrix::perspective(...) * flip` where `flip` is this matrix (e.g. via
+//! `Mat4::from_diagonal([1, 1, -1, 1])`:
 //!
 //! ```text
 //! ⎡ 1  0  0  0 ⎤

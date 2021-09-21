@@ -637,6 +637,14 @@ impl<T: Scalar> Mat4<T> {
     /// returned by this function with a matrix flipping the z or y sign. (Mind
     /// the order of multiplication.)
     ///
+    /// - Left-handed view space: use
+    ///   `Mat4::perspective(...) * Mat4::from_diagonal([1.0, 1.0, -1.0, 1.0])`
+    ///   as projection matrix.
+    /// - +y pointing down in NDC: use
+    ///   `Mat4::from_diagonal([1.0, -1.0, 1.0, 1.0]) * Mat4::perspective(...)`
+    ///   as projection matrix.
+    ///
+    ///
     /// # Example
     ///
     /// (The finite near and far plane values in this example are probably not
