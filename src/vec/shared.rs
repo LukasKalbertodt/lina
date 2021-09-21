@@ -72,6 +72,12 @@ macro_rules! shared_methods {
         {
             $ty(crate::util::zip_map(self.0, other.0, f))
         }
+
+        #[doc = concat!("Returns a byte slice of this ", $tys_lower, ", ")]
+        /// representing the full raw data. Useful to pass to graphics APIs.
+        pub fn as_bytes(&self) -> &[u8] {
+            bytemuck::bytes_of(self)
+        }
     };
 }
 

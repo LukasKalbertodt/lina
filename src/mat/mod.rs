@@ -293,6 +293,12 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
             })
         )
     }
+
+    /// Returns a byte slice of this whole matrix, representing the raw data.
+    /// Useful to pass to graphics APIs.
+    pub fn as_bytes(&self) -> &[u8] {
+        bytemuck::bytes_of(self)
+    }
 }
 
 impl<T: Scalar, const N: usize> Matrix<T, N, N> {
