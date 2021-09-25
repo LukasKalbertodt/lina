@@ -5,7 +5,33 @@
 //! Thus, it is not something you can rely on in generic contexts, but is
 //! mainly for convenience and readable code.
 //!
-//! TODO: explain more.
+//! By using const generics, we are forced to store the vector components in an
+//! array. This array can be indexed as per usual, but it would be nice if one
+//! could access components with `.x` syntax. To do that, vectors and points
+//! with small dimension implement `Deref[Mut]` to the `ViewN` structs in this
+//! module. The memory layout is guaranteed to be the same, so this is fine.
+//!
+//! # Example
+//!
+//! ```
+//! use lina::{vec2, vec3, vec4, point2, point3};
+//!
+//! let v2 = vec2(1, 2);
+//! let v3 = vec3(1, 2, 3);
+//! let v4 = vec4(1, 2, 3, 4);
+//!
+//! // You can access components by name.
+//! let _ = (v2.x, v2.y);
+//! let _ = (v3.x, v3.y, v3.z);
+//! let _ = (v4.x, v4.y, v4.z, v4.w);
+//!
+//! let p2 = point2(1, 2);
+//! let p3 = point3(1, 2, 3);
+//!
+//! // You can access components by name.
+//! let _ = (p2.x, p2.y);
+//! let _ = (p3.x, p3.y, p3.z);
+//! ```
 
 use std::ops::{Deref, DerefMut};
 use bytemuck::{Pod, Zeroable};
