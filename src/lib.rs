@@ -59,8 +59,8 @@
 //! position and the direction in which it looks. You also have "global"
 //! properties like the field of view (FoV) you want to render with. From those
 //! values, you create two matrices: the view matrix (world → view, via
-//! [`Matrix::look_into`]) and the projection matrix (view → NDC, via
-//! [`Matrix::perspective`]).
+//! [`transform::look_into`]) and the projection matrix (view → NDC, via
+//! [`transform::perspective`]).
 //!
 //! You pass both of those matrices to your shader as uniform value or push
 //! constant. Inside the vertex shader, you extend your 3D vertex position with
@@ -131,8 +131,8 @@
 //! calculations in view space, you might merely need to know about the
 //! handedness of your view space. But other than that, it's arbitrary.
 //!
-//! [`Matrix::look_into`] returns a view matrix that transforms into the
-//! right-handed view space. Similarly, [`Matrix::perspective`] assumes a
+//! [`transform::look_into`] returns a view matrix that transforms into the
+//! right-handed view space. Similarly, [`transform::perspective`] assumes a
 //! right-handed view space.
 //!
 //! Left-handed versions of these functions are not offered in this library
@@ -141,7 +141,7 @@
 //! to `look_into`. To get a projection matrix that works with a left-handed
 //! view space, just flip the sign of your view space as a transformation
 //! before the projection matrix. That means your projection matrix would be
-//! `Matrix::perspective(...) * flip` where `flip` is this matrix (e.g. via
+//! `transform::perspective(...) * flip` where `flip` is this matrix (e.g. via
 //! `Mat4::from_diagonal([1, 1, -1, 1])`:
 //!
 //! ```text
@@ -169,6 +169,7 @@ mod mat;
 mod vec;
 mod util;
 pub mod named_scalar;
+pub mod transform;
 
 pub use self::{
     angle::{Degrees, Radians},
@@ -176,7 +177,7 @@ pub use self::{
     vec::{
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
         vector::{
-            Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, Vec4, Vec4f, Vec4d, vec2, vec3, vec4
+            Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, Vec4, Vec4f, Vec4d, vec2, vec3, vec4,
         },
     },
 };

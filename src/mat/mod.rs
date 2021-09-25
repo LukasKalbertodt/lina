@@ -1,8 +1,8 @@
-use std::{fmt, ops::{self, Index, IndexMut, RangeInclusive}};
+use std::{fmt, ops::{self, Index, IndexMut}};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Float, Point3, Radians, Scalar, Vec3, Vector, cross, dot, util::{array_from_index, zip_map}};
+use crate::{Scalar, Vector, dot, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -23,7 +23,7 @@ use crate::{Float, Point3, Radians, Scalar, Vec3, Vector, cross, dot, util::{arr
 /// [3blue1brown's series "Essence of Linear Algebra"][3b1b-lina], in
 /// particular [Chapter 3: Linear transformations and matrices][3b1b-transform].
 ///
-/// ## Homogeneous coordinates & affine transformations
+/// ## Homogeneous coordinates & non-linear transformations
 ///
 /// In computer graphics, non-linear transformations (like translations and
 /// perspective projection) are often important as well. To be able to
@@ -31,12 +31,8 @@ use crate::{Float, Point3, Radians, Scalar, Vec3, Vector, cross, dot, util::{arr
 /// [*homogeneous coordinates*][hc-wiki] (instead of standard cartesian
 /// coordinates). To do that, we increase the dimension of our vectors and
 /// matrices by 1, e.g. having a 4D vector and 4x4 matrices to talk about 3D
-/// space. This allows matrices to represent *affine* transformations.
-///
-/// There are a couple of associated functions returning transformation
-/// matrices. Be mindful of the prefix `hc_` or `cc_` which denotes the intended
-/// coordinate system. If you're working in 3D space, you usually want to use
-/// `hc_` versions for 4x4 matrices and `cc_` versions for 3x3 matrices.
+/// space. This allows matrices to represent *affine* and perspective
+/// projection transformations.
 ///
 /// ## Transforming a point or vector
 ///
@@ -52,7 +48,7 @@ use crate::{Float, Point3, Radians, Scalar, Vec3, Vector, cross, dot, util::{arr
 ///
 /// Mathematically, this composition is *matrix multiplication*: `A * B` results
 /// in a matrix that represents the combined transformation of *first* `B`,
-/// *then* `A`. Yes, matrix multiplication is not commutative, i.e. the order of
+/// *then* `A`. Matrix multiplication is not commutative, i.e. the order of
 /// operands matters. And it's also in an non-intuitive order, with the
 /// rightmost transformation being applied first. For that reason, you can also
 /// use [`Matrix::and_then`] instead of the overloaded operator `*`. Use what
@@ -410,330 +406,6 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// ```
     pub fn trace(&self) -> T {
         self.diagonal().as_ref().iter().fold(T::zero(), |a, b| a + *b)
-    }
-
-    /// Returns a transformation matrix for homogeneous coordinates that scales
-    /// all axis by `factor`. For the cartesian coordinate version, see
-    /// [`Matrix::cc_scale`]. Example for `Mat4` (with `f` being `factor`):
-    ///
-    /// ```text
-    /// ⎡ f 0 0 0 ⎤
-    /// ⎢ 0 f 0 0 ⎥
-    /// ⎢ 0 0 f 0 ⎥
-    /// ⎣ 0 0 0 1 ⎦
-    /// ```
-    ///
-    /// ```
-    /// use lina::{Mat4f, vec4};
-    ///
-    /// let m = Mat4f::hc_scale(3.5);
-    ///
-    /// assert_eq!(m.row(0), vec4(3.5, 0.0, 0.0, 0.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 3.5, 0.0, 0.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 3.5, 0.0));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
-    /// ```
-    pub fn hc_scale(factor: T) -> Self {
-        let mut diag = [factor; N];
-        diag[N - 1] = T::one();
-        Self::from_diagonal(diag)
-    }
-
-    /// Returns a transformation matrix for homogeneous coordinates that scales
-    /// axis according to `factors`. For the cartesian coordinate version, see
-    /// [`Matrix::cc_nonuniform_scale`]. Example for `Mat4` (with `factors`
-    /// being `[x, y, z]`):
-    ///
-    /// ```text
-    /// ⎡ x 0 0 0 ⎤
-    /// ⎢ 0 y 0 0 ⎥
-    /// ⎢ 0 0 z 0 ⎥
-    /// ⎣ 0 0 0 1 ⎦
-    /// ```
-    ///
-    /// ```
-    /// use lina::{Mat4f, vec4};
-    ///
-    /// let m = Mat4f::hc_nonuniform_scale([2.0f32, 3.0, 8.0]);
-    ///
-    /// assert_eq!(m.row(0), vec4(2.0, 0.0, 0.0, 0.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 3.0, 0.0, 0.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 8.0, 0.0));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
-    /// ```
-    pub fn hc_nonuniform_scale(factors: impl Into<Vector<T, { N - 1 }>>) -> Self {
-        let mut diag = [T::one(); N];
-        let factors = factors.into();
-        for i in 0..N - 1 {
-            diag[i] = factors[i];
-        }
-        Self::from_diagonal(diag)
-    }
-
-    /// Returns a transformation matrix for homogeneous coordinates that
-    /// translates according to `v`. Example for `Mat4` (with `v` being
-    /// `[x, y, z]`):
-    ///
-    /// ```text
-    /// ⎡ 1 0 0 a ⎤
-    /// ⎢ 0 1 0 b ⎥
-    /// ⎢ 0 0 1 c ⎥
-    /// ⎣ 0 0 0 1 ⎦
-    /// ```
-    ///
-    /// ```
-    /// use lina::{Mat4f, vec4};
-    ///
-    /// let m = Mat4f::hc_translate([2.0f32, 3.0, 8.0]);
-    ///
-    /// assert_eq!(m.row(0), vec4(1.0, 0.0, 0.0, 2.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 1.0, 0.0, 3.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 1.0, 8.0));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 1.0));
-    /// ```
-    pub fn hc_translate(v: impl Into<Vector<T, { N - 1}>>) -> Self {
-        let mut m = Self::identity();
-        let v = v.into();
-        for i in 0..N - 1 {
-            m[N - 1][i] = v[i];
-        }
-        m
-    }
-
-    /// Returns a transformation matrix for cartesian coordinates that scales
-    /// all axis by `factor`. For the homogeneous coordinate version, see
-    /// [`Matrix::hc_scale`]. Example for `Mat4` (with `f` being `factor`):
-    ///
-    /// ```text
-    /// ⎡ f 0 0 0 ⎤
-    /// ⎢ 0 f 0 0 ⎥
-    /// ⎢ 0 0 f 0 ⎥
-    /// ⎣ 0 0 0 f ⎦
-    /// ```
-    ///
-    /// ```
-    /// use lina::{Mat4f, vec4};
-    ///
-    /// let m = Mat4f::cc_scale(3.5);
-    ///
-    /// assert_eq!(m.row(0), vec4(3.5, 0.0, 0.0, 0.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 3.5, 0.0, 0.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 3.5, 0.0));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 3.5));
-    /// ```
-    pub fn cc_scale(factor: T) -> Self {
-        Self::from_diagonal([factor; N])
-    }
-
-    /// Returns a transformation matrix for cartesian coordinates that scales
-    /// axis according to `factors`. For the homogeneous coordinate version,
-    /// see [`Matrix::hc_nonuniform_scale`]. Equivalent to [`Matrix::from_diagonal`].
-    /// Example for `Mat4` (with `factors` being `[x, y, z, w]`):
-    ///
-    /// ```text
-    /// ⎡ x 0 0 0 ⎤
-    /// ⎢ 0 y 0 0 ⎥
-    /// ⎢ 0 0 z 0 ⎥
-    /// ⎣ 0 0 0 w ⎦
-    /// ```
-    ///
-    /// ```
-    /// use lina::{Mat4f, vec4};
-    ///
-    /// let m = Mat4f::cc_nonuniform_scale([2.0f32, 3.0, 8.0, 5.0]);
-    ///
-    /// assert_eq!(m.row(0), vec4(2.0, 0.0, 0.0, 0.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 3.0, 0.0, 0.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0, 8.0, 0.0));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0, 0.0, 5.0));
-    /// ```
-    pub fn cc_nonuniform_scale(factors: impl Into<Vector<T, N>>) -> Self {
-        Self::from_diagonal(factors)
-    }
-}
-
-impl<T: Scalar> Mat4<T> {
-    /// Returns a matrix for transformation of 3D homogeneous world space points
-    /// into camera/view space.
-    ///
-    /// In view space, the camera is at the origin, +x points right, +y points
-    /// up. This view space is right-handed, and thus, +z points outside of the
-    /// screen and -z points into the screen. Please see [the part on
-    /// handedness in the crate docs](../#choice-of-view-space--handedness) for
-    /// more information. The returned matrix only translates and rotates,
-    /// meaning that sizes and angles are unchanged compared to world space.
-    ///
-    /// The following camera properties have to be given:
-    /// - `eye`: the position of the camera.
-    /// - `direction`: the direction the camera is looking in. **Must not** be
-    ///   the zero vector. Does not have to be normalized.
-    /// - `up`: a usually artificial vector defining "up" in camera
-    ///   space. **Must not** be the zero vector and **must not** be linearly
-    ///   dependent to `direction` (i.e. they must not point into the same or
-    ///   exactly opposite directions). Does not have to be normalized.
-    ///
-    /// To avoid float precision problems, `direction` and `up` should not have
-    /// a tiny length and should not point in *almost* the same direction.
-    ///
-    ///
-    /// ## A note on the `up` vector
-    ///
-    /// There are two main types of cameras in games that are distinguished by
-    /// whether or not they can "fly a loop" (think airplane game with
-    /// out-of-cockpit camera).
-    ///
-    /// In most games, this looping ability is not necessary: in those games, if
-    /// you move the mouse/controller all the way up or down, the camera stops
-    /// turning once you look almost straight down or up. Those are usually
-    /// games with a clear "down" direction (e.g. gravity). In these cases, you
-    /// usually just pass `(0, 0, 1)` (or `(0, 1, 0)` if you prefer your +y up)
-    /// as `up` vector and make sure the player cannot look exactly up or down.
-    /// The latter you can achieve by just having a min and max vertical angle
-    /// (e.g. 1° and 179°).
-    ///
-    /// In games where a looping camera is required, you have to maintain and
-    /// evolve the `up` vector over time. For example, if the player moves the
-    /// mouse/controller you don't just adjust the look direction, but also the
-    /// up vector.
-    pub fn look_into(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> Self
-    where
-        T: Float,
-    {
-        // This function is unlikely to be called often, so we improve developer
-        // experience by having these checks and normalizations.
-        assert!(!direction.is_zero(), "direction vector must not be the zero vector");
-        assert!(!up.is_zero(), "up vector must not be the zero vector");
-        let dir = direction.normalized();
-
-        let right = cross(dir, up);
-        assert!(!right.is_zero(), "direction and up vector must be linearly independent");
-
-        let r = right.normalized();
-        let u = cross(r, dir);
-        let d = dir;
-        let eye = eye.to_vec();
-
-        // This is the inverse of this:
-        //
-        // ⎡ r.x  u.x  d.x  eye.x ⎤
-        // ⎢ r.y  u.x  d.x  eye.x ⎥
-        // ⎢ r.z  u.x  d.x  eye.x ⎥
-        // ⎣   0    0    0      1 ⎦
-        Self::from_rows([
-            [      r.x,       r.y,       r.z, -dot(eye, r)],
-            [      u.x,       u.y,       u.z, -dot(eye, u)],
-            [     -d.x,      -d.y,      -d.z,  dot(eye, d)],
-            [T::zero(), T::zero(), T::zero(),     T::one()],
-        ])
-    }
-
-    /// Returns a matrix for perspective transformation from view space to NDC
-    /// (using homogeneous coordinates).
-    ///
-    /// View space is assumed to be right-handed, i.e. +y pointing up and -z
-    /// pointing into the screen (satisfied by [`Matrix::look_into`]). In NDC,
-    /// `x/w` and `y/w` are in range -1 to 1  and denote the horizontal and
-    /// vertical screen position, respectively. The +x axis points to the right,
-    /// the +y axis points up. `z` represents the depth and `z/w` is in range
-    /// `depth_range_out`.
-    ///
-    /// **Function inputs**:
-    ///
-    /// - `vertical_fov`: the vertical field of view of your projection. Has to
-    ///   be less than half a turn (π radians or 180°)!
-    ///
-    /// - `aspect_ratio`: `width / height` of your target surface, e.g. screen
-    ///   or application window. Has to be positive!
-    ///
-    /// - `depth_range_in`: the near and far plane of the projection, in world
-    ///   or view space (equivalent since the view matrix does not change
-    ///   distances). The far plane may be ∞ (e.g. `f32::INFINITY`), which is
-    ///   handled properly by this function.
-    ///
-    /// - `depth_range_out`: the `z` range after the transformation. For `a..=b`,
-    ///   `a` is what the near plane is mapped to and `b` is what the far plane
-    ///   is mapped to. Usually, only the following values make sense:
-    ///   - `0.0..=1.0` as default for WebGPU, Direct3D, Metal, Vulkan.
-    ///   - `-1.0..=1.0` as default for OpenGL.
-    ///   - `1.0..=0.0` for *reverse z* projection. Using this together with a
-    ///     floating point depth buffer is **strongly recommended** as it vastly
-    ///     improves depth precision.
-    ///
-    /// If your view space has left-handed or if you want your +y axis pointing
-    /// down in NDC (e.g. for Vulkan), you just have to multiply the matrix
-    /// returned by this function with a matrix flipping the z or y sign. (Mind
-    /// the order of multiplication.)
-    ///
-    /// - Left-handed view space: use
-    ///   `Mat4::perspective(...) * Mat4::from_diagonal([1.0, 1.0, -1.0, 1.0])`
-    ///   as projection matrix.
-    /// - +y pointing down in NDC: use
-    ///   `Mat4::from_diagonal([1.0, -1.0, 1.0, 1.0]) * Mat4::perspective(...)`
-    ///   as projection matrix.
-    ///
-    ///
-    /// # Example
-    ///
-    /// (The finite near and far plane values in this example are probably not
-    /// what you would want for your application.)
-    ///
-    /// ```
-    /// use lina::{Degrees, Mat4f, vec4};
-    ///
-    /// let m = Mat4f::perspective(Degrees(90.0), 2.0, 0.1..=f32::INFINITY, 1.0..=0.0);
-    /// assert_eq!(m.row(0), vec4(0.5, 0.0,  0.0, 0.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 1.0,  0.0, 0.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0,  0.0, 0.1));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0, -1.0, 0.0));
-    ///
-    /// let m = Mat4f::perspective(Degrees(90.0), 1.0, 0.1..=100.0, 0.0..=1.0);
-    /// assert_eq!(m.row(0), vec4(1.0, 0.0,       0.0,        0.0));
-    /// assert_eq!(m.row(1), vec4(0.0, 1.0,       0.0,        0.0));
-    /// assert_eq!(m.row(2), vec4(0.0, 0.0, -1.001001, -0.1001001));
-    /// assert_eq!(m.row(3), vec4(0.0, 0.0,      -1.0,        0.0));
-    /// ```
-    ///
-    ///
-    pub fn perspective(
-        vertical_fov: impl Into<Radians<T>>,
-        aspect_ratio: T,
-        depth_range_in: RangeInclusive<T>,
-        depth_range_out: RangeInclusive<T>,
-    ) -> Self
-    where
-        T: Float,
-    {
-        let vertical_fov = vertical_fov.into();
-        assert!(vertical_fov.0 < T::PI(), "`vertical_fov` has to be < π radians/180°");
-        assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");
-        assert!(aspect_ratio > T::zero(), "`aspect_ratio` needs to be positive");
-
-        let t = (vertical_fov / (T::one() + T::one())).tan();
-        let sy = T::one() / t;
-        let sx = sy / aspect_ratio;
-
-        // We calculate the a and b elements of the matrix according to the
-        // depth mapping (from `depth_range_in` to `depth_range_out`). This
-        // article might help with understanding how these formulas came to be:
-        // https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
-        let (near_in, far_in) = depth_range_in.into_inner();
-        let (near_out, far_out) = depth_range_out.into_inner();
-        let (a, b);
-        if far_in.is_infinite() {
-            // Curiously, this does not depend on the sign of `far_in`.
-            a = -far_out;
-            b = -near_in * (far_out - near_out);
-        } else {
-            a = (far_in * far_out - near_in * near_out) / (near_in - far_in);
-            b = (near_in * far_in * (far_out - near_out)) / (near_in - far_in);
-        }
-
-        Self::from_rows([
-            [       sx, T::zero(), T::zero(), T::zero()],
-            [T::zero(),        sy, T::zero(), T::zero()],
-            [T::zero(), T::zero(),         a,         b],
-            [T::zero(), T::zero(), -T::one(), T::zero()],
-        ])
     }
 }
 
