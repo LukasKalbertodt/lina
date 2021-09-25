@@ -2,7 +2,7 @@ use std::{fmt, ops::{self, Index, IndexMut}};
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Scalar, Vector, dot, util::{array_from_index, zip_map}};
+use crate::{Point, Scalar, Vector, dot, util::{array_from_index, zip_map}};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -36,7 +36,19 @@ use crate::{Scalar, Vector, dot, util::{array_from_index, zip_map}};
 ///
 /// ## Transforming a point or vector
 ///
-/// TODO
+/// Mathematically, to apply a transformation to a vector/point, you multiply
+/// the matrix with the vector/point: `matrix * vec`. The relevant operator is
+/// defined, so you can just do that in Rust as well.
+///
+/// However, you can also use methods to transform vectors/points:
+///
+/// - [`Matrix::transform_vec`] and [`Matrix::transform_point`]
+/// - [`Matrix::transform_hc_vec`] and [`Matrix::transform_hc_point`]
+///
+/// The `_hc` (homogeneous coordinate) versions take a vector/point of dimension
+/// `N - 1` and correctly perform the perspective divide after the
+/// transformation.
+///
 ///
 /// ## Combining transformations
 ///
@@ -208,6 +220,27 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         Matrix::from_rows(self.0)
     }
 
+    /// Transforms the given vector according to this matrix. Mathematically,
+    /// this is simple matrix-vector-multiplication `matrix * vec`. **Note**:
+    /// does not perform perspective divide: this is a simple multiplication.
+    ///
+    /// For homogeneous coordinates, you might be interested in
+    /// [`Matrix::transform_hc_vec`].
+    pub fn transform_vec(&self, vec: Vector<T, C>) -> Vector<T, R> {
+        // TODO: check generated assembly and optimize if necessary.
+        array_from_index(|i| dot(self.row(i), vec)).into()
+    }
+
+    /// Transforms the given point according to this matrix. Mathematically,
+    /// this is simple matrix-vector-multiplication `matrix * vec`. **Note**:
+    /// does not perform perspective divide: this is a simple multiplication.
+    ///
+    /// For homogeneous coordinates, you might be interested in
+    /// [`Matrix::transform_hc_point`].
+    pub fn transform_point(&self, point: Point<T, C>) -> Point<T, R> {
+        (self.transform_vec(point.to_vec())).to_point()
+    }
+
     /// Combines the transformations of two matrices into a single
     /// transformation matrix. First the transformation of `self` is applied,
     /// then the one of `second`. In the language of math, this is just matrix
@@ -372,6 +405,64 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// Transposes this matrix in-place. Also see [`Matrix::transposed`].
     pub fn transpose(&mut self) {
         *self = self.transposed();
+    }
+
+    /// Converts the given vector to homogeneous coordinates by extending it
+    /// with `1`, transforms it with this matrix, and converts the result back
+    /// into cartesian coordinates by performing the perspective divide
+    /// (e.g. divide by `w` in the 3D case).
+    ///
+    /// For an example, see [`Matrix::transform_hc_point`].
+    pub fn transform_hc_vec(&self, vec: Vector<T, { N - 1 }>) -> Vector<T, { N - 1 }> {
+        // TODO: use `Vector::extend` here once it does not require a `where` bound.
+        let mut hc_vec = [T::one(); N];
+        for i in 0..N - 1 {
+            hc_vec[i] = vec[i];
+        }
+        let hc_out = self.transform_vec(hc_vec.into());
+        let last = hc_out[N - 1];
+        dbg!(last);
+        hc_out.truncate() / last
+    }
+
+    /// Converts the given point to homogeneous coordinates by extending it with
+    /// `1`, transforms it with this matrix, and converts the result back into
+    /// cartesian coordinates by performing the perspective divide(e.g. divide
+    /// by `w` in the 3D case).
+    ///
+    /// ```
+    /// use lina::{Mat4f, point3};
+    ///
+    /// let scale_then_translate = Mat4f::from_rows([
+    ///     [2.5, 0.0, 0.0, 0.1],
+    ///     [0.0, 2.5, 0.0, 0.2],
+    ///     [0.0, 0.0, 2.5, 0.3],
+    ///     [0.0, 0.0, 0.0, 1.0],
+    /// ]);
+    /// assert_eq!(
+    ///     scale_then_translate.transform_hc_point(point3(2.0f32, 4.0, 6.0)),
+    ///     point3(5.1, 10.2, 15.3),
+    /// );
+    /// ```
+    ///
+    /// A perspective transform, where the divide by `w` becomes relevant:
+    ///
+    /// ```
+    /// use lina::{Mat4f, point3};
+    ///
+    /// let scale_then_translate = Mat4f::from_rows([
+    ///     [1.0, 0.0, 0.0, 0.0],
+    ///     [0.0, 1.0, 0.0, 0.0],
+    ///     [0.0, 0.0, 1.0, 0.0],
+    ///     [0.0, 0.0, 1.0, 0.0],
+    /// ]);
+    /// assert_eq!(
+    ///     scale_then_translate.transform_hc_point(point3(4.0, 3.0, 2.0)),
+    ///     point3(2.0, 1.5, 1.0),
+    /// );
+    /// ```
+    pub fn transform_hc_point(&self, point: Point<T, { N - 1 }>) -> Point<T, { N - 1 }> {
+        (self.transform_hc_vec(point.to_vec())).to_point()
     }
 
     /// Checks whether this matrix is *symmetric*, i.e. whether transposing
@@ -549,8 +640,7 @@ impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<
 impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Vector<T, C>> for Matrix<T, C, R> {
     type Output = Vector<T, R>;
     fn mul(self, rhs: Vector<T, C>) -> Self::Output {
-        // TODO: check generated assembly and optimize if necessary.
-        array_from_index(|i| dot(self.row(i), rhs)).into()
+        self.transform_vec(rhs)
     }
 }
 

@@ -280,7 +280,8 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
 /// Note that unlike most other homogeneous transformation matrices, this matrix
 /// does not necessarily keep `w = 1` in transformed vectors. So you might need
 /// to devide the transformed vector by `w`, also called the "perspective
-/// divide".
+/// divide". You can use [`Matrix::transform_hc_vec`] or
+/// [`Matrix::transform_hc_point`] to perform that divide for you.
 ///
 /// View space is assumed to be right-handed, i.e. +y pointing up and -z
 /// pointing into the screen (satisfied by [`look_into`]). In NDC, `x/w` and
