@@ -5,6 +5,10 @@ use crate::Float;
 
 macro_rules! shared_methods {
     () => {
+        pub fn half_turn() -> Self {
+            Self::full_turn() / (T::one() +  T::one())
+        }
+
         pub fn sin(self) -> T {
             Radians::from(self).0.sin()
         }
