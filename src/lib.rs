@@ -159,7 +159,7 @@
 
 use std::{
     fmt::Debug,
-    ops::{AddAssign, SubAssign, MulAssign, DivAssign},
+    ops::{self, AddAssign, SubAssign, MulAssign, DivAssign},
 };
 use bytemuck::Pod;
 use num_traits::Num;
@@ -318,4 +318,23 @@ pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
         () if val > max => max,
         _ => val,
     }
+}
+
+/// Linearly interpolates between `a` and `b` with the given `factor`.
+/// `factor = 0` is 100% `a`, `factor = 1` is 100% `b`.
+///
+/// If `factor` is outside of the range `0..=1`, the result might not make
+/// sense. It is simply following the formula `(1 - factor) * a + factor * b`.
+///
+/// ```
+/// use lina::{lerp, vec2};
+///
+/// assert_eq!(lerp(10.0, 20.0, 0.6), 16.0);
+/// assert_eq!(lerp(vec2(10.0, -5.0), vec2(12.0, 5.0), 0.2), vec2(10.4, -3.0));
+/// ```
+pub fn lerp<F: Float, T>(a: T, b: T, factor: F) -> T
+where
+    T: ops::Mul<F, Output = T> + ops::Add<Output = T>,
+{
+    a * (F::one() - factor) + b * factor
 }
