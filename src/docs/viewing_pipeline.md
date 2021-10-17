@@ -79,7 +79,7 @@ perform any calculations in view space.
 
 ## NDC differences between APIs
 
-Unfortunatley, the exact properties/requirements of NDC depend on the
+Unfortunately, the exact properties/requirements of NDC depend on the
 graphic API you are using. The common properties are:
 
 - `x` and `y` are in range -1 to 1 (inclusive) and describe the horizontal

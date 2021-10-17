@@ -5,3 +5,6 @@
 
 #[doc = include_str!("viewing_pipeline.md")]
 pub mod viewing_pipeline {}
+
+#[doc = include_str!("point_vs_vector.md")]
+pub mod point_vs_vector {}

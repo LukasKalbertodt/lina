@@ -5,7 +5,9 @@
 //! vectors and points. While these three types are generic over their
 //! dimension, some features are only implemented for small dimensions.
 //!
-//! - [Vectors][Vector] and [points][Point] with generic dimension
+//! - [Vectors][Vector] and [points][Point] with generic dimension (see
+//!   [this explanation][docs::point_vs_vector] on why `lina` has two
+//!   vector-like types)
 //! - [Matrices][Matrix] with generic dimensions
 //! - Strongly typed angles: [`Degrees`] and [`Radians`]
 //! - Commonly used [transformations][transform]
