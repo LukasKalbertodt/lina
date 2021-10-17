@@ -210,7 +210,17 @@ where
 /// functions of this library. It is used whenever `Scalar` is not sufficient,
 /// which is basically whenever a function does not make sense for integers.
 /// This trait is implemented for at least `f32` and `f64`.
-pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {}
+pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {
+    fn two() -> Self {
+        Self::one() + Self::one()
+    }
+    fn three() -> Self {
+        Self::one() + Self::one() + Self::one()
+    }
+    fn four() -> Self {
+        Self::one() + Self::one() + Self::one() + Self::one()
+    }
+}
 
 impl<T> Float for T
 where
