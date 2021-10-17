@@ -10,7 +10,7 @@ use crate::{Point, Scalar, Vector, dot, util::{array_from_index, zip_map}};
 ///
 /// *Note*: the `Debug` output (via `{:?}`) prints the matrix in row-major
 /// order, i.e. row-by-row. This is more intuitive when reading matrices. You
-/// can also use the "alternate" flat `#` (i.e. `{:#?}`) which avoids that
+/// can also use the "alternate" flag `#` (i.e. `{:#?}`) which avoids that
 /// confusion by using one actual line per matrix row.
 ///
 ///
