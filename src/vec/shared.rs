@@ -64,13 +64,13 @@ macro_rules! shared_methods {
         /// let r = a.zip_map(b, |ac, bc| ac * bc);
         #[doc = concat!("assert_eq!(r, ", $ctor3, "(4, 10, 18));")]
         /// ```
-        pub fn zip_map<U, R, F>(self, other: $ty<U, N>, f: F) -> $ty<R, N>
+        pub fn zip_map<U, R, F>(self, other: $ty<U, N>, mut f: F) -> $ty<R, N>
         where
             U: Scalar,
             R: Scalar,
             F: FnMut(T, U) -> R,
         {
-            $ty(crate::util::zip_map(self.0, other.0, f))
+            $ty(std::array::from_fn(|i| f(self.0[i], other.0[i])))
         }
 
         #[doc = concat!("Returns a byte slice of this ", $tys_lower, ", ")]

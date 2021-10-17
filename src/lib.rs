@@ -18,6 +18,7 @@
 //!
 
 #![feature(generic_const_exprs)]
+#![feature(array_from_fn)]
 #![allow(incomplete_features)]
 
 use std::{
@@ -31,7 +32,6 @@ mod angle;
 mod mat;
 mod spherical;
 mod vec;
-mod util;
 pub mod docs;
 pub mod named_scalar;
 pub mod transform;

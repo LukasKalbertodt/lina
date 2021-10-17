@@ -1,6 +1,7 @@
+use std::array;
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Vector, Scalar, Float, util::zip_map};
+use crate::{Vector, Scalar, Float};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents
@@ -128,7 +129,7 @@ pub fn point3<T: Scalar>(x: T, y: T, z: T) -> Point3<T> {
 impl<T: Scalar, const N: usize> ops::Add<Vector<T, N>> for Point<T, N> {
     type Output = Point<T, N>;
     fn add(self, rhs: Vector<T, N>) -> Self::Output {
-        Point(zip_map(self.0, rhs.0, |l, r| l + r))
+        Point(array::from_fn(|i| self[i] + rhs[i]))
     }
 }
 
@@ -143,7 +144,7 @@ impl<T: Scalar, const N: usize> ops::AddAssign<Vector<T, N>> for Point<T, N> {
 impl<T: Scalar, const N: usize> ops::Sub<Vector<T, N>> for Point<T, N> {
     type Output = Point<T, N>;
     fn sub(self, rhs: Vector<T, N>) -> Self::Output {
-        Point(zip_map(self.0, rhs.0, |l, r| l - r))
+        Point(array::from_fn(|i| self[i] - rhs[i]))
     }
 }
 
@@ -158,6 +159,6 @@ impl<T: Scalar, const N: usize> ops::SubAssign<Vector<T, N>> for Point<T, N> {
 impl<T: Scalar, const N: usize> ops::Sub<Point<T, N>> for Point<T, N> {
     type Output = Vector<T, N>;
     fn sub(self, rhs: Point<T, N>) -> Self::Output {
-        Vector(zip_map(self.0, rhs.0, |l, r| l - r))
+        Vector(array::from_fn(|i| self[i] - rhs[i]))
     }
 }

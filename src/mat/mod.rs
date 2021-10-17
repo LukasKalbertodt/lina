@@ -1,8 +1,7 @@
-use std::{fmt, ops::{self, Index, IndexMut}};
-
+use std::{array, fmt, ops::{self, Index, IndexMut}};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Scalar, Vector, dot, util::{array_from_index, zip_map}};
+use crate::{Point, Scalar, Vector, dot};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -177,7 +176,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
 
     /// Returns the row with index `idx`.
     pub fn row(&self, idx: usize) -> Vector<T, C> {
-        array_from_index(|i| self[i][idx]).into()
+        array::from_fn(|i| self[i][idx]).into()
     }
 
     /// Sets the row with index `idx` to the given vector.
@@ -228,7 +227,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// [`Matrix::transform_hc_vec`].
     pub fn transform_vec(&self, vec: Vector<T, C>) -> Vector<T, R> {
         // TODO: check generated assembly and optimize if necessary.
-        array_from_index(|i| dot(self.row(i), vec)).into()
+        array::from_fn(|i| dot(self.row(i), vec)).into()
     }
 
     /// Transforms the given point according to this matrix. Mathematically,
@@ -316,11 +315,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         O: Scalar,
         F: FnMut(T, U) -> O,
     {
-        Matrix(
-            zip_map(self.0, other.0, |lcol, rcol| {
-                zip_map(lcol, rcol, |l, r| f(l, r))
-            })
-        )
+        Matrix(array::from_fn(|i| array::from_fn(|j| f(self[i][j], other[i][j]))))
     }
 
     /// Returns a byte slice of this whole matrix, representing the raw data.
@@ -376,7 +371,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// assert_eq!(mat.diagonal(), vec3(1, 5, 9));
     /// ```
     pub fn diagonal(&self) -> Vector<T, N> {
-        array_from_index(|i| self[i][i]).into()
+        array::from_fn(|i| self[i][i]).into()
     }
 
     /// Sets the diagonal to the given vector.
