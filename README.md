@@ -1,6 +1,6 @@
 # `lina`: linear algebra library for 3D applications
 
-[<img alt="CI status of main" src="https://img.shields.io/github/workflow/status/LukasKalbertodt/lina/CI/main?label=CI&logo=github&logoColor=white&style=for-the-badge" height="23">](https://github.com/LukasKalbertodt/lina/actions?query=workflow%3ACI+branch%3Amaster)
+[<img alt="CI status of main" src="https://img.shields.io/github/workflow/status/LukasKalbertodt/lina/CI/main?label=CI&logo=github&logoColor=white&style=for-the-badge" height="23">](https://github.com/LukasKalbertodt/lina/actions?query=workflow%3ACI+branch%3Amain)
 [<img alt="Crates.io Version" src="https://img.shields.io/crates/v/lina?logo=rust&style=for-the-badge" height="23">](https://crates.io/crates/lina)
 [<img alt="docs.rs" src="https://img.shields.io/crates/v/lina?color=blue&label=docs&style=for-the-badge" height="23">](https://docs.rs/lina)
 
