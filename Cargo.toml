@@ -1,7 +1,22 @@
 [package]
 name = "lina"
 version = "0.1.0"
+authors = ["Lukas Kalbertodt <lukas.kalbertodt@gmail.com>"]
 edition = "2018"
+
+description = """
+Linear algebra library with a focus on 3D applications like games,
+i.e. low-dimensional vectors and matrices.
+"""
+documentation = "https://docs.rs/lina/"
+repository = "https://github.com/LukasKalbertodt/lina/"
+readme = "README.md"
+license = "MIT/Apache-2.0"
+
+keywords = ["linear-algebra", "gamedev", "computer-graphics", "math"]
+categories = ["game-development", "graphics", "mathematics", "rendering"]
+exclude = [".github"]
+
 
 [dependencies]
 bytemuck = { version = "1.7.2", features = ["min_const_generics"] }
