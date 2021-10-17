@@ -238,6 +238,24 @@ impl<T: Scalar, const N: usize> ops::Mul<T> for Vector<T, N> {
     }
 }
 
+// Scalar multiplication: `scalar * vector`. Unfortunately, due to Rust's orphan
+// rules, this cannot be implemented generically. So we just implement it for
+// core primitive types.
+macro_rules! impl_scalar_mul {
+    ($($ty:ident),*) => {
+        $(
+            impl<const N: usize> ops::Mul<Vector<$ty, N>> for $ty {
+                type Output = Vector<$ty, N>;
+                fn mul(self, rhs: Vector<$ty, N>) -> Self::Output {
+                    rhs * self
+                }
+            }
+        )*
+    };
+}
+
+impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
+
 /// Scalar multipliation: `vector *= scalar`.
 impl<T: Scalar, const N: usize> ops::MulAssign<T> for Vector<T, N> {
     fn mul_assign(&mut self, rhs: T) {

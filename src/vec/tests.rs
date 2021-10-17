@@ -68,6 +68,11 @@ fn mul() {
     assert_eq!(vec3(1, 2, 3) * 3, vec3(3, 6, 9));
     assert_eq!(vec4(1, 2, 3, 4) * 3, vec4(3, 6, 9, 12));
 
+    assert_eq!(3.0 * vec2(1.0, 2.0), vec2(3.0, 6.0));
+    assert_eq!(3 * vec2(1, 2), vec2(3, 6));
+    assert_eq!(3 * vec3(1, 2, 3), vec3(3, 6, 9));
+    assert_eq!(3 * vec4(1, 2, 3, 4), vec4(3, 6, 9, 12));
+
     let mut x = vec3(0.1, 0.2, 0.3);
     x *= 10.0;
     assert_eq!(x, vec3(1.0, 2.0, 3.0));
