@@ -16,6 +16,7 @@
 //! - [Auxiliary documentation][docs] about topics like computer graphics, linear
 //!   algebra, ...
 //!
+//! *Note*: currently `lina` requires a nightly compiler.
 
 #![feature(generic_const_exprs)]
 #![feature(array_from_fn)]

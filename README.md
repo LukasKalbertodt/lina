@@ -6,7 +6,7 @@
 
 
 `lina` is yet another linear algebra library with a focus on 3D applications
-like games, i.e. low-dimensional vectors and matrices.
+like games, i.e. low-dimensional vectors and matrices. **Currently nightly only** (see below).
 
 One special feature is the heavy use of const generics to make vectors, points
 and matrices generic over their dimensions, while still allowing scalar access
@@ -49,6 +49,19 @@ What about
 Those are all fine libraries, but I was not 100% happy with either of them.
 So I wrote my own!
 `lina` is not *better* than these other libraries, just has a different API that better fits my taste.
+
+
+## Why nightly only?
+
+Currently only two features are used:
+
+- `generic_const_exprs`: this allows methods like `Vector<T, N>::extend(T) -> Vector<T, N + 1>`.
+  I could hide all of those methods behind a feature gate, but I don't need that.
+  If people are interested in that, I'm happy to accept a PR.
+
+- `array_from_fn`: this simplifies a lot of operations that otherwise I would
+  have to hand code with `unsafe` code. And no one wants that. I expect the
+  function to be stabilized somewhat quickly.
 
 
 ## Status of this project
