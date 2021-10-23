@@ -187,3 +187,21 @@ macro_rules! impl_ops {
 
 impl_ops!(Radians);
 impl_ops!(Degrees);
+
+// Scalar multiplication: `scalar * angle`. Unfortunately, due to Rust's orphan
+// rules, this cannot be implemented generically. So we just implement it for
+// core primitive types.
+macro_rules! impl_scalar_mul {
+    ($angle_ty:ident; $($ty:ident),*) => {
+        $(
+            impl ops::Mul<$angle_ty<$ty>> for $ty {
+                type Output = $angle_ty<$ty>;
+                fn mul(self, rhs: $angle_ty<$ty>) -> Self::Output {
+                    rhs * self
+                }
+            }
+        )*
+    };
+}
+
+impl_scalar_mul!(Radians; f32, f64);
