@@ -30,6 +30,7 @@ fn mul_scalar() {
     let a = Matrix::from_rows([[ 1,  2,  3], [ 4,  5,  6]]);
     let c = Matrix::from_rows([[ 3,  6,  9], [12, 15, 18]]);
     assert_eq!(a * 3, c);
+    assert_eq!(3 * a, c);
 
     let mut a = a;
     a *= 3;

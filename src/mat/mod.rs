@@ -639,6 +639,24 @@ impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Vector<T, C>> for Matri
     }
 }
 
+// Scalar multiplication: `scalar * matrix`. Unfortunately, due to Rust's orphan
+// rules, this cannot be implemented generically. So we just implement it for
+// core primitive types.
+macro_rules! impl_scalar_mul {
+    ($($ty:ident),*) => {
+        $(
+            impl<const C: usize, const R: usize> ops::Mul<Matrix<$ty, C, R>> for $ty {
+                type Output = Matrix<$ty, C, R>;
+                fn mul(self, rhs: Matrix<$ty, C, R>) -> Self::Output {
+                    rhs * self
+                }
+            }
+        )*
+    };
+}
+
+impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
+
 
 #[cfg(test)]
 mod tests;
