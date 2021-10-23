@@ -12,7 +12,7 @@
 //! - Strongly typed angles: [`Degrees`] and [`Radians`]
 //! - Commonly used [transformations][transform]
 //! - Spherical coordinates: [`SphericalPos`] and [`NormedSphericalPos`]
-//! - Several helper functions: [`atan2`], [`clamp`], [`lerp`], ...
+//! - Several helper functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], ...
 //! - [Auxiliary documentation][docs] about topics like computer graphics, linear
 //!   algebra, ...
 //!
@@ -217,4 +217,38 @@ where
     T: ops::Mul<F, Output = T> + ops::Add<Output = T>,
 {
     a * (F::one() - factor) + b * factor
+}
+
+/// *Spherical* linear interpolation between `a` and `b` with the given `factor`.
+/// `factor = 0` is 100% `a`, `factor = 1` is 100% `b`.
+///
+/// This operation linearly interpolates the angle between the vectors, so to
+/// speak. Or viewed differently: it linearly interpolates the sphere surface
+/// path from one to the other vector. For more information, see here:
+/// <https://en.wikipedia.org/wiki/Slerp>
+///
+/// The vectors must not be zero! They don't have to be normalized, but don't
+/// ask me how to interpret the result if they don't have the same length. The
+/// same is true for `factor`: usually only the range `0..=1` makes sense, but
+/// this is not enforced. No idea if the results are useful.
+///
+/// ```
+/// use lina::{slerp, vec3};
+///
+/// assert_eq!(
+///     slerp(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), 0.5),
+///     vec3(0.7071067811865475, 0.7071067811865475, 0.0),  // sqrt(2) / 2
+/// );
+/// ```
+pub fn slerp<T: Float, const N: usize>(
+    a: Vector<T, N>,
+    b: Vector<T, N>,
+    factor: T,
+) -> Vector<T, N> {
+    let angle = angle_between(a, b);
+    let sin_angle = angle.sin();
+    let factor_a = (angle * (T::one() - factor)).sin() / sin_angle;
+    let factor_b = (angle * factor).sin() / sin_angle;
+
+    a * factor_a + b * factor_b
 }
