@@ -155,6 +155,27 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
         *self = *self / self.length();
     }
 
+    /// Returns the average of all given vectors or `None` if the given iterator
+    /// is empty.
+    ///
+    /// ```
+    /// use lina::{Vector, vec2};
+    ///
+    /// let avg = Vector::average([vec2(0.0, 8.0), vec2(1.0, 6.0)]);
+    /// assert_eq!(avg, Some(vec2(0.5, 7.0)));
+    /// ```
+    pub fn average(vectors: impl IntoIterator<Item = Self>) -> Option<Self> {
+        let mut it = vectors.into_iter();
+        let mut total = it.next()?;
+        let mut count = T::one();
+        for v in it {
+            total += v;
+            count = count + T::one();
+        }
+
+        Some(total / count)
+    }
+
     shared_methods!(Vector, "vector", "vec2", "vec3");
 }
 
