@@ -104,3 +104,10 @@ fn centroid() {
         Some(point2(3.0, 4.0)),
     );
 }
+
+#[test]
+fn vector_iter_sum() {
+    assert_eq!(<Vec<Vec3f>>::new().into_iter().sum::<Vec3f>(), vec3(0.0, 0.0, 0.0));
+    assert_eq!(vec![vec3(3, 4, 5)].into_iter().sum::<Vec3<i32>>(), vec3(3, 4, 5));
+    assert_eq!(vec![vec2(1, 3), vec2(5, 2)].into_iter().sum::<Vec2<i32>>(), vec2(6, 5));
+}

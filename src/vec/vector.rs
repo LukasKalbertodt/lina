@@ -302,3 +302,9 @@ impl<T: Scalar, const N: usize> ops::DivAssign<T> for Vector<T, N> {
         }
     }
 }
+
+impl<T: Scalar, const N: usize> std::iter::Sum<Self> for Vector<T, N> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::zero(), |acc, x| acc + x)
+    }
+}

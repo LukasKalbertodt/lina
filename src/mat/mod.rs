@@ -657,6 +657,12 @@ macro_rules! impl_scalar_mul {
 
 impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
 
+impl<T: Scalar, const C: usize, const R: usize> std::iter::Sum<Self> for Matrix<T, C, R> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::zero(), |acc, x| acc + x)
+    }
+}
+
 
 #[cfg(test)]
 mod tests;

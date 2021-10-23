@@ -98,3 +98,16 @@ fn mul_matrix() {
     assert_eq!(b * Matrix::identity(), b);
     assert_eq!(Matrix::identity() * b, b);
 }
+
+#[test]
+fn iter_sum() {
+    assert_eq!(<Vec<Mat4f>>::new().into_iter().sum::<Mat4f>(), Mat4f::zero());
+
+    let a = Matrix::from_rows([[1, 2], [3, 4]]);
+    let b = Matrix::from_rows([[5, 6], [7, 8]]);
+    assert_eq!(vec![a].into_iter().sum::<Mat2<i32>>(), a);
+    assert_eq!(
+        vec![a, b].into_iter().sum::<Mat2<i32>>(),
+        Matrix::from_rows([[6, 8], [10, 12]])
+    );
+}
