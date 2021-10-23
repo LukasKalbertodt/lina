@@ -180,6 +180,9 @@ pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
 /// assert_eq!(angle_between(vec2(0.2, 0.0), vec2(0.0, 7.3)), Radians(PI / 2.0));  // 90°
 /// ```
 pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> Radians<T> {
+    debug_assert!(!a.is_zero());
+    debug_assert!(!b.is_zero());
+
     Radians::acos(dot(a, b) / (a.length() * b.length()))
 }
 
