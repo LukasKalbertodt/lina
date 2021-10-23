@@ -7,11 +7,15 @@ use crate::{vec3, Vec3, Point3, Float, Radians};
 #[derive(Clone, Copy, PartialEq, Hash)]
 pub struct SphericalPos<T: Float> {
     /// Vertical angle θ: 0° points up (north pole), 180° points down (south pole),
-    /// 90° is on the equator. Should always be in the range `0..=π`.
+    /// 90° is on the equator. Typical range: `0..=π`.
+    ///
+    /// When created from a point/vector, the angle is in `0..=π`.
     pub theta: Radians<T>,
 
     /// Horizontal angle φ: 0° points +x, 90° points +y, 180° points -y, 270°
-    /// points -y. Should always be in the range `0..=2π`.
+    /// points -y. Typical range: `0..=2π`.
+    ///
+    /// When created from a point/vector, the angle is in `-π..=π`.
     pub phi: Radians<T>,
 
     /// The distance from the origin.
@@ -79,11 +83,15 @@ impl<T: Float> fmt::Debug for SphericalPos<T> {
 #[derive(Clone, Copy, PartialEq, Hash)]
 pub struct NormedSphericalPos<T: Float> {
     /// Vertical angle θ: 0° points up (north pole), 180° points down (south pole),
-    /// 90° is on the equator. Should always be in the range `0..=π`.
+    /// 90° is on the equator. Typical range: `0..=π`.
+    ///
+    /// When created from a point/vector, the angle is in `0..=π`.
     pub theta: Radians<T>,
 
     /// Horizontal angle φ: 0° points +x, 90° points +y, 180° points -y, 270°
-    /// points -y. Should always be in the range `0..=2π`.
+    /// points -y. Typical range: `0..=2π`.
+    ///
+    /// When created from a point/vector, the angle is in `-π..=π`.
     pub phi: Radians<T>,
 }
 
