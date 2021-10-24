@@ -20,7 +20,7 @@ surface and easier to understand [docs](https://docs.rs/lina).
 - Strongly typed angles: `Degrees` and `Radians`
 - Commonly used transformation matrices
 - Spherical coordinates: `SphericalPos` and `NormedSphericalPos`
-- Several helper functions: `atan2`, `clamp`, `lerp`, ...
+- Several helper functions: `atan2`, `clamp`, `lerp`, `slerp`, ...
 - Auxiliary documentation about topics like computer graphics, linear algebra, ...
 
 **Still missing** (but planned):
@@ -45,7 +45,7 @@ What about
 [`nalgebra`](https://nalgebra.org/),
 [`glam`](https://crates.io/crates/glam/),
 [`ultraviolet`](https://crates.io/crates/ultraviolet)
-[`vec`](https://crates.io/crates/vek), ...?
+[`vek`](https://crates.io/crates/vek), ...?
 Those are all fine libraries, but I was not 100% happy with either of them.
 So I wrote my own!
 `lina` is not *better* than these other libraries, just has a different API that better fits my taste.

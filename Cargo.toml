@@ -1,12 +1,12 @@
 [package]
 name = "lina"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Lukas Kalbertodt <lukas.kalbertodt@gmail.com>"]
 edition = "2018"
 
 description = """
-Linear algebra library with a focus on 3D applications like games,
-i.e. low-dimensional vectors and matrices.
+Linear algebra library with a focus on 3D applications like games
+(i.e. low-dimensional vectors and matrices)
 """
 documentation = "https://docs.rs/lina/"
 repository = "https://github.com/LukasKalbertodt/lina/"
