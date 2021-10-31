@@ -254,9 +254,26 @@ pub fn slerp<T: Float, const N: usize>(
     factor: T,
 ) -> Vector<T, N> {
     let angle = angle_between(a, b);
-    let sin_angle = angle.sin();
-    let factor_a = (angle * (T::one() - factor)).sin() / sin_angle;
-    let factor_b = (angle * factor).sin() / sin_angle;
+
+    // The general formula `sin(x * t) / sin(x)` is problematic for very small
+    // `x` as for x=0, we would divide by 0. In math world, all is hunky dory:
+    // in the limit x->0, the value approaches `t`. But with floats, this is
+    // breaks.
+    //
+    // Luckily, in a fairly large region around x=0, floats do produce the
+    // correct value `t`. By checking for `f32` and `f64`, the machine epsilon
+    // is a good treshold. The general formula already yields exactly `t` for
+    // `T::epsilon()`. So while the branch is unfortunate, but this actually
+    // results in the correct value for all angles.
+    let (factor_a, factor_b) = if angle.0 < T::epsilon() {
+        (T::one() - factor, factor)
+    } else {
+        let sin_angle = angle.sin();
+        (
+            (angle * (T::one() - factor)).sin() / sin_angle,
+            (angle * factor).sin() / sin_angle,
+        )
+    };
 
     a * factor_a + b * factor_b
 }
