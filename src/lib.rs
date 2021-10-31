@@ -183,7 +183,15 @@ pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>)
     debug_assert!(!a.is_zero());
     debug_assert!(!b.is_zero());
 
-    Radians::acos(dot(a, b) / (a.length() * b.length()))
+    let mut cos_angle = dot(a, b) / (a.length() * b.length());
+
+    // Unfortunately, sometimes, due to float precision, `cos_angle` is
+    // sometimes slightly above 1. And taking the `acos` of it then would
+    // result in NaN.
+    if cos_angle > T::one() {
+        cos_angle = T::one();
+    }
+    Radians::acos(cos_angle)
 }
 
 /// Clamps `val` into the range `min..=max`.
