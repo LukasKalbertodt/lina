@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## 0.1.1 - 2021-10-24
+## [0.1.2] - 2021-11-13
+### Fixed
+- Fix `angle_between` for super small values
+- Fix `slerp` for input vectors with very small angle between them
+
+## [0.1.1] - 2021-10-24
 ### Added
 - `slerp` function for spherical linear interpolation
 - `float * angle` operator impls for `f32` and `f64` (float on the left hand side)
@@ -23,5 +28,6 @@ All notable changes to this project will be documented in this file.
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/LukasKalbertodt/lina/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/LukasKalbertodt/lina/compare/v0.1.0...v0.1.1
