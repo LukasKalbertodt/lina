@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Point, Point3f, Vec2, Vec3, Vec3f, point2, point3, vec2, vec3, vec4};
 
 #[test]
 fn add_point_vec() {

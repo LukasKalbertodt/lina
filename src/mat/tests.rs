@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Mat2, Mat4f, Matrix};
 
 
 #[test]

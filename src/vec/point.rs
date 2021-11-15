@@ -95,8 +95,8 @@ impl<T: Scalar, const N: usize> Point<T, N> {
         let mut total_displacement = it.next()?.to_vec();
         let mut count = T::one();
         for p in it {
-            total_displacement = total_displacement + p.to_vec();
-            count = count + T::one();
+            total_displacement += p.to_vec();
+            count += T::one();
         }
 
         Some((total_displacement / count).to_point())
@@ -127,9 +127,9 @@ pub fn point3<T: Scalar>(x: T, y: T, z: T) -> Point3<T> {
 }
 
 impl<T: Scalar, const N: usize> ops::Add<Vector<T, N>> for Point<T, N> {
-    type Output = Point<T, N>;
+    type Output = Self;
     fn add(self, rhs: Vector<T, N>) -> Self::Output {
-        Point(array::from_fn(|i| self[i] + rhs[i]))
+        Self(array::from_fn(|i| self[i] + rhs[i]))
     }
 }
 
@@ -142,9 +142,9 @@ impl<T: Scalar, const N: usize> ops::AddAssign<Vector<T, N>> for Point<T, N> {
 }
 
 impl<T: Scalar, const N: usize> ops::Sub<Vector<T, N>> for Point<T, N> {
-    type Output = Point<T, N>;
+    type Output = Self;
     fn sub(self, rhs: Vector<T, N>) -> Self::Output {
-        Point(array::from_fn(|i| self[i] - rhs[i]))
+        Self(array::from_fn(|i| self[i] - rhs[i]))
     }
 }
 
@@ -156,9 +156,9 @@ impl<T: Scalar, const N: usize> ops::SubAssign<Vector<T, N>> for Point<T, N> {
     }
 }
 
-impl<T: Scalar, const N: usize> ops::Sub<Point<T, N>> for Point<T, N> {
+impl<T: Scalar, const N: usize> ops::Sub<Self> for Point<T, N> {
     type Output = Vector<T, N>;
-    fn sub(self, rhs: Point<T, N>) -> Self::Output {
+    fn sub(self, rhs: Self) -> Self::Output {
         Vector(array::from_fn(|i| self[i] - rhs[i]))
     }
 }
