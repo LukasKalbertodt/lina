@@ -51,7 +51,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
 
     /// Returns `true` if this vector is the zero vector (all components 0).
     pub fn is_zero(&self) -> bool {
-        self.0.iter().all(num_traits::Zero::is_zero)
+        self.0.iter().all(T::is_zero)
     }
 
     /// Returns a unit vector in x direction.

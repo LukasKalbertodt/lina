@@ -1,8 +1,8 @@
 #[macro_use]
 mod shared;
 
-pub mod point;
-pub mod vector;
+pub(crate) mod point;
+pub(crate) mod vector;
 
 #[cfg(test)]
 mod tests;
