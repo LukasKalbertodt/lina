@@ -51,7 +51,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
 
     /// Returns `true` if this vector is the zero vector (all components 0).
     pub fn is_zero(&self) -> bool {
-        self.0.iter().all(|c| c.is_zero())
+        self.0.iter().all(num_traits::Zero::is_zero)
     }
 
     /// Returns a unit vector in x direction.
@@ -152,7 +152,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
     where
         T: Float,
     {
-        *self = *self / self.length();
+        *self /= self.length();
     }
 
     /// Returns the average of all given vectors or `None` if the given iterator
@@ -170,7 +170,7 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
         let mut count = T::one();
         for v in it {
             total += v;
-            count = count + T::one();
+            count += T::one();
         }
 
         Some(total / count)
@@ -211,30 +211,30 @@ pub fn vec4<T: Scalar>(x: T, y: T, z: T, w: T) -> Vec4<T> {
     Vec4::new(x, y, z, w)
 }
 
-impl<T: Scalar, const N: usize> ops::Add<Vector<T, N>> for Vector<T, N> {
-    type Output = Vector<T, N>;
-    fn add(self, rhs: Vector<T, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Add<Self> for Vector<T, N> {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
         self.zip_map(rhs, |l, r| l + r)
     }
 }
 
-impl<T: Scalar, const N: usize> ops::AddAssign<Vector<T, N>> for Vector<T, N> {
-    fn add_assign(&mut self, rhs: Vector<T, N>) {
+impl<T: Scalar, const N: usize> ops::AddAssign<Self> for Vector<T, N> {
+    fn add_assign(&mut self, rhs: Self) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs += rhs;
         }
     }
 }
 
-impl<T: Scalar, const N: usize> ops::Sub<Vector<T, N>> for Vector<T, N> {
-    type Output = Vector<T, N>;
-    fn sub(self, rhs: Vector<T, N>) -> Self::Output {
+impl<T: Scalar, const N: usize> ops::Sub<Self> for Vector<T, N> {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
         self.zip_map(rhs, |l, r| l - r)
     }
 }
 
-impl<T: Scalar, const N: usize> ops::SubAssign<Vector<T, N>> for Vector<T, N> {
-    fn sub_assign(&mut self, rhs: Vector<T, N>) {
+impl<T: Scalar, const N: usize> ops::SubAssign<Self> for Vector<T, N> {
+    fn sub_assign(&mut self, rhs: Self) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs -= rhs;
         }
@@ -253,9 +253,9 @@ where
 
 /// Scalar multipliation: `vector * scalar`.
 impl<T: Scalar, const N: usize> ops::Mul<T> for Vector<T, N> {
-    type Output = Vector<T, N>;
+    type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
-        self.map(|c| c * rhs.clone())
+        self.map(|c| c * rhs)
     }
 }
 
@@ -281,16 +281,16 @@ impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
 impl<T: Scalar, const N: usize> ops::MulAssign<T> for Vector<T, N> {
     fn mul_assign(&mut self, rhs: T) {
         for c in &mut self.0 {
-            *c *= rhs.clone();
+            *c *= rhs;
         }
     }
 }
 
 /// Scalar division: `vector / scalar`.
 impl<T: Scalar, const N: usize> ops::Div<T> for Vector<T, N> {
-    type Output = Vector<T, N>;
+    type Output = Self;
     fn div(self, rhs: T) -> Self::Output {
-        self.map(|c| c / rhs.clone())
+        self.map(|c| c / rhs)
     }
 }
 

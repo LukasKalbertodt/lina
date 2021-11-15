@@ -519,7 +519,7 @@ impl<T: Scalar, const C: usize, const R: usize> IndexMut<usize> for Matrix<T, C,
 }
 
 impl<T: Scalar, const C: usize, const R: usize> ops::Add for Matrix<T, C, R> {
-    type Output = Matrix<T, C, R>;
+    type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         self.zip_map(rhs, |l, r| l + r)
     }
@@ -532,7 +532,7 @@ impl<T: Scalar, const C: usize, const R: usize> ops::AddAssign for Matrix<T, C, 
 }
 
 impl<T: Scalar, const C: usize, const R: usize> ops::Sub for Matrix<T, C, R> {
-    type Output = Matrix<T, C, R>;
+    type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         self.zip_map(rhs, |l, r| l - r)
     }
@@ -545,7 +545,7 @@ impl<T: Scalar, const C: usize, const R: usize> ops::SubAssign for Matrix<T, C, 
 }
 
 impl<T: Scalar, const C: usize, const R: usize> ops::Mul<T> for Matrix<T, C, R> {
-    type Output = Matrix<T, C, R>;
+    type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
         self.map(|elem| elem * rhs)
     }
@@ -558,7 +558,7 @@ impl<T: Scalar, const C: usize, const R: usize> ops::MulAssign<T> for Matrix<T, 
 }
 
 impl<T: Scalar, const C: usize, const R: usize> ops::Div<T> for Matrix<T, C, R> {
-    type Output = Matrix<T, C, R>;
+    type Output = Self;
     fn div(self, rhs: T) -> Self::Output {
         self.map(|elem| elem / rhs)
     }

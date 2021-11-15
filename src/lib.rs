@@ -144,9 +144,7 @@ pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Dot_product
 pub fn dot<T: Scalar, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> T {
-    if N == 0 {
-        panic!("the dot product of 0-dimensional vectors is not useful");
-    }
+    assert!(N != 0, "the dot product of 0-dimensional vectors is not useful");
 
     let mut out = a[0] * b[0];
     for i in 1..N {

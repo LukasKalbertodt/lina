@@ -126,9 +126,9 @@ macro_rules! shared_impls {
             }
         }
 
-        impl<T: Scalar, const N: usize> Into<[T; N]> for $ty<T, N> {
-            fn into(self) -> [T; N] {
-                self.0
+        impl<T: Scalar, const N: usize> From<$ty<T, N>> for [T; N] {
+            fn from(src: $ty<T, N>) -> Self {
+                src.0
             }
         }
 
