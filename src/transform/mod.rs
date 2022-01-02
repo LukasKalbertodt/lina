@@ -210,9 +210,9 @@ pub fn translate<T: Scalar, const N: usize>(
 /// In view space, the camera is at the origin, +x points right, +y points up.
 /// This view space is right-handed, and thus, +z points outside of the screen
 /// and -z points into the screen. Please see [the part on handedness in the
-/// crate docs](../#choice-of-view-space--handedness) for more information. The
-/// returned matrix only translates and rotates, meaning that sizes and angles
-/// are unchanged compared to world space.
+/// these docs][hand-docs] for more information. The returned matrix only
+/// translates and rotates, meaning that sizes and angles are unchanged
+/// compared to world space.
 ///
 /// The following camera properties have to be given:
 /// - `eye`: the position of the camera.
@@ -226,6 +226,9 @@ pub fn translate<T: Scalar, const N: usize>(
 /// To avoid float precision problems, `direction` and `up` should *not* have
 /// a tiny length and should *not* point in *almost* the same direction.
 ///
+///
+///
+/// [hand-docs]: ../docs/viewing_pipeline/index.html#choice-of-view-space--handedness
 ///
 /// ## A note on the `up` vector
 ///
