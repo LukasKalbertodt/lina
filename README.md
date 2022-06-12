@@ -53,15 +53,11 @@ So I wrote my own!
 
 ## Why nightly only?
 
-Currently only two features are used:
+Currently only one feature is used:
 
 - `generic_const_exprs`: this allows methods like `Vector<T, N>::extend(T) -> Vector<T, N + 1>`.
   I could hide all of those methods behind a feature gate, but I don't need that.
   If people are interested in that, I'm happy to accept a PR.
-
-- `array_from_fn`: this simplifies a lot of operations that otherwise I would
-  have to hand code with `unsafe` code. And no one wants that. I expect the
-  function to be stabilized somewhat quickly.
 
 
 ## Status of this project

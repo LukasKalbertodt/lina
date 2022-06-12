@@ -19,7 +19,6 @@
 //! *Note*: currently `lina` requires a nightly compiler.
 
 #![feature(generic_const_exprs)]
-#![feature(array_from_fn)]
 #![allow(incomplete_features)]
 
 use std::{
