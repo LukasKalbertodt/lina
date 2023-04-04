@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.3] - 2023-04-04
+- Remove stabilized feature flag for `array_from_fn`
+- Switch to Rust 2021
+- Fix some clippy lints
+- Fix link in docs
+- Fix CI badge in README
+
 ## [0.1.2] - 2021-11-13
 ### Fixed
 - Fix `angle_between` for super small values
@@ -28,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/LukasKalbertodt/lina/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/LukasKalbertodt/lina/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/LukasKalbertodt/lina/compare/v0.1.0...v0.1.1
