@@ -408,6 +408,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// (e.g. divide by `w` in the 3D case).
     ///
     /// For an example, see [`Matrix::transform_hc_point`].
+    #[cfg(feature = "nightly")]
     pub fn transform_hc_vec(&self, vec: Vector<T, { N - 1 }>) -> Vector<T, { N - 1 }> {
         // TODO: use `Vector::extend` here once it does not require a `where` bound.
         let mut hc_vec = [T::one(); N];
@@ -456,6 +457,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     ///     point3(2.0, 1.5, 1.0),
     /// );
     /// ```
+    #[cfg(feature = "nightly")]
     pub fn transform_hc_point(&self, point: Point<T, { N - 1 }>) -> Point<T, { N - 1 }> {
         (self.transform_hc_vec(point.to_vec())).to_point()
     }

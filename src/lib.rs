@@ -16,10 +16,17 @@
 //! - [Auxiliary documentation][docs] about topics like computer graphics, linear
 //!   algebra, ...
 //!
-//! *Note*: currently `lina` requires a nightly compiler.
+//!
+//! ## Features
+//!
+//! - `nightly` (default): this enables some additional functions like
+//!   `Vector<T, N>::extend(T) -> Vector<T, N + 1>`. These functions return
+//!   something with one higher or one lower dimension. This arithmetic with
+//!   const parameters is not yet allowed on stable, thus a nightly compiler is
+//!   required for this.
 
-#![feature(generic_const_exprs)]
-#![allow(incomplete_features)]
+#![cfg_attr(feature = "nightly", feature(generic_const_exprs))]
+#![cfg_attr(feature = "nightly", allow(incomplete_features))]
 
 use std::{
     fmt::Debug,

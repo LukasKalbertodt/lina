@@ -61,6 +61,7 @@ use crate::{Float, Mat4, Matrix, Point3, Radians, Scalar, Vec3, Vector, cross, d
 /// ]));
 /// assert_eq!(m * vec4(1.0, 2.0, 3.0, 1.0), vec4(3.5, 7.0, 10.5, 1.0));
 /// ```
+#[cfg(feature = "nightly")]
 pub fn scale_hc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, { N + 1 }, { N + 1 }> {
     let mut diag = [factor; N + 1];
     diag[N] = T::one();
@@ -124,6 +125,7 @@ pub fn scale_cc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
 /// ]));
 /// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(20.0, 60.0, 240.0, 1.0));
 /// ```
+#[cfg(feature = "nightly")]
 pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
     factors: impl Into<Vector<T, N>>
 ) -> Matrix<T, { N + 1 }, { N + 1 }> {
@@ -194,6 +196,7 @@ pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
 /// ]));
 /// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(12.0, 23.0, 38.0, 1.0));
 /// ```
+#[cfg(feature = "nightly")]
 pub fn translate<T: Scalar, const N: usize>(
     v: impl Into<Vector<T, N>>
 ) -> Matrix<T, { N + 1 }, { N + 1 }> {

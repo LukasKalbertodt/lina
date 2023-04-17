@@ -9,6 +9,7 @@ macro_rules! shared_methods {
         ///
         #[doc = concat!("assert_eq!(", $ctor2, "(2i32, 4).extend(9), ", $ctor3, "(2, 4, 9));")]
         /// ```
+        #[cfg(feature = "nightly")]
         pub fn extend(self, new: T) -> $ty<T, { N + 1 }> {
             let mut out = [T::zero(); N + 1];
             for i in 0..N {
@@ -27,6 +28,7 @@ macro_rules! shared_methods {
         ///
         #[doc = concat!("assert_eq!(", $ctor3, "(2i32, 4, 9).truncate(), ", $ctor2, "(2, 4));")]
         /// ```
+        #[cfg(feature = "nightly")]
         pub fn truncate(self) -> $ty<T, { N - 1 }> {
             let mut out = [T::zero(); N - 1];
             for i in 0..N - 1 {
