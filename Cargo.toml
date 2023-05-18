@@ -19,7 +19,7 @@ exclude = [".github"]
 
 
 [features]
-default = ["nightly"]
+default = []
 nightly = []
 
 [dependencies]
