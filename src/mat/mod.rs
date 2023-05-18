@@ -1,7 +1,7 @@
 use std::{array, fmt, ops::{self, Index, IndexMut}};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Scalar, Vector, dot};
+use crate::{Point, Scalar, Vector, dot, Float, cross};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -516,6 +516,93 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// ```
     pub fn trace(&self) -> T {
         self.diagonal().as_ref().iter().fold(T::zero(), |a, b| a + *b)
+    }
+}
+
+impl<T: Float> Matrix<T, 1, 1> {
+    /// Returns the determinant of this matrix. This number gives a general idea
+    /// of whether the transformation represented by this matrix squishes or
+    /// stretches space. If this is 0, the transformation's output space has a
+    /// lower dimension than the input space and is thus non-invertible. See
+    /// [this video][1] for a good explanation.
+    ///
+    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    pub fn determinant(self) -> T {
+        self[0][0]
+    }
+
+    /// Returns the inverse of this matrix, if it exists. If the determinant of
+    /// this matrix is 0, then it is not invertible and `None` is returned. The
+    /// inverted matrix "undoes" the transformation of `self`.
+    pub fn inverted(self) -> Option<Self> {
+        let det = self.determinant();
+        if det.is_zero() {
+            return None;
+        }
+
+        Some(Self::identity() / det)
+    }
+}
+
+impl<T: Float> Matrix<T, 2, 2> {
+    /// Returns the determinant of this matrix. This number gives a general idea
+    /// of whether the transformation represented by this matrix squishes or
+    /// stretches space. If this is 0, the transformation's output space has a
+    /// lower dimension than the input space and is thus non-invertible. See
+    /// [this video][1] for a good explanation.
+    ///
+    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    pub fn determinant(self) -> T {
+        self[0][0] * self[1][1] - self[0][1] * self[1][0]
+    }
+
+    /// Returns the inverse of this matrix, if it exists. If the determinant of
+    /// this matrix is 0, then it is not invertible and `None` is returned. The
+    /// inverted matrix "undoes" the transformation of `self`.
+    pub fn inverted(self) -> Option<Self> {
+        let det = self.determinant();
+        if det.is_zero() {
+            return None;
+        }
+
+        let m = Self::from_rows([
+            [ self.row(1)[1], -self.row(0)[1]],
+            [-self.row(1)[0],  self.row(0)[0]],
+        ]);
+        Some(m / det)
+    }
+}
+
+impl<T: Float> Matrix<T, 3, 3> {
+    /// Returns the determinant of this matrix. This number gives a general idea
+    /// of whether the transformation represented by this matrix squishes or
+    /// stretches space. If this is 0, the transformation's output space has a
+    /// lower dimension than the input space and is thus non-invertible. See
+    /// [this video][1] for a good explanation.
+    ///
+    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    pub fn determinant(self) -> T {
+        T::zero()
+            + self[0][0] * (self[1][1] * self[2][2] - self[2][1] * self[1][2])
+            + self[1][0] * (self[2][1] * self[0][2] - self[0][1] * self[2][2])
+            + self[2][0] * (self[0][1] * self[1][2] - self[1][1] * self[0][2])
+    }
+
+    /// Returns the inverse of this matrix, if it exists. If the determinant of
+    /// this matrix is 0, then it is not invertible and `None` is returned. The
+    /// inverted matrix "undoes" the transformation of `self`.
+    pub fn inverted(self) -> Option<Self> {
+        let det = self.determinant();
+        if det.is_zero() {
+            return None;
+        }
+
+        let m = Self::from_rows([
+            cross(self.col(1), self.col(2)),
+            cross(self.col(2), self.col(0)),
+            cross(self.col(0), self.col(1)),
+        ]);
+        Some(m / det)
     }
 }
 

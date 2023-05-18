@@ -111,3 +111,96 @@ fn iter_sum() {
         Matrix::from_rows([[6, 8], [10, 12]])
     );
 }
+
+#[test]
+fn inv2() {
+    assert_eq!(crate::Mat2f::identity().inverted(), Some(Matrix::identity()));
+
+    assert_eq!(
+        Matrix::from_diagonal([0.187, 6.5]).inverted(),
+        Some(Matrix::from_diagonal([1.0 / 0.187, 1.0 / 6.5])),
+    );
+
+    assert_eq!(
+        Matrix::from_rows([
+            [1.0, -1.0],
+            [0.0,  2.0],
+        ]).inverted(),
+        Some(Matrix::from_rows([
+            [1.0, 0.5],
+            [0.0, 0.5],
+        ])),
+    );
+
+    assert_eq!(
+        Matrix::from_rows([
+            [ 1.0, 2.0],
+            [-2.0, 1.0],
+        ]).inverted(),
+        Some(Matrix::from_rows([
+            [0.2, -0.4],
+            [0.4,  0.2],
+        ])),
+    );
+}
+
+#[test]
+fn non_invertible2() {
+    assert_eq!(Matrix::from_diagonal([0.0, 2.0]).inverted(), None);
+    assert_eq!(
+        Matrix::from_rows([
+            [1.0, 2.0],
+            [2.0, 4.0],
+        ]).inverted(),
+        None,
+    );
+}
+
+#[test]
+fn inv3() {
+    assert_eq!(crate::Mat3f::identity().inverted(), Some(Matrix::identity()));
+
+    assert_eq!(
+        Matrix::from_diagonal([0.187, 1.0, 6.5]).inverted(),
+        Some(Matrix::from_diagonal([1.0 / 0.187, 1.0, 1.0 / 6.5])),
+    );
+
+    assert_eq!(
+        Matrix::from_rows([
+            [1.0, 2.0, 3.0],
+            [0.0, 1.0, 4.0],
+            [5.0, 6.0, 0.0],
+        ]).inverted(),
+        Some(Matrix::from_rows([
+            [-24.0,  18.0,  5.0],
+            [ 20.0, -15.0, -4.0],
+            [ -5.0,   4.0,  1.0],
+        ])),
+    );
+
+    assert_eq!(
+        Matrix::from_rows([
+            [3.0, 0.0,  2.0],
+            [2.0, 0.0, -2.0],
+            [0.0, 1.0,  1.0],
+        ]).inverted(),
+        Some(Matrix::from_rows([
+            [ 0.2,  0.2, 0.0],
+            [-0.2,  0.3, 1.0],
+            [ 0.2, -0.3, 0.0],
+        ])),
+    );
+}
+
+#[test]
+fn non_invertible3() {
+    assert_eq!(Matrix::from_diagonal([1.5, 0.0, 2.0]).inverted(), None);
+    assert_eq!(
+        Matrix::from_rows([
+            [-1.0, 2.0,  0.0],
+            [ 1.0, 2.0, -4.0],
+            [ 1.0, 2.0, -4.0],
+        ]).inverted(),
+        None,
+    );
+}
