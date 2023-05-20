@@ -198,6 +198,28 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         }
     }
 
+    /// Returns an iterator over all entries of this matrix, in column-major order.
+    ///
+    /// ```
+    /// let m = lina::Matrix::from_rows([
+    ///     [1, 2],
+    ///     [3, 4],
+    ///     [5, 6],
+    /// ]);
+    /// let mut it = m.iter();
+    ///
+    /// assert_eq!(it.next(), Some(1));
+    /// assert_eq!(it.next(), Some(3));
+    /// assert_eq!(it.next(), Some(5));
+    /// assert_eq!(it.next(), Some(2));
+    /// assert_eq!(it.next(), Some(4));
+    /// assert_eq!(it.next(), Some(6));
+    /// assert_eq!(it.next(), None);
+    /// ```
+    pub fn iter(self) -> impl Iterator<Item = T> {
+        self.0.into_iter().flat_map(|col| col)
+    }
+
     /// Returns the transposed version of this matrix (swapping rows and
     /// columns). Also see [`Matrix::transpose`].
     ///

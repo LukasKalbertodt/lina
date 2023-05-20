@@ -87,6 +87,12 @@ macro_rules! shared_methods {
         pub fn to_array(self) -> [T; N] {
             self.into()
         }
+
+        #[doc = concat!("Returns an iterator over all components of this ", $tys_lower, ",")]
+        /// yielding them in the obvious order, starting with `x`.
+        pub fn iter(self) -> impl Iterator<Item = T> {
+            self.to_array().into_iter()
+        }
     };
 }
 
