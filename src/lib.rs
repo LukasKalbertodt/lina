@@ -30,7 +30,7 @@
 
 use std::{
     fmt::Debug,
-    ops::{self, AddAssign, SubAssign, MulAssign, DivAssign},
+    ops::{self, AddAssign, SubAssign, MulAssign, DivAssign, RangeInclusive},
 };
 use bytemuck::Pod;
 use num_traits::Num;
@@ -200,12 +200,21 @@ pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>)
     Radians::acos(cos_angle)
 }
 
-/// Clamps `val` into the range `min..=max`.
+/// Clamps `val` into the given range `min..=max`.
 ///
 /// The trait bound *should* technically be `Ord`, but that's inconvenient when
-/// dealing with floats. When you pass a `NaN` you will get a strange result.
-pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
-    assert!(min < max);
+/// dealing with floats. Panics when passed a NaN.
+pub fn clamp<T: PartialOrd>(val: T, range: RangeInclusive<T>) -> T {
+    let (min, max) = range.into_inner();
+    assert!(
+        min.partial_cmp(&max).is_some(),
+        "non-comparable value (NaN?) in range passed to `clamp`",
+    );
+    assert!(
+        val.partial_cmp(&min).is_some(),
+        "non-comparable value (NaN?) passed as 'val' to `clamp`",
+    );
+    assert!(min < max, "'min' is larger than 'max'");
 
     match () {
         () if val < min => min,
