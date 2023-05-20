@@ -210,6 +210,26 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         }
     }
 
+    /// Overwrites the element in the given (row, column) with the given value.
+    ///
+    /// ```
+    /// use lina::{Mat3, vec3};
+    ///
+    /// let mut mat = Mat3::identity();
+    /// mat.set_elem(1, 1, 9);
+    /// mat.set_elem(0, 2, 8);
+    /// mat.set_elem(2, 1, 7);
+    ///
+    /// assert_eq!(mat, Mat3::from_rows([
+    ///     [1, 0, 8],
+    ///     [0, 9, 0],
+    ///     [0, 7, 1],
+    /// ]));
+    /// ```
+    pub fn set_elem(&mut self, row: usize, col: usize, value: T) {
+        self.0[col][row] = value;
+    }
+
     /// Returns an iterator over all entries of this matrix, in column-major order.
     ///
     /// ```
