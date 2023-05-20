@@ -39,6 +39,7 @@ mod angle;
 mod approx;
 mod mat;
 mod spherical;
+mod util;
 mod vec;
 pub mod docs;
 pub mod named_scalar;
@@ -47,7 +48,7 @@ pub mod transform;
 pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
-    mat::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
+    mat::{Matrix, Col, Row, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
     spherical::{NormedSphericalPos, SphericalPos},
     vec::{
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},

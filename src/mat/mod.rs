@@ -117,8 +117,8 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ]);
     ///
     ///
-    /// assert_eq!(m.row(0), vec3(1, 2, 3));
-    /// assert_eq!(m.row(1), vec3(4, 5, 6));
+    /// assert_eq!(m.row(0).to_array(), [1, 2, 3]);
+    /// assert_eq!(m.row(1).to_array(), [4, 5, 6]);
     /// ```
     pub fn from_rows<V>(rows: [V; R]) -> Self
     where
@@ -144,9 +144,9 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ]);
     ///
     ///
-    /// assert_eq!(m.row(0), vec2(1, 4));
-    /// assert_eq!(m.row(1), vec2(2, 5));
-    /// assert_eq!(m.row(2), vec2(3, 6));
+    /// assert_eq!(m.row(0).to_array(), [1, 4]);
+    /// assert_eq!(m.row(1).to_array(), [2, 5]);
+    /// assert_eq!(m.row(2).to_array(), [3, 6]);
     /// ```
     pub fn from_cols<V>(cols: [V; C]) -> Self
     where
@@ -156,8 +156,11 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     }
 
     /// Returns the column with index `idx`.
-    pub fn col(&self, idx: usize) -> Vector<T, R> {
-        self[idx].into()
+    pub fn col(&self, index: usize) -> Col<'_, T, C, R> {
+        Col {
+            matrix: self,
+            index,
+        }
     }
 
     /// Sets the column with index `idx` to the given vector.
@@ -168,17 +171,22 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// let mut mat = Mat3::identity();
     /// mat.set_col(1, vec3(2, 4, 6));
     ///
-    /// assert_eq!(mat.row(0), vec3(1, 2, 0));
-    /// assert_eq!(mat.row(1), vec3(0, 4, 0));
-    /// assert_eq!(mat.row(2), vec3(0, 6, 1));
+    /// assert_eq!(mat, Mat3::from_rows([
+    ///     [1, 2, 0],
+    ///     [0, 4, 0],
+    ///     [0, 6, 1],
+    /// ]));
     /// ```
-    pub fn set_col(&mut self, idx: usize, v: impl Into<Vector<T, R>>) {
+    pub fn set_col(&mut self, idx: usize, v: impl Into<[T; R]>) {
         self[idx] = v.into().into();
     }
 
     /// Returns the row with index `idx`.
-    pub fn row(&self, idx: usize) -> Vector<T, C> {
-        array::from_fn(|i| self[i][idx]).into()
+    pub fn row(&self, index: usize) -> Row<'_, T, C, R> {
+        Row {
+            matrix: self,
+            index,
+        }
     }
 
     /// Sets the row with index `idx` to the given vector.
@@ -189,9 +197,11 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// let mut mat = Mat3::identity();
     /// mat.set_row(1, vec3(2, 4, 6));
     ///
-    /// assert_eq!(mat.row(0), vec3(1, 0, 0));
-    /// assert_eq!(mat.row(1), vec3(2, 4, 6));
-    /// assert_eq!(mat.row(2), vec3(0, 0, 1));
+    /// assert_eq!(mat, Mat3::from_rows([
+    ///     [1, 0, 0],
+    ///     [2, 4, 6],
+    ///     [0, 0, 1],
+    /// ]));
     /// ```
     pub fn set_row(&mut self, idx: usize, v: impl Into<Vector<T, C>>) {
         let v = v.into();
@@ -234,9 +244,11 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ]);
     /// let t = m.transposed();
     ///
-    /// assert_eq!(t.row(0), vec2(1, 4));
-    /// assert_eq!(t.row(1), vec2(2, 5));
-    /// assert_eq!(t.row(2), vec2(3, 6));
+    /// assert_eq!(t, Matrix::from_rows([
+    ///     [1, 4],
+    ///     [2, 5],
+    ///     [3, 6],
+    /// ]));
     /// ```
     #[must_use = "to transpose in-place, use `Matrix::transpose`, not `transposed`"]
     pub fn transposed(self) -> Matrix<T, R, C> {
@@ -251,7 +263,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// [`Matrix::transform_hc_vec`].
     pub fn transform_vec(&self, vec: Vector<T, C>) -> Vector<T, R> {
         // TODO: check generated assembly and optimize if necessary.
-        array::from_fn(|i| dot(self.row(i), vec)).into()
+        array::from_fn(|i| dot(self.row(i).to_vec(), vec)).into()
     }
 
     /// Transforms the given point according to this matrix. Mathematically,
@@ -307,8 +319,10 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///
     /// let mat = Mat2::identity().map(|e: i32| e + 1);
     ///
-    /// assert_eq!(mat.row(0), vec2(2, 1));
-    /// assert_eq!(mat.row(1), vec2(1, 2));
+    /// assert_eq!(mat, Mat2::from_rows([
+    ///     [2, 1],
+    ///     [1, 2],
+    /// ]));
     /// ```
     pub fn map<U: Scalar, F: FnMut(T) -> U>(self, mut f: F) -> Matrix<U, C, R> {
         Matrix(self.0.map(|col| col.map(&mut f)))
@@ -329,9 +343,11 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// let b = Mat3f::identity();
     /// let c = a.zip_map(b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
     ///
-    /// assert_eq!(c.row(0), vec3(1.0, 0.0, 0.0));
-    /// assert_eq!(c.row(1), vec3(0.0, 5.0, 0.0));
-    /// assert_eq!(c.row(2), vec3(0.0, 0.0, 9.0));
+    /// assert_eq!(c, Mat3f::from_rows([
+    ///     [1.0, 0.0, 0.0],
+    ///     [0.0, 5.0, 0.0],
+    ///     [0.0, 0.0, 9.0],
+    /// ]));
     /// ```
     pub fn zip_map<U, O, F>(self, other: Matrix<U, C, R>, mut f: F) -> Matrix<O, C, R>
     where
@@ -357,9 +373,11 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// use lina::{Mat3, vec3};
     ///
     /// let mat = Mat3::identity();
-    /// assert_eq!(mat.row(0), vec3(1.0, 0.0, 0.0));
-    /// assert_eq!(mat.row(1), vec3(0.0, 1.0, 0.0));
-    /// assert_eq!(mat.row(2), vec3(0.0, 0.0, 1.0));
+    /// assert_eq!(mat, Mat3::from_rows([
+    ///     [1.0, 0.0, 0.0],
+    ///     [0.0, 1.0, 0.0],
+    ///     [0.0, 0.0, 1.0],
+    /// ]));
     /// ```
     pub fn identity() -> Self {
         Self::from_diagonal([T::one(); N])
@@ -372,9 +390,11 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     ///
     /// let mat = Mat3::from_diagonal([1, 2, 3]);
     ///
-    /// assert_eq!(mat.row(0), vec3(1, 0, 0));
-    /// assert_eq!(mat.row(1), vec3(0, 2, 0));
-    /// assert_eq!(mat.row(2), vec3(0, 0, 3));
+    /// assert_eq!(mat, Mat3::from_rows([
+    ///     [1, 0, 0],
+    ///     [0, 2, 0],
+    ///     [0, 0, 3],
+    /// ]));
     /// ```
     pub fn from_diagonal(v: impl Into<Vector<T, N>>) -> Self {
         let mut m = Self::zero();
@@ -410,9 +430,11 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// ]);
     /// mat.set_diagonal(vec3(2, 1, 0));
     ///
-    /// assert_eq!(mat.row(0), vec3(2, 2, 3));
-    /// assert_eq!(mat.row(1), vec3(4, 1, 6));
-    /// assert_eq!(mat.row(2), vec3(7, 8, 0));
+    /// assert_eq!(mat, Mat3::from_rows([
+    ///     [2, 2, 3],
+    ///     [4, 1, 6],
+    ///     [7, 8, 0],
+    /// ]));
     /// ```
     pub fn set_diagonal(&mut self, v: impl Into<Vector<T, N>>) {
         let v = v.into();
@@ -567,8 +589,8 @@ impl<T: Float> Matrix<T, 2, 2> {
         }
 
         let m = Self::from_rows([
-            [ self.row(1)[1], -self.row(0)[1]],
-            [-self.row(1)[0],  self.row(0)[0]],
+            [ self.row(1).col(1), -self.row(0).col(1)],
+            [-self.row(1).col(0),  self.row(0).col(0)],
         ]);
         Some(m / det)
     }
@@ -599,9 +621,9 @@ impl<T: Float> Matrix<T, 3, 3> {
         }
 
         let m = Self::from_rows([
-            cross(self.col(1), self.col(2)),
-            cross(self.col(2), self.col(0)),
-            cross(self.col(0), self.col(1)),
+            cross(self.col(1).to_vec(), self.col(2).to_vec()),
+            cross(self.col(2).to_vec(), self.col(0).to_vec()),
+            cross(self.col(0).to_vec(), self.col(1).to_vec()),
         ]);
         Some(m / det)
     }
@@ -716,9 +738,9 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         /// Helper type to format an array as a single line, regardless of
         /// alternate flag.
-        struct Row<T, const N: usize>([T; N]);
+        struct DebugRow<T, const N: usize>([T; N]);
 
-        impl<T: fmt::Debug, const N: usize> fmt::Debug for Row<T, N> {
+        impl<T: fmt::Debug, const N: usize> fmt::Debug for DebugRow<T, N> {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "[")?;
                 for (i, elem) in self.0.iter().enumerate() {
@@ -732,7 +754,7 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
         }
 
         write!(f, "Matrix ")?;
-        let rows = (0..R).map(|i| Row(self.row(i).into()));
+        let rows = (0..R).map(|i| DebugRow(self.row(i).into()));
         f.debug_list().entries(rows).finish()
     }
 }
@@ -792,6 +814,112 @@ impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
 impl<T: Scalar, const C: usize, const R: usize> std::iter::Sum<Self> for Matrix<T, C, R> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Self::zero(), |acc, x| acc + x)
+    }
+}
+
+
+// =============================================================================================
+// ===== `Row` and `Col` proxies
+// =============================================================================================
+
+/// Proxy type representing one row of a matrix.
+#[derive(Clone, Copy)]
+pub struct Row<'a, T: Scalar, const C: usize, const R: usize> {
+    matrix: &'a Matrix<T, C, R>,
+    index: usize,
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> Row<'a, T, C, R> {
+    /// Indexes into this row with the given column index, returning the element.
+    pub fn col(self, col: usize) -> T {
+        self.matrix.0[col][self.index]
+    }
+
+    /// Returns this row as array.
+    pub fn to_array(self) -> [T; C] {
+        self.into()
+    }
+
+    /// Returns this row as vector.
+    pub fn to_vec(self) -> Vector<T, C> {
+        self.into()
+    }
+
+    /// Returns this row as point.
+    pub fn to_point(self) -> Point<T, C> {
+        self.into()
+    }
+}
+
+/// Proxy type representing one column of a matrix.
+#[derive(Clone, Copy)]
+pub struct Col<'a, T: Scalar, const C: usize, const R: usize> {
+    matrix: &'a Matrix<T, C, R>,
+    index: usize,
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> Col<'a, T, C, R> {
+    /// Indexes into this column with the given row index, returning the element.
+    pub fn row(self, row: usize) -> T {
+        self.matrix.0[self.index][row]
+    }
+
+    /// Returns this column as array.
+    pub fn to_array(self) -> [T; R] {
+        self.into()
+    }
+
+    /// Returns this column as vector.
+    pub fn to_vec(self) -> Vector<T, R> {
+        self.into()
+    }
+
+    /// Returns this column as point.
+    pub fn to_point(self) -> Point<T, R> {
+        self.into()
+    }
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for [T; C] {
+    fn from(src: Row<'a, T, C, R>) -> Self {
+        array::from_fn(|i| src.matrix[i][src.index])
+    }
+}
+impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for Vector<T, C> {
+    fn from(src: Row<'a, T, C, R>) -> Self {
+        src.to_array().into()
+    }
+}
+impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for Point<T, C> {
+    fn from(src: Row<'a, T, C, R>) -> Self {
+        src.to_array().into()
+    }
+}
+impl<'a, T: Scalar, const C: usize, const R: usize> fmt::Debug for Row<'a, T, C, R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        crate::util::debug_list_one_line(&self.to_array(), f)
+    }
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for [T; R] {
+    fn from(src: Col<'a, T, C, R>) -> Self {
+        src.matrix.0[src.index]
+    }
+}
+impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for Vector<T, R> {
+    fn from(src: Col<'a, T, C, R>) -> Self {
+        src.to_array().into()
+    }
+}
+impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for Point<T, R> {
+    fn from(src: Col<'a, T, C, R>) -> Self {
+        src.to_array().into()
+    }
+}
+impl<'a, T: Scalar, const C: usize, const R: usize> fmt::Debug for Col<'a, T, C, R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        crate::util::debug_list_one_line(&self.to_array(), f)
+
     }
 }
 

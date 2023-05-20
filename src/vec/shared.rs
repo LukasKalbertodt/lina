@@ -161,14 +161,8 @@ macro_rules! shared_impls {
 
         impl<T: Scalar, const N: usize> fmt::Debug for $ty<T, N> {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "{} [", $debug)?;
-                for (i, e) in self.0.iter().enumerate() {
-                    if i != 0 {
-                        write!(f, ", ")?;
-                    }
-                    e.fmt(f)?;
-                }
-                write!(f, "]")
+                write!(f, "{}", $debug)?;
+                crate::util::debug_list_one_line(&self.0, f)
             }
         }
     };
