@@ -205,3 +205,4 @@ macro_rules! impl_scalar_mul {
 }
 
 impl_scalar_mul!(Radians; f32, f64);
+impl_scalar_mul!(Degrees; f32, f64);
