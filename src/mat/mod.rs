@@ -1,4 +1,4 @@
-use std::{array, fmt, ops::{self, Index, IndexMut}};
+use std::{array, fmt, ops};
 use bytemuck::{Pod, Zeroable};
 
 use crate::{Point, Scalar, Vector, dot, Float, cross};
@@ -8,6 +8,14 @@ mod inv4;
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
 /// Column-major memory layout.
+///
+/// This type does not implement `ops::Index[Mut]`. Instead, there are two main
+/// ways to access elements. Use whatever you prefer, but keep in mind that
+/// code is read more often than it is written, so the first option is likely
+/// better as it avoids ambiguity.
+/// - [`Self::row`] and [`Self::col`]: `matrix.row(2).col(0)`
+/// - [`Self::elem`]: `matrix.elem(2, 0)`
+///
 ///
 /// *Note*: the `Debug` output (via `{:?}`) prints the matrix in row-major
 /// order, i.e. row-by-row. This is more intuitive when reading matrices. You
@@ -122,7 +130,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ```
     pub fn from_rows<V>(rows: [V; R]) -> Self
     where
-        V: Into<Vector<T, C>>,
+        V: Into<[T; C]>,
     {
         let mut out = Self::zero();
         for (i, row) in IntoIterator::into_iter(rows).enumerate() {
@@ -150,9 +158,9 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ```
     pub fn from_cols<V>(cols: [V; C]) -> Self
     where
-        V: Into<Vector<T, R>>,
+        V: Into<[T; R]>,
     {
-        Self(cols.map(|v| v.into().into()))
+        Self(cols.map(|v| v.into()))
     }
 
     /// Returns the column with index `idx`.
@@ -178,7 +186,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ]));
     /// ```
     pub fn set_col(&mut self, idx: usize, v: impl Into<[T; R]>) {
-        self[idx] = v.into().into();
+        self.0[idx] = v.into().into();
     }
 
     /// Returns the row with index `idx`.
@@ -203,14 +211,36 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [0, 0, 1],
     /// ]));
     /// ```
-    pub fn set_row(&mut self, idx: usize, v: impl Into<Vector<T, C>>) {
+    pub fn set_row(&mut self, idx: usize, v: impl Into<[T; C]>) {
         let v = v.into();
         for i in 0..C {
-            self[i][idx] = v[i];
+            self.0[i][idx] = v[i];
         }
     }
 
+    /// Returns the element at the given (row, column). Panics if either index
+    /// is out of bounds.
+    ///
+    /// ```
+    /// use lina::{Mat3, vec3};
+    ///
+    /// let mat = Mat3::from_rows([
+    ///     [1, 0, 8],
+    ///     [0, 9, 0],
+    ///     [0, 7, 1],
+    /// ]);
+    ///
+    /// assert_eq!(mat.elem(1, 1), 9);
+    /// assert_eq!(mat.elem(0, 2), 8);
+    /// assert_eq!(mat.elem(2, 1), 7);
+    ///
+    /// ```
+    pub fn elem(&self, row: usize, col: usize) -> T {
+        self.0[col][row]
+    }
+
     /// Overwrites the element in the given (row, column) with the given value.
+    /// Panics if `row` or `col` is out of bounds.
     ///
     /// ```
     /// use lina::{Mat3, vec3};
@@ -375,7 +405,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         O: Scalar,
         F: FnMut(T, U) -> O,
     {
-        Matrix(array::from_fn(|i| array::from_fn(|j| f(self[i][j], other[i][j]))))
+        Matrix(array::from_fn(|i| array::from_fn(|j| f(self.0[i][j], other.0[i][j]))))
     }
 
     /// Returns a byte slice of this whole matrix, representing the raw data.
@@ -435,7 +465,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// assert_eq!(mat.diagonal(), vec3(1, 5, 9));
     /// ```
     pub fn diagonal(&self) -> Vector<T, N> {
-        array::from_fn(|i| self[i][i]).into()
+        array::from_fn(|i| self.0[i][i]).into()
     }
 
     /// Sets the diagonal to the given vector.
@@ -459,7 +489,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     pub fn set_diagonal(&mut self, v: impl Into<Vector<T, N>>) {
         let v = v.into();
         for i in 0..N {
-            self[i][i] = v[i];
+            self.0[i][i] = v[i];
         }
     }
 
@@ -539,7 +569,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     pub fn is_symmetric(&self) -> bool {
         for c in 1..N {
             for r in 0..c {
-                if self[c][r] != self[r][c] {
+                if self.0[c][r] != self.0[r][c] {
                     return false;
                 }
             }
@@ -571,7 +601,7 @@ impl<T: Float> Matrix<T, 1, 1> {
     ///
     /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
     pub fn determinant(self) -> T {
-        self[0][0]
+        self.0[0][0]
     }
 
     /// Returns the inverse of this matrix, if it exists. If the determinant of
@@ -596,7 +626,7 @@ impl<T: Float> Matrix<T, 2, 2> {
     ///
     /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
     pub fn determinant(self) -> T {
-        self[0][0] * self[1][1] - self[0][1] * self[1][0]
+        self.0[0][0] * self.0[1][1] - self.0[0][1] * self.0[1][0]
     }
 
     /// Returns the inverse of this matrix, if it exists. If the determinant of
@@ -626,9 +656,9 @@ impl<T: Float> Matrix<T, 3, 3> {
     /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
     pub fn determinant(self) -> T {
         T::zero()
-            + self[0][0] * (self[1][1] * self[2][2] - self[2][1] * self[1][2])
-            + self[1][0] * (self[2][1] * self[0][2] - self[0][1] * self[2][2])
-            + self[2][0] * (self[0][1] * self[1][2] - self[1][1] * self[0][2])
+            + self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
+            + self.0[1][0] * (self.0[2][1] * self.0[0][2] - self.0[0][1] * self.0[2][2])
+            + self.0[2][0] * (self.0[0][1] * self.0[1][2] - self.0[1][1] * self.0[0][2])
     }
 
     /// Returns the inverse of this matrix, if it exists. If the determinant of
@@ -679,18 +709,6 @@ unsafe impl<T: Scalar + Zeroable, const C: usize, const R: usize> Zeroable for M
 /// where `T: Pod`.
 unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for Matrix<T, C, R> {}
 
-impl<T: Scalar, const C: usize, const R: usize> Index<usize> for Matrix<T, C, R> {
-    type Output = [T; R];
-    fn index(&self, idx: usize) -> &Self::Output {
-        &self.0[idx]
-    }
-}
-
-impl<T: Scalar, const C: usize, const R: usize> IndexMut<usize> for Matrix<T, C, R> {
-    fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
-        &mut self.0[idx]
-    }
-}
 
 impl<T: Scalar, const C: usize, const R: usize> ops::Add for Matrix<T, C, R> {
     type Output = Self;
@@ -796,7 +814,7 @@ impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<
         for c in 0..C {
             for r in 0..R {
                 for s in 0..S {
-                    out[c][r] += self[s][r] * rhs[c][s];
+                    out.0[c][r] += self.0[s][r] * rhs.0[c][s];
                 }
             }
         }
@@ -902,7 +920,7 @@ impl<'a, T: Scalar, const C: usize, const R: usize> Col<'a, T, C, R> {
 
 impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for [T; C] {
     fn from(src: Row<'a, T, C, R>) -> Self {
-        array::from_fn(|i| src.matrix[i][src.index])
+        array::from_fn(|i| src.matrix.0[i][src.index])
     }
 }
 impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for Vector<T, C> {

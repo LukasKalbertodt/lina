@@ -132,7 +132,7 @@ pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
     let mut out = Matrix::identity();
     let factors = factors.into();
     for i in 0..N {
-        out[i][i] = factors[i];
+        out.set_elem(i, i, factors[i]);
     }
     out
 }
@@ -203,7 +203,7 @@ pub fn translate<T: Scalar, const N: usize>(
     let mut m = Matrix::identity();
     let v = v.into();
     for i in 0..N {
-        m[N][i] = v[i];
+        m.set_elem(i, N, v[i]);
     }
     m
 }
