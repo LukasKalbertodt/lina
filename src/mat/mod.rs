@@ -3,6 +3,8 @@ use bytemuck::{Pod, Zeroable};
 
 use crate::{Point, Scalar, Vector, dot, Float, cross};
 
+mod inv4;
+
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
 /// Column-major memory layout.
@@ -603,6 +605,26 @@ impl<T: Float> Matrix<T, 3, 3> {
             cross(self.col(0), self.col(1)),
         ]);
         Some(m / det)
+    }
+}
+
+impl<T: Float> Matrix<T, 4, 4> {
+    /// Returns the determinant of this matrix. This number gives a general idea
+    /// of whether the transformation represented by this matrix squishes or
+    /// stretches space. If this is 0, the transformation's output space has a
+    /// lower dimension than the input space and is thus non-invertible. See
+    /// [this video][1] for a good explanation.
+    ///
+    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    pub fn determinant(self) -> T {
+        inv4::det(&self)
+    }
+
+    /// Returns the inverse of this matrix, if it exists. If the determinant of
+    /// this matrix is 0, then it is not invertible and `None` is returned. The
+    /// inverted matrix "undoes" the transformation of `self`.
+    pub fn inverted(self) -> Option<Self> {
+        inv4::inv(&self)
     }
 }
 

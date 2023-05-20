@@ -204,3 +204,33 @@ fn non_invertible3() {
         None,
     );
 }
+
+#[test]
+fn inv4() {
+    assert_eq!(crate::Mat4f::identity().inverted(), Some(Matrix::identity()));
+
+    assert_eq!(
+        Matrix::from_diagonal([0.187, 1.0, 4.0, 6.5]).inverted(),
+        Some(Matrix::from_diagonal([1.0 / 0.187, 1.0, 1.0 / 4.0, 1.0 / 6.5])),
+    );
+
+    assert_eq!(
+        Matrix::from_rows([
+            [ 1.0,  4.0,  5.0, -1.0],
+            [-2.0,  3.0, -1.0,  0.0],
+            [ 2.0,  1.0,  1.0,  0.0],
+            [ 3.0, -1.0,  2.0,  1.0],
+        ]).inverted().unwrap(),
+        Matrix::from_rows([
+            [-0.1, -0.1 ,  0.6000000000000001 , -0.1], // TODO
+            [ 0.0,  0.25,  0.25,  0.0],
+            [ 0.2, -0.05, -0.45,  0.2],
+            [-0.1,  0.65, -0.65,  0.9],
+        ]),
+    );
+}
+
+#[test]
+fn non_invertible4() {
+    assert_eq!(Matrix::from_diagonal([1.5, 0.0, 9.4, 2.0]).inverted(), None);
+}
