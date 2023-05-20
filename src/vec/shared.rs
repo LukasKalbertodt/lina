@@ -80,6 +80,13 @@ macro_rules! shared_methods {
         pub fn as_bytes(&self) -> &[u8] {
             bytemuck::bytes_of(self)
         }
+
+        #[doc = concat!("Converts this ", $tys_lower, " to an array. This")]
+        /// is equivalent to using the corresponding `From<Self> for [T; N]`
+        /// impl.
+        pub fn to_array(self) -> [T; N] {
+            self.into()
+        }
     };
 }
 
