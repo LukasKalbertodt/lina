@@ -37,6 +37,14 @@ macro_rules! shared_methods {
             out.into()
         }
 
+        #[doc = concat!(" Reinterprets this ", $tys_lower, " as being in the")]
+        /// space `Target` instead of `S`. Before calling this, make sure this
+        /// operation makes semantic sense and don't just use it to get rid of
+        /// compiler errors.
+        pub fn in_space<Target: Space>(self) -> $ty<T, N, Target> {
+            $ty(self.0, PhantomData)
+        }
+
         /// Applies the given function to each component and returns the resulting
         #[doc = concat!(" ", $tys_lower, ".")]
         /// Very similar to `[T; N]::map`.
