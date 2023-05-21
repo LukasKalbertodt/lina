@@ -441,7 +441,6 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
         }
         let hc_out = self.transform_vec(hc_vec.into());
         let last = hc_out[N - 1];
-        dbg!(last);
         hc_out.truncate() / last
     }
 
