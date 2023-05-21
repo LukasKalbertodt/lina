@@ -7,7 +7,10 @@ use crate::{Vector, Scalar, Float, GenericSpace, Space};
 /// A point in `N`-dimensional space with scalar type `T`. It represents
 /// a *location* in space.
 #[repr(transparent)]
-pub struct Point<T: Scalar, const N: usize, S: Space = GenericSpace>(pub(crate) [T; N], PhantomData<S>);
+pub struct Point<T: Scalar, const N: usize, S: Space = GenericSpace>(
+    pub(crate) [T; N],
+    PhantomData<S>,
+);
 
 /// A point in 2-dimensional space.
 pub type Point2<T, S = GenericSpace> = Point<T, 2, S>;

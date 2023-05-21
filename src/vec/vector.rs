@@ -11,7 +11,10 @@ use crate::{
 /// An `N`-dimensional vector with scalar type `T`. This represents
 /// a *displacement* in space.
 #[repr(transparent)]
-pub struct Vector<T: Scalar, const N: usize, S: Space = GenericSpace>(pub(crate) [T; N], PhantomData<S>);
+pub struct Vector<T: Scalar, const N: usize, S: Space = GenericSpace>(
+    pub(crate) [T; N],
+    PhantomData<S>,
+);
 
 /// A 2-dimensional vector.
 pub type Vec2<T, S = GenericSpace> = Vector<T, 2, S>;
