@@ -36,7 +36,7 @@
 use std::ops::{Deref, DerefMut};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Vector, Scalar};
+use crate::{Point, Vector, Scalar, Space};
 
 
 
@@ -94,13 +94,13 @@ unsafe impl<T: Pod> Pod for View4<T> {}
 // `Deref` and `DerefMut` impls to enable `.x` like field access.
 macro_rules! impl_view_deref {
     ($ty:ident, $n:expr, $view_ty:ident) => {
-        impl<T: Scalar> Deref for $ty<T, $n> {
+        impl<T: Scalar, S: Space> Deref for $ty<T, $n, S> {
             type Target = $view_ty<T>;
             fn deref(&self) -> &Self::Target {
                 bytemuck::cast_ref(self)
             }
         }
-        impl<T: Scalar> DerefMut for $ty<T, $n> {
+        impl<T: Scalar, S: Space> DerefMut for $ty<T, $n, S> {
             fn deref_mut(&mut self) -> &mut Self::Target {
                 bytemuck::cast_mut(self)
             }
@@ -145,7 +145,7 @@ pub trait HasW {
 
 macro_rules! impl_has_axis {
     ($ty:ident, $d:expr, $trait:ident, $i:expr, $axis:ident, $axis_mut:ident) => {
-        impl<T: Scalar> $trait for $ty<T, $d> {
+        impl<T: Scalar, S: Space> $trait for $ty<T, $d, S> {
             type Scalar = T;
             fn $axis(&self) -> &Self::Scalar {
                 &self[$i]

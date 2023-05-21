@@ -3,7 +3,7 @@
 
 
 use crate::{
-    Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, NormedSphericalPos,
+    Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, NormedSphericalPos, Space,
 };
 
 /// Types that can be checked for approximate equality. Useful for floats.
@@ -130,7 +130,10 @@ impl_for_float!(f64);
 
 macro_rules! impl_for_vec_point {
     ($ty:ident) => {
-        impl<T: ApproxEq<Tolerance = T> + Scalar, const N: usize> ApproxEq for $ty<T, N> {
+        impl<T, const N: usize, S: Space> ApproxEq for $ty<T, N, S>
+        where
+            T: ApproxEq<Tolerance = T> + Scalar,
+        {
             type Tolerance = T;
 
             fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {

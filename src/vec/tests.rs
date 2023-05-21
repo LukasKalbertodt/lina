@@ -96,7 +96,7 @@ fn neg() {
 
 #[test]
 fn centroid() {
-    assert_eq!(Point3f::centroid([]), None);
+    assert_eq!(Point3f::centroid([]), None::<Point3f>);
     assert_eq!(Point::centroid([point2(3.5, 1.0)]), Some(point2(3.5, 1.0)));
     assert_eq!(Point::centroid([point2(0.0, 0.0), point2(4.0, 8.0)]), Some(point2(2.0, 4.0)));
     assert_eq!(

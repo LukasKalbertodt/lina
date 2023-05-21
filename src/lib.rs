@@ -38,6 +38,7 @@ use num_traits::Num;
 mod angle;
 mod approx;
 mod mat;
+mod space;
 mod spherical;
 mod util;
 mod vec;
@@ -49,6 +50,7 @@ pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
     mat::{Matrix, Col, Row, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
+    space::{GenericSpace, Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
     spherical::{NormedSphericalPos, SphericalPos},
     vec::{
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
@@ -152,7 +154,7 @@ pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
 /// ```
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Dot_product
-pub fn dot<T: Scalar, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> T {
+pub fn dot<T: Scalar, const N: usize, S: Space>(a: Vector<T, N, S>, b: Vector<T, N, S>) -> T {
     assert!(N != 0, "the dot product of 0-dimensional vectors is not useful");
 
     let mut out = a[0] * b[0];
@@ -186,7 +188,10 @@ pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
 /// assert_eq!(angle_between(vec2(-2.0, 0.0), vec2(3.0, 0.0)), Radians(PI));       // 180°
 /// assert_eq!(angle_between(vec2(0.2, 0.0), vec2(0.0, 7.3)), Radians(PI / 2.0));  // 90°
 /// ```
-pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> Radians<T> {
+pub fn angle_between<T: Float, const N: usize, S: Space>(
+    a: Vector<T, N, S>,
+    b: Vector<T, N, S>,
+) -> Radians<T> {
     debug_assert!(!a.is_zero());
     debug_assert!(!b.is_zero());
 
@@ -264,11 +269,11 @@ where
 ///     vec3(0.7071067811865475, 0.7071067811865475, 0.0),  // sqrt(2) / 2
 /// );
 /// ```
-pub fn slerp<T: Float, const N: usize>(
-    a: Vector<T, N>,
-    b: Vector<T, N>,
+pub fn slerp<T: Float, const N: usize, S: Space>(
+    a: Vector<T, N, S>,
+    b: Vector<T, N, S>,
     factor: T,
-) -> Vector<T, N> {
+) -> Vector<T, N, S> {
     let angle = angle_between(a, b);
 
     // The general formula `sin(x * t) / sin(x)` is problematic for very small

@@ -10,7 +10,7 @@ macro_rules! shared_methods {
         #[doc = concat!("assert_eq!(", $ctor2, "(2i32, 4).extend(9), ", $ctor3, "(2, 4, 9));")]
         /// ```
         #[cfg(feature = "nightly")]
-        pub fn extend(self, new: T) -> $ty<T, { N + 1 }> {
+        pub fn extend(self, new: T) -> $ty<T, { N + 1 }, S> {
             let mut out = [T::zero(); N + 1];
             for i in 0..N {
                 out[i] = self[i];
@@ -29,7 +29,7 @@ macro_rules! shared_methods {
         #[doc = concat!("assert_eq!(", $ctor3, "(2i32, 4, 9).truncate(), ", $ctor2, "(2, 4));")]
         /// ```
         #[cfg(feature = "nightly")]
-        pub fn truncate(self) -> $ty<T, { N - 1 }> {
+        pub fn truncate(self) -> $ty<T, { N - 1 }, S> {
             let mut out = [T::zero(); N - 1];
             for i in 0..N - 1 {
                 out[i] = self[i];
@@ -47,8 +47,8 @@ macro_rules! shared_methods {
         #[doc = concat!("let r = ", $ctor3, "(1.0, 2.0, 3.0).map(|c| c * 2.0);")]
         #[doc = concat!("assert_eq!(r, ", $ctor3, "(2.0, 4.0, 6.0));")]
         /// ```
-        pub fn map<R: Scalar, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N> {
-            $ty(self.0.map(f))
+        pub fn map<R: Scalar, F: FnMut(T) -> R>(self, f: F) -> $ty<R, N, S> {
+            self.0.map(f).into()
         }
 
         /// Pairs up the components of `self` and `other`, applies the given
@@ -66,13 +66,13 @@ macro_rules! shared_methods {
         /// let r = a.zip_map(b, |ac, bc| ac * bc);
         #[doc = concat!("assert_eq!(r, ", $ctor3, "(4, 10, 18));")]
         /// ```
-        pub fn zip_map<U, R, F>(self, other: $ty<U, N>, mut f: F) -> $ty<R, N>
+        pub fn zip_map<U, R, F>(self, other: $ty<U, N, S>, mut f: F) -> $ty<R, N, S>
         where
             U: Scalar,
             R: Scalar,
             F: FnMut(T, U) -> R,
         {
-            $ty(std::array::from_fn(|i| f(self.0[i], other.0[i])))
+            std::array::from_fn(|i| f(self.0[i], other.0[i])).into()
         }
 
         #[doc = concat!("Returns a byte slice of this ", $tys_lower, ", ")]
@@ -101,7 +101,7 @@ macro_rules! shared_methods2 {
     ($ty:ident, $tys_lower:literal) => {
         #[doc = concat!("Returns a 2D ", $tys_lower, " from the given coordinates.")]
         pub fn new(x: T, y: T) -> Self {
-            Self([x, y])
+            [x, y].into()
         }
     }
 }
@@ -110,7 +110,7 @@ macro_rules! shared_methods3 {
     ($ty:ident, $tys_lower:literal) => {
         #[doc = concat!("Returns a 3D ", $tys_lower, " from the given coordinates.")]
         pub fn new(x: T, y: T, z: T) -> Self {
-            Self([x, y, z])
+            [x, y, z].into()
         }
     }
 }
@@ -122,44 +122,44 @@ macro_rules! shared_impls {
             ops::{self, Index, IndexMut},
         };
 
-        impl<T: Scalar, const N: usize> Index<usize> for $ty<T, N> {
+        impl<T: Scalar, const N: usize, S: Space> Index<usize> for $ty<T, N, S> {
             type Output = T;
             fn index(&self, index: usize) -> &Self::Output {
                 &self.0[index]
             }
         }
 
-        impl<T: Scalar, const N: usize> IndexMut<usize> for $ty<T, N> {
+        impl<T: Scalar, const N: usize, S: Space> IndexMut<usize> for $ty<T, N, S> {
             fn index_mut(&mut self, index: usize) -> &mut Self::Output {
                 &mut self.0[index]
             }
         }
 
-        impl<T: Scalar, const N: usize> From<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize, S: Space> From<[T; N]> for $ty<T, N, S> {
             fn from(src: [T; N]) -> Self {
-                Self(src)
+                Self(src, std::marker::PhantomData)
             }
         }
 
-        impl<T: Scalar, const N: usize> From<$ty<T, N>> for [T; N] {
-            fn from(src: $ty<T, N>) -> Self {
+        impl<T: Scalar, const N: usize, S: Space> From<$ty<T, N, S>> for [T; N] {
+            fn from(src: $ty<T, N, S>) -> Self {
                 src.0
             }
         }
 
-        impl<T: Scalar, const N: usize> AsRef<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize, S: Space> AsRef<[T; N]> for $ty<T, N, S> {
             fn as_ref(&self) -> &[T; N] {
                 &self.0
             }
         }
 
-        impl<T: Scalar, const N: usize> AsMut<[T; N]> for $ty<T, N> {
+        impl<T: Scalar, const N: usize, S: Space> AsMut<[T; N]> for $ty<T, N, S> {
             fn as_mut(&mut self) -> &mut [T; N] {
                 &mut self.0
             }
         }
 
-        impl<T: Scalar, const N: usize> fmt::Debug for $ty<T, N> {
+        impl<T: Scalar, const N: usize, S: Space> fmt::Debug for $ty<T, N, S> {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "{}", $debug)?;
                 crate::util::debug_list_one_line(&self.0, f)
