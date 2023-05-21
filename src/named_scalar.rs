@@ -36,7 +36,7 @@
 use std::ops::{Deref, DerefMut};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Vector, Scalar, Space};
+use crate::{Point, Vector, Scalar, Space, HcPoint};
 
 
 
@@ -93,16 +93,16 @@ unsafe impl<T: Pod> Pod for View4<T> {}
 
 // `Deref` and `DerefMut` impls to enable `.x` like field access.
 macro_rules! impl_view_deref {
-    ($ty:ident, $n:expr, $view_ty:ident) => {
+    ($ty:ident, $n:expr, $view_ty:ident $(, $field:ident)?) => {
         impl<T: Scalar, S: Space> Deref for $ty<T, $n, S> {
             type Target = $view_ty<T>;
             fn deref(&self) -> &Self::Target {
-                bytemuck::cast_ref(self)
+                bytemuck::cast_ref(&(*self) $(. $field)?)
             }
         }
         impl<T: Scalar, S: Space> DerefMut for $ty<T, $n, S> {
             fn deref_mut(&mut self) -> &mut Self::Target {
-                bytemuck::cast_mut(self)
+                bytemuck::cast_mut(&mut (*self) $(. $field)?)
             }
         }
     };
@@ -113,6 +113,8 @@ impl_view_deref!(Vector, 3, View3);
 impl_view_deref!(Vector, 4, View4);
 impl_view_deref!(Point, 2, View2);
 impl_view_deref!(Point, 3, View3);
+impl_view_deref!(HcPoint, 2, View2, coords);
+impl_view_deref!(HcPoint, 3, View3, coords);
 
 
 /// Vectors or points that have an `x` component.
