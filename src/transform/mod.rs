@@ -385,7 +385,7 @@ pub fn perspective<T: Float>(
     assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");
     assert!(aspect_ratio > T::zero(), "`aspect_ratio` needs to be positive");
 
-    let t = (vertical_fov / (T::one() + T::one())).tan();
+    let t = (vertical_fov / T::two()).tan();
     let sy = T::one() / t;
     let sx = sy / aspect_ratio;
 
@@ -405,11 +405,13 @@ pub fn perspective<T: Float>(
         b = (near_in * far_in * (far_out - near_out)) / (near_in - far_in);
     }
 
+    let zero = T::zero();
+    let one = T::one();
     Matrix::from_rows([
-        [       sx, T::zero(), T::zero(), T::zero()],
-        [T::zero(),        sy, T::zero(), T::zero()],
-        [T::zero(), T::zero(),         a,         b],
-        [T::zero(), T::zero(), -T::one(), T::zero()],
+        [  sx, zero, zero, zero],
+        [zero,   sy, zero, zero],
+        [zero, zero,    a,    b],
+        [zero, zero, -one, zero],
     ])
 }
 
