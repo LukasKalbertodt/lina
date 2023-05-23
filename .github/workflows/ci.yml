@@ -10,18 +10,23 @@ env:
   RUSTFLAGS: --deny warnings
 
 jobs:
-  check:
-    name: 'Build & test'
-    runs-on: ubuntu-20.04
+  check-nightly:
+    name: 'Build & test on nightly'
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly
-        default: true
-    - uses: Swatinem/rust-cache@v1
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@nightly
     - name: Build
       run: cargo build
     - name: Run tests
       run: cargo test
+
+  check-stable:
+    name: 'Build & test on stable'
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --no-default-features
+    - name: Run tests
+      run: cargo test --no-default-features
