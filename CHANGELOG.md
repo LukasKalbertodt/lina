@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.5] - 2023-05-23
+- Add `inverted` and `determinant` to 1x1, 2x2, 3x3 and 4x4 matrices
+- Add some `scalar * Degrees` impls for primitive scalars
+- Add `iter` method to `Vector`, `Point` and `Matrix`
+- Add `to_array` method to `Vector` and `Point` (this is more convenient to use
+  than the `Into` impl in some situations)
+- Remove stray `dbg!` from `Matrix::transform_hc_vec`
+
 ## [0.1.4] - 2023-04-17
 - Guard all features requiring nightly behind `nightly` feature gate.
   This makes it possible to compile `lina` on stable.
@@ -39,7 +47,8 @@ All notable changes to this project will be documented in this file.
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/LukasKalbertodt/lina/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/LukasKalbertodt/lina/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/LukasKalbertodt/lina/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/LukasKalbertodt/lina/compare/v0.1.1...v0.1.2
