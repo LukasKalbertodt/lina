@@ -1,4 +1,4 @@
-use crate::{Mat2, Mat4f, Matrix};
+use crate::{Mat2, Mat4f, Matrix, approx::assert_approx_eq};
 
 
 #[test]
@@ -214,7 +214,7 @@ fn inv4() {
         Some(Matrix::from_diagonal([1.0 / 0.187, 1.0, 1.0 / 4.0, 1.0 / 6.5])),
     );
 
-    assert_eq!(
+    assert_approx_eq!(
         Matrix::from_rows([
             [ 1.0,  4.0,  5.0, -1.0],
             [-2.0,  3.0, -1.0,  0.0],
@@ -222,11 +222,12 @@ fn inv4() {
             [ 3.0, -1.0,  2.0,  1.0],
         ]).inverted().unwrap(),
         Matrix::from_rows([
-            [-0.1, -0.1 ,  0.6000000000000001 , -0.1], // TODO
+            [-0.1, -0.1 ,  0.6 , -0.1],
             [ 0.0,  0.25,  0.25,  0.0],
             [ 0.2, -0.05, -0.45,  0.2],
             [-0.1,  0.65, -0.65,  0.9],
-        ]),
+        ]);
+        ulps <= 1
     );
 }
 

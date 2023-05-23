@@ -36,6 +36,7 @@ use bytemuck::Pod;
 use num_traits::Num;
 
 mod angle;
+mod approx;
 mod mat;
 mod spherical;
 mod vec;
@@ -45,6 +46,7 @@ pub mod transform;
 
 pub use self::{
     angle::{Degrees, Radians},
+    approx::ApproxEq,
     mat::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
     spherical::{NormedSphericalPos, SphericalPos},
     vec::{
@@ -83,7 +85,7 @@ where
 /// functions of this library. It is used whenever `Scalar` is not sufficient,
 /// which is basically whenever a function does not make sense for integers.
 /// This trait is implemented for at least `f32` and `f64`.
-pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {
+pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst + approx::ApproxEq {
     fn two() -> Self {
         Self::one() + Self::one()
     }
@@ -97,7 +99,7 @@ pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {
 
 impl<T> Float for T
 where
-    T: Scalar + num_traits::Float + num_traits::FloatConst,
+    T: Scalar + num_traits::Float + num_traits::FloatConst + approx::ApproxEq,
 {}
 
 /// Returns the [cross product][wiki] `a ⨯ b`, a vector perpendicular to both
