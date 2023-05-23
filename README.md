@@ -29,7 +29,6 @@ You can use `lina` with a stable compiler by disabling the `nightly` feature.
 **Still missing** (but planned):
 
 - Rotors and everything related to rotations
-- Matrix inversion & determinants
 - SIMD
     - Using SIMD is currently not feasible as there is no way to specify
       alignments for the generic `Point`, `Vector` and `Matrix` types. If Rust
