@@ -171,7 +171,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         }
     }
 
-    /// Sets the column with index `idx` to the given vector.
+    /// Sets the column with index `idx` to the given values.
     ///
     /// ```
     /// use lina::{Mat3, vec3};
@@ -197,7 +197,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         }
     }
 
-    /// Sets the row with index `idx` to the given vector.
+    /// Sets the row with index `idx` to the given values.
     ///
     /// ```
     /// use lina::{Mat3, vec3};
@@ -436,7 +436,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// Returns a matrix with the given diagonal and all other elements set to 0.
     ///
     /// ```
-    /// use lina::{Mat3, vec3};
+    /// use lina::Mat3;
     ///
     /// let mat = Mat3::from_diagonal([1, 2, 3]);
     ///
@@ -446,7 +446,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     ///     [0, 0, 3],
     /// ]));
     /// ```
-    pub fn from_diagonal(v: impl Into<Vector<T, N>>) -> Self {
+    pub fn from_diagonal(v: impl Into<[T; N]>) -> Self {
         let mut m = Self::zero();
         m.set_diagonal(v);
         m
@@ -455,30 +455,30 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     /// Returns the diagonal of this matrix.
     ///
     /// ```
-    /// use lina::{Mat3, vec3};
+    /// use lina::Mat3;
     ///
     /// let mat = Mat3::from_rows([
     ///     [1, 2, 3],
     ///     [4, 5, 6],
     ///     [7, 8, 9],
     /// ]);
-    /// assert_eq!(mat.diagonal(), vec3(1, 5, 9));
+    /// assert_eq!(mat.diagonal(), [1, 5, 9]);
     /// ```
-    pub fn diagonal(&self) -> Vector<T, N> {
-        array::from_fn(|i| self.0[i][i]).into()
+    pub fn diagonal(&self) -> [T; N] {
+        array::from_fn(|i| self.0[i][i])
     }
 
-    /// Sets the diagonal to the given vector.
+    /// Sets the diagonal to the given values.
     ///
     /// ```
-    /// use lina::{Mat3, vec3};
+    /// use lina::Mat3;
     ///
     /// let mut mat = Mat3::from_rows([
     ///     [1, 2, 3],
     ///     [4, 5, 6],
     ///     [7, 8, 9],
     /// ]);
-    /// mat.set_diagonal(vec3(2, 1, 0));
+    /// mat.set_diagonal([2, 1, 0]);
     ///
     /// assert_eq!(mat, Mat3::from_rows([
     ///     [2, 2, 3],
@@ -486,7 +486,7 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     ///     [7, 8, 0],
     /// ]));
     /// ```
-    pub fn set_diagonal(&mut self, v: impl Into<Vector<T, N>>) {
+    pub fn set_diagonal(&mut self, v: impl Into<[T; N]>) {
         let v = v.into();
         for i in 0..N {
             self.0[i][i] = v[i];

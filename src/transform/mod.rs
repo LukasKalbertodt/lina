@@ -31,7 +31,9 @@
 
 use std::ops::RangeInclusive;
 
-use crate::{Float, Mat4, Matrix, Point3, Radians, Scalar, Vec3, Vector, cross, dot};
+use crate::{Float, Mat4, Matrix, Point3, Radians, Scalar, Vec3, cross, dot};
+#[cfg(feature = "nightly")]
+use crate::Vector;
 
 
 /// *Homogeneous* transformation matrix that scales all `N` axis by `factor`.
@@ -127,10 +129,9 @@ pub fn scale_cc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
 /// ```
 #[cfg(feature = "nightly")]
 pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
-    factors: impl Into<Vector<T, N>>
+    factors: [T; N],
 ) -> Matrix<T, { N + 1 }, { N + 1 }> {
     let mut out = Matrix::identity();
-    let factors = factors.into();
     for i in 0..N {
         out.set_elem(i, i, factors[i]);
     }
@@ -164,7 +165,7 @@ pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
 /// assert_eq!(m * vec3(10.0, 20.0, 30.0), vec3(20.0, 60.0, 240.0));
 /// ```
 pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
-    factors: impl Into<Vector<T, N>>,
+    factors: [T; N],
 ) -> Matrix<T, N, N> {
     Matrix::from_diagonal(factors)
 }
@@ -184,9 +185,9 @@ pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
 /// # Example
 ///
 /// ```
-/// use lina::{Mat4f, transform, vec4};
+/// use lina::{Mat4f, transform, vec3, vec4};
 ///
-/// let m = transform::translate([2.0f32, 3.0, 8.0]);
+/// let m = transform::translate(vec3(2.0f32, 3.0, 8.0));
 ///
 /// assert_eq!(m, Mat4f::from_rows([
 ///     [1.0, 0.0, 0.0, 2.0],
@@ -198,10 +199,9 @@ pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
 /// ```
 #[cfg(feature = "nightly")]
 pub fn translate<T: Scalar, const N: usize>(
-    v: impl Into<Vector<T, N>>
+    v: Vector<T, N>,
 ) -> Matrix<T, { N + 1 }, { N + 1 }> {
     let mut m = Matrix::identity();
-    let v = v.into();
     for i in 0..N {
         m.set_elem(i, N, v[i]);
     }
