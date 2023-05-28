@@ -49,7 +49,10 @@ pub mod transform;
 pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
-    mat::{Matrix, Col, Row, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
+    mat::{
+        Matrix, Col, Row, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d,
+        hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d, HcMat4, HcMat4f, HcMat4d},
+    },
     space::{GenericSpace, Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
     spherical::{NormedSphericalPos, SphericalPos},
     vec::{

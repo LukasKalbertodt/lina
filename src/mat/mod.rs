@@ -1,9 +1,11 @@
 use std::{array, fmt, ops};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Scalar, Vector, dot, Float, cross};
+use crate::{Point, Scalar, Vector, dot, Float, cross, HcMatrix};
 
 mod inv4;
+pub(crate) mod hc;
+
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -361,6 +363,10 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         second * self
     }
 
+    pub fn to_homogeneous(&self) -> HcMatrix<T, C, R> {
+        HcMatrix::from_parts(*self, Vector::zero(), Vector::zero(), T::one())
+    }
+
     /// Applies the given function to each element and returns the resulting new
     /// matrix.
     ///
@@ -408,8 +414,8 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
         Matrix(array::from_fn(|i| array::from_fn(|j| f(self.0[i][j], other.0[i][j]))))
     }
 
-    /// Returns a byte slice of this whole matrix, representing the raw data.
-    /// Useful to pass to graphics APIs.
+    /// Returns a byte slice of this matrix, representing the raw column-major
+    /// data. Useful to pass to graphics APIs.
     pub fn as_bytes(&self) -> &[u8] {
         bytemuck::bytes_of(self)
     }

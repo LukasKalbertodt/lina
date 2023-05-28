@@ -31,44 +31,10 @@
 
 use std::ops::RangeInclusive;
 
-use crate::{Float, Mat4, Matrix, Point3, Radians, Scalar, Vec3, cross, dot};
-#[cfg(feature = "nightly")]
-use crate::Vector;
+use crate::{
+    Float, Mat4, Vector, Matrix, Point3, Radians, Scalar, Vec3, cross, dot, HcMatrix, HcMat3, vec3,
+};
 
-
-/// *Homogeneous* transformation matrix that scales all `N` axis by `factor`.
-///
-/// For the cartesian coordinate version, see [`scale_cc`]. Example for `Mat4`
-/// (with `f` being `factor`):
-///
-/// ```text
-/// ⎡ f 0 0 0 ⎤
-/// ⎢ 0 f 0 0 ⎥
-/// ⎢ 0 0 f 0 ⎥
-/// ⎣ 0 0 0 1 ⎦
-/// ```
-///
-/// # Example
-///
-/// ```
-/// use lina::{Mat4f, transform, vec4};
-///
-/// let m = transform::scale_hc::<f32, 3>(3.5);
-///
-/// assert_eq!(m, Mat4f::from_rows([
-///     [3.5, 0.0, 0.0, 0.0],
-///     [0.0, 3.5, 0.0, 0.0],
-///     [0.0, 0.0, 3.5, 0.0],
-///     [0.0, 0.0, 0.0, 1.0],
-/// ]));
-/// assert_eq!(m * vec4(1.0, 2.0, 3.0, 1.0), vec4(3.5, 7.0, 10.5, 1.0));
-/// ```
-#[cfg(feature = "nightly")]
-pub fn scale_hc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, { N + 1 }, { N + 1 }> {
-    let mut diag = [factor; N + 1];
-    diag[N] = T::one();
-    Matrix::from_diagonal(diag)
-}
 
 /// *Linear* transformation matrix that scales all `N` axis by `factor`.
 ///
@@ -86,7 +52,7 @@ pub fn scale_hc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, { N + 1 }, { 
 /// ```
 /// use lina::{Mat3f, transform, vec3};
 ///
-/// let m = transform::scale_cc(3.5);
+/// let m = transform::scale(3.5);
 ///
 /// assert_eq!(m, Mat3f::from_rows([
 ///     [3.5, 0.0, 0.0],
@@ -95,47 +61,8 @@ pub fn scale_hc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, { N + 1 }, { 
 /// ]));
 /// assert_eq!(m * vec3(1.0, 2.0, 3.0), vec3(3.5, 7.0, 10.5));
 /// ```
-pub fn scale_cc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
+pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
     Matrix::from_diagonal([factor; N])
-}
-
-/// *Homogeneous* transformation matrix that scales each axis according to
-/// `factors`.
-///
-/// For the cartesian coordinate version, see [`scale_nonuniform_cc`]. Example
-/// for `Mat4` (with `factors` being `[x, y, z]`):
-///
-/// ```text
-/// ⎡ x 0 0 0 ⎤
-/// ⎢ 0 y 0 0 ⎥
-/// ⎢ 0 0 z 0 ⎥
-/// ⎣ 0 0 0 1 ⎦
-/// ```
-///
-/// # Example
-///
-/// ```
-/// use lina::{Mat4f, transform, vec4};
-///
-/// let m = transform::scale_nonuniform_hc([2.0f32, 3.0, 8.0]);
-///
-/// assert_eq!(m, Mat4f::from_rows([
-///     [2.0, 0.0, 0.0, 0.0],
-///     [0.0, 3.0, 0.0, 0.0],
-///     [0.0, 0.0, 8.0, 0.0],
-///     [0.0, 0.0, 0.0, 1.0],
-/// ]));
-/// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(20.0, 60.0, 240.0, 1.0));
-/// ```
-#[cfg(feature = "nightly")]
-pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
-    factors: [T; N],
-) -> Matrix<T, { N + 1 }, { N + 1 }> {
-    let mut out = Matrix::identity();
-    for i in 0..N {
-        out.set_elem(i, i, factors[i]);
-    }
-    out
 }
 
 /// *Linear* transformation matrix that scales each axis according to `factors`.
@@ -155,7 +82,7 @@ pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
 /// ```
 /// use lina::{Mat3f, transform, vec3};
 ///
-/// let m = transform::scale_nonuniform_cc([2.0f32, 3.0, 8.0]);
+/// let m = transform::scale_nonuniform([2.0f32, 3.0, 8.0]);
 ///
 /// assert_eq!(m, Mat3f::from_rows([
 ///     [2.0, 0.0, 0.0],
@@ -164,7 +91,7 @@ pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
 /// ]));
 /// assert_eq!(m * vec3(10.0, 20.0, 30.0), vec3(20.0, 60.0, 240.0));
 /// ```
-pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
+pub fn scale_nonuniform<T: Scalar, const N: usize>(
     factors: [T; N],
 ) -> Matrix<T, N, N> {
     Matrix::from_diagonal(factors)
@@ -197,15 +124,8 @@ pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
 /// ]));
 /// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(12.0, 23.0, 38.0, 1.0));
 /// ```
-#[cfg(feature = "nightly")]
-pub fn translate<T: Scalar, const N: usize>(
-    v: Vector<T, N>,
-) -> Matrix<T, { N + 1 }, { N + 1 }> {
-    let mut m = Matrix::identity();
-    for i in 0..N {
-        m.set_elem(i, N, v[i]);
-    }
-    m
+pub fn translate<T: Scalar, const N: usize>(v: Vector<T, N>) -> HcMatrix<T, N, N> {
+    HcMatrix::from_parts(Matrix::identity(), v, Vector::zero(), T::one())
 }
 
 /// *Homogeneous* transformation from world space into camera/view space.
@@ -251,7 +171,7 @@ pub fn translate<T: Scalar, const N: usize>(
 /// the `up` vector over time. For example, if the player moves the
 /// mouse/controller you don't just adjust the look direction, but also the up
 /// vector.
-pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> Mat4<T> {
+pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> HcMat3<T> {
     // This function is unlikely to be called often, so we improve developer
     // experience by having these checks and normalizations.
     assert!(!direction.is_zero(), "direction vector must not be the zero vector");
@@ -272,12 +192,13 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
     // ⎢ r.y  u.x  d.x  eye.x ⎥
     // ⎢ r.z  u.x  d.x  eye.x ⎥
     // ⎣   0    0    0      1 ⎦
-    Matrix::from_rows([
-        [      r.x,       r.y,       r.z, -dot(eye, r)],
-        [      u.x,       u.y,       u.z, -dot(eye, u)],
-        [     -d.x,      -d.y,      -d.z,  dot(eye, d)],
-        [T::zero(), T::zero(), T::zero(),     T::one()],
-    ])
+    let linear = Matrix::from_rows([
+        [ r.x,  r.y,  r.z],
+        [ u.x,  u.y,  u.z],
+        [-d.x, -d.y, -d.z],
+    ]);
+    let translation = vec3(-dot(eye, r), -dot(eye, u), dot(eye, d));
+    HcMat3::from_parts(linear, translation, Vector::zero(), T::one())
 }
 
 /// *Homogeneous* transformation for perspective projection from view space to
@@ -379,7 +300,7 @@ pub fn perspective<T: Float>(
     aspect_ratio: T,
     depth_range_in: RangeInclusive<T>,
     depth_range_out: RangeInclusive<T>,
-) -> Mat4<T> {
+) -> HcMat3<T> {
     let vertical_fov = vertical_fov.into();
     assert!(vertical_fov.0 < T::PI(), "`vertical_fov` has to be < π radians/180°");
     assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");
@@ -405,14 +326,14 @@ pub fn perspective<T: Float>(
         b = (near_in * far_in * (far_out - near_out)) / (near_in - far_in);
     }
 
-    let zero = T::zero();
-    let one = T::one();
-    Matrix::from_rows([
-        [  sx, zero, zero, zero],
-        [zero,   sy, zero, zero],
-        [zero, zero,    a,    b],
-        [zero, zero, -one, zero],
-    ])
+    //  ⎡ sx,   0,   0,   0 ⎤
+    //  ⎢  0,  sy,   0,   0 ⎥
+    //  ⎢  0,   0,   a,   b ⎥
+    //  ⎣  0,   0,  -1,   0 ⎦
+    let mut out = HcMat3::from_diagonal_parts([sx, sy, a], T::zero());
+    out.set_elem(2, 3, b);
+    out.set_elem(3, 2, -T::one());
+    out
 }
 
 #[cfg(test)]
