@@ -780,28 +780,53 @@ where
 
 impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        /// Helper type to format an array as a single line, regardless of
-        /// alternate flag.
-        struct DebugRow<T, const N: usize>([T; N]);
-
-        impl<T: fmt::Debug, const N: usize> fmt::Debug for DebugRow<T, N> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "[")?;
-                for (i, elem) in self.0.iter().enumerate() {
-                    if i != 0 {
-                        write!(f, ", ")?;
-                    }
-                    elem.fmt(f)?;
-                }
-                write!(f, "]")
-            }
-        }
-
         write!(f, "Matrix ")?;
-        let rows = (0..R).map(|i| DebugRow(self.row(i).into()));
-        f.debug_list().entries(rows).finish()
+        debug_matrix_impl(f, C, R, |r, c| self.elem(r, c))
     }
 }
+
+fn debug_matrix_impl<T: Scalar>(
+    f: &mut fmt::Formatter,
+    cols: usize,
+    rows: usize,
+    elem: impl Fn(usize, usize) -> T,
+) -> fmt::Result {
+    /// Helper type to format a matrix row.
+    struct DebugRow<F> {
+        row_index: usize,
+        cols: usize,
+        elem: F,
+    }
+
+    impl<F: Fn(usize) -> T, T: fmt::Debug> fmt::Debug for DebugRow<F> {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            if f.alternate() {
+                write!(f, "[")?;
+            } else {
+                write!(f, "row{} [", self.row_index)?;
+            }
+
+            for c in 0..self.cols {
+                if c != 0 {
+                    write!(f, ", ")?;
+                }
+                (self.elem)(c).fmt(f)?;
+            }
+            write!(f, "]")
+        }
+    }
+
+    let mut list = f.debug_list();
+    for r in 0..rows {
+        list.entry(&DebugRow {
+            row_index: r,
+            cols,
+            elem: |c| elem(r, c),
+        });
+    }
+    list.finish()
+}
+
 
 /// `matrix * matrix` multiplication. You can also use [`Matrix::and_then`].
 impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<T, C, S>>

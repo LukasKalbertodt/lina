@@ -1,8 +1,9 @@
-use std::{array, ops};
+use std::{array, ops, fmt};
 
 use bytemuck::{Zeroable, Pod};
 
 use crate::{Scalar, Matrix, Vector};
+use super::debug_matrix_impl;
 
 
 
@@ -171,7 +172,6 @@ macro_rules! gen_inc_methods {
                 bytemuck::cast(value)
             }
         }
-
     }
 }
 
@@ -261,6 +261,9 @@ impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
 
 // TODO: invert & det
 
+// =============================================================================================
+// ===== Non-mathematical trait impls
+// =============================================================================================
 
 // These are all fine: The only stored things are `T` and the bounds on `T`
 // already make sure most of the requirements for these traits are met.
@@ -282,6 +285,26 @@ unsafe impl<T, const C: usize, const R: usize> Pod for HcMatrixStorage<T, C, R>
 where
     T: Scalar + Pod,
 {}
+impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "HcMatrix ")?;
+        debug_matrix_impl(f, C, R, |r, c| self.elem(r, c))
+    }
+}
+
+// =============================================================================================
+// ===== Mathematical trait impls
+// =============================================================================================
+
+
+// =============================================================================================
+// ===== Matrix * vector multiplication (transformations)
+// =============================================================================================
+
+
+// =============================================================================================
+// ===== Matrix * matrix multiplication (composition)
+// =============================================================================================
 
 
 // =============================================================================================
@@ -289,6 +312,7 @@ where
 // =============================================================================================
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(C)]
 struct HcMatrixStorage<T, const C: usize, const R: usize>(NPlusOneArray<NPlusOneArray<T, R>, C>);
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
