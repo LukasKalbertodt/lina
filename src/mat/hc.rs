@@ -2,7 +2,7 @@ use std::{array, ops, fmt};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Scalar, Matrix, Vector, Point, HcPoint};
+use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint};
 
 
 
@@ -237,6 +237,32 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         bytemuck::bytes_of(self)
     }
 }
+
+macro_rules! impl_det_inv {
+    ($d:expr, $dpo:expr) => {
+        impl<T: Float> HcMatrix<T, $d, $d> {
+            #[doc = include_str!("determinant_docs.md")]
+            pub fn determinant(self) -> T {
+                self.to_mat().determinant()
+            }
+
+            #[doc = include_str!("inverted_docs.md")]
+            pub fn inverted(self) -> Option<Self> {
+                let inv = self.to_mat().inverted()?;
+                Some(Self::from_cols(inv.0))
+            }
+
+            fn to_mat(self) -> Matrix<T, $dpo, $dpo> {
+                Matrix::from_cols(array::from_fn(|c| self.col(c).to_array()))
+            }
+        }
+    };
+}
+
+impl_det_inv!(1, 2);
+impl_det_inv!(2, 3);
+impl_det_inv!(3, 4);
+
 
 #[cfg(not(feature = "nightly"))]
 macro_rules! inc {

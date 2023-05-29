@@ -553,20 +553,12 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
 }
 
 impl<T: Float> Matrix<T, 1, 1> {
-    /// Returns the determinant of this matrix. This number gives a general idea
-    /// of whether the transformation represented by this matrix squishes or
-    /// stretches space. If this is 0, the transformation's output space has a
-    /// lower dimension than the input space and is thus non-invertible. See
-    /// [this video][1] for a good explanation.
-    ///
-    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(self) -> T {
         self.0[0][0]
     }
 
-    /// Returns the inverse of this matrix, if it exists. If the determinant of
-    /// this matrix is 0, then it is not invertible and `None` is returned. The
-    /// inverted matrix "undoes" the transformation of `self`.
+    #[doc = include_str!("inverted_docs.md")]
     pub fn inverted(self) -> Option<Self> {
         let det = self.determinant();
         if det.is_zero() {
@@ -578,20 +570,12 @@ impl<T: Float> Matrix<T, 1, 1> {
 }
 
 impl<T: Float> Matrix<T, 2, 2> {
-    /// Returns the determinant of this matrix. This number gives a general idea
-    /// of whether the transformation represented by this matrix squishes or
-    /// stretches space. If this is 0, the transformation's output space has a
-    /// lower dimension than the input space and is thus non-invertible. See
-    /// [this video][1] for a good explanation.
-    ///
-    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(self) -> T {
         self.0[0][0] * self.0[1][1] - self.0[0][1] * self.0[1][0]
     }
 
-    /// Returns the inverse of this matrix, if it exists. If the determinant of
-    /// this matrix is 0, then it is not invertible and `None` is returned. The
-    /// inverted matrix "undoes" the transformation of `self`.
+    #[doc = include_str!("inverted_docs.md")]
     pub fn inverted(self) -> Option<Self> {
         let det = self.determinant();
         if det.is_zero() {
@@ -607,13 +591,7 @@ impl<T: Float> Matrix<T, 2, 2> {
 }
 
 impl<T: Float> Matrix<T, 3, 3> {
-    /// Returns the determinant of this matrix. This number gives a general idea
-    /// of whether the transformation represented by this matrix squishes or
-    /// stretches space. If this is 0, the transformation's output space has a
-    /// lower dimension than the input space and is thus non-invertible. See
-    /// [this video][1] for a good explanation.
-    ///
-    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(self) -> T {
         T::zero()
             + self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
@@ -621,9 +599,7 @@ impl<T: Float> Matrix<T, 3, 3> {
             + self.0[2][0] * (self.0[0][1] * self.0[1][2] - self.0[1][1] * self.0[0][2])
     }
 
-    /// Returns the inverse of this matrix, if it exists. If the determinant of
-    /// this matrix is 0, then it is not invertible and `None` is returned. The
-    /// inverted matrix "undoes" the transformation of `self`.
+    #[doc = include_str!("inverted_docs.md")]
     pub fn inverted(self) -> Option<Self> {
         let det = self.determinant();
         if det.is_zero() {
@@ -640,20 +616,12 @@ impl<T: Float> Matrix<T, 3, 3> {
 }
 
 impl<T: Float> Matrix<T, 4, 4> {
-    /// Returns the determinant of this matrix. This number gives a general idea
-    /// of whether the transformation represented by this matrix squishes or
-    /// stretches space. If this is 0, the transformation's output space has a
-    /// lower dimension than the input space and is thus non-invertible. See
-    /// [this video][1] for a good explanation.
-    ///
-    /// [1]: https://www.youtube.com/watch?v=Ip3X9LOh2dk
+    #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(self) -> T {
         super::inv4::det(&self)
     }
 
-    /// Returns the inverse of this matrix, if it exists. If the determinant of
-    /// this matrix is 0, then it is not invertible and `None` is returned. The
-    /// inverted matrix "undoes" the transformation of `self`.
+    #[doc = include_str!("inverted_docs.md")]
     pub fn inverted(self) -> Option<Self> {
         super::inv4::inv(&self)
     }
