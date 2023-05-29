@@ -52,16 +52,6 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         )))
     }
 
-    #[cfg(feature = "nightly")]
-    pub fn from_rows<V: Into<[T; R + 1]>>(cols: [V; C + 1]) -> Self {
-        Self(cols.map(Into::into).into())
-    }
-
-    #[cfg(feature = "nightly")]
-    pub fn from_cols<V: Into<[T; R + 1]>>(cols: [V; C + 1]) -> Self {
-        Self(cols.map(Into::into).into())
-    }
-
     pub fn elem(&self, row: usize, col: usize) -> T {
         self.0.0[col][row]
     }
@@ -113,13 +103,116 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     }
 
     // col/row
-    // set_col/row
     // iter
 
     // and_then
     // zip_map
     //
 }
+
+#[cfg(not(feature = "nightly"))]
+macro_rules! inc {
+    (1) => { 2 };
+    (2) => { 3 };
+    (3) => { 4 };
+}
+
+macro_rules! gen_inc_methods {
+    ($( ($c:tt, $r:tt) ),+ $(,)?) => {
+        #[cfg(feature = "nightly")]
+        gen_inc_methods!(@imp [, const C: usize, const R: usize], C, C + 1, R, R + 1);
+
+        $(
+            #[cfg(not(feature = "nightly"))]
+            gen_inc_methods!(@imp [], $c, inc!($c), $r, inc!($r));
+        )+
+    };
+    (@imp [$($const_params:tt)*],$c:expr, $cpo:expr, $r:expr, $rpo:expr) => {
+        impl<T: Scalar $($const_params)*> HcMatrix<T, $c, $r> {
+            pub fn from_rows<V: Into<[T; $cpo]>>(rows: [V; $rpo]) -> Self {
+                let mut out = Self::zero();
+                for (r, row) in rows.into_iter().enumerate() {
+                    out.set_row(r, row.into());
+                }
+                out
+            }
+
+            pub fn from_cols<V: Into<[T; $rpo]>>(cols: [V; $cpo]) -> Self {
+                Self(cols.map(Into::into).into())
+            }
+
+            pub fn set_row(&mut self, index: usize, row: [T; $cpo]) {
+                for c in 0..=$c {
+                    self.set_elem(index, c, row[c]);
+                }
+            }
+
+            pub fn set_col(&mut self, index: usize, col: [T; $rpo]) {
+                for r in 0..=$r {
+                    self.set_elem(r, index, col[r]);
+                }
+            }
+        }
+
+        impl<T: Scalar $($const_params)*> AsRef<[[T; $rpo]; $cpo]> for HcMatrixStorage<T, $c, $r> {
+            fn as_ref(&self) -> &[[T; $rpo]; $cpo] {
+                bytemuck::cast_ref(self)
+            }
+        }
+
+        impl<T: Scalar $($const_params)*> AsMut<[[T; $rpo]; $cpo]> for HcMatrixStorage<T, $c, $r> {
+            fn as_mut(&mut self) -> &mut [[T; $rpo]; $cpo] {
+                bytemuck::cast_mut(self)
+            }
+        }
+
+        impl<T: Scalar $($const_params)*> From<[[T; $rpo]; $cpo]> for HcMatrixStorage<T, $c, $r> {
+            fn from(value: [[T; $rpo]; $cpo]) -> Self {
+                bytemuck::cast(value)
+            }
+        }
+
+    }
+}
+
+gen_inc_methods!(
+    (1, 1), (1, 2), (1, 3),
+    (2, 1), (2, 2), (2, 3),
+    (3, 1), (3, 2), (3, 3),
+);
+
+macro_rules! gen_quadratic_inc_methods {
+    ($( $n:tt ),+) => {
+        #[cfg(feature = "nightly")]
+        gen_quadratic_inc_methods!(@imp [, const N: usize], N, N + 1);
+
+        $(
+            #[cfg(not(feature = "nightly"))]
+            gen_quadratic_inc_methods!(@imp [], $n, inc!($n));
+        )+
+    };
+    (@imp [$($const_params:tt)*], $n:expr, $npo:expr) => {
+        impl<T: Scalar $($const_params)*> HcMatrix<T, $n, $n> {
+            pub fn from_diagonal(diagonal: [T; $npo]) -> Self {
+                let mut out = Self::zero();
+                out.set_diagonal(diagonal);
+                out
+            }
+
+            pub fn set_diagonal(&mut self, diagonal: [T; $npo]) {
+                for i in 0..=$n {
+                    self.set_elem(i, i, diagonal[i]);
+                }
+            }
+
+            pub fn diagonal(&self) -> [T; $npo] {
+                array::from_fn(|i| self.elem(i, i))
+            }
+        }
+    }
+}
+
+gen_quadratic_inc_methods!(1, 2, 3);
 
 impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
     pub fn identity() -> Self {
@@ -143,24 +236,6 @@ impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
         self.set_elem(N, N, q);
     }
 
-    #[cfg(feature = "nightly")]
-    pub fn from_diagonal(diagonal: [T; N + 1]) -> Self {
-        let mut out = Self::zero();
-        out.set_diagonal(diagonal);
-        out
-    }
-
-    #[cfg(feature = "nightly")]
-    pub fn set_diagonal(&mut self, diagonal: [T; N + 1]) {
-        for i in 0..=N {
-            self.set_elem(i, i, diagonal[i]);
-        }
-    }
-
-    #[cfg(feature = "nightly")]
-    pub fn diagonal(&self) -> [T; N + 1] {
-        array::from_fn(|i| self.elem(i, i))
-    }
 
     pub fn transpose(&mut self) {
         *self = self.transposed();
@@ -239,26 +314,5 @@ impl<T, const N: usize> ops::IndexMut<usize> for NPlusOneArray<T, N> {
             () if index == N => &mut self.1,
             _ => panic!("index ({index}) out of bounds ({})", N + 1),
         }
-    }
-}
-
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const C: usize, const R: usize> AsRef<[[T; R + 1]; C + 1]> for HcMatrixStorage<T, C, R> {
-    fn as_ref(&self) -> &[[T; R + 1]; C + 1] {
-        bytemuck::cast_ref(self)
-    }
-}
-
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const C: usize, const R: usize> AsMut<[[T; R + 1]; C + 1]> for HcMatrixStorage<T, C, R> {
-    fn as_mut(&mut self) -> &mut [[T; R + 1]; C + 1] {
-        bytemuck::cast_mut(self)
-    }
-}
-
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const C: usize, const R: usize> From<[[T; R + 1]; C + 1]> for HcMatrixStorage<T, C, R> {
-    fn from(value: [[T; R + 1]; C + 1]) -> Self {
-        bytemuck::cast(value)
     }
 }
