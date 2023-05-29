@@ -50,7 +50,7 @@ pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
     mat::{
-        Matrix, Col, Row, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d,
+        linear::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
         hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d, HcMat4, HcMat4f, HcMat4d},
     },
     space::{GenericSpace, Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
@@ -63,6 +63,14 @@ pub use self::{
         },
     },
 };
+
+/// Helper utilities for matrices.
+pub mod matrix {
+    pub use crate::mat::{
+        linear::{Col, Row},
+        hc::{HcCol, HcRow},
+    };
+}
 
 
 /// A scalar type in the context of this library.

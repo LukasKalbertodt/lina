@@ -3,7 +3,6 @@ use std::{array, ops, fmt};
 use bytemuck::{Zeroable, Pod};
 
 use crate::{Scalar, Matrix, Vector, Point};
-use super::debug_matrix_impl;
 
 
 
@@ -110,12 +109,6 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     pub fn as_bytes(&self) -> &[u8] {
         bytemuck::bytes_of(self)
     }
-
-    // iter
-
-    // and_then
-    // zip_map
-    //
 }
 
 #[cfg(not(feature = "nightly"))]
@@ -266,7 +259,6 @@ impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
     }
 }
 
-// TODO: invert & det
 
 // =============================================================================================
 // ===== Non-mathematical trait impls
@@ -279,7 +271,7 @@ unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for HcMatrix<T,
 impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "HcMatrix ")?;
-        debug_matrix_impl(f, C, R, |r, c| self.elem(r, c))
+        super::debug_matrix_impl(f, C, R, |r, c| self.elem(r, c))
     }
 }
 
@@ -289,12 +281,12 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R>
 
 
 // =============================================================================================
-// ===== Matrix * vector multiplication (transformations)
-// =============================================================================================
-
-
-// =============================================================================================
 // ===== Matrix * matrix multiplication (composition)
+// =============================================================================================
+
+
+// =============================================================================================
+// ===== Matrix * vector multiplication (transformations)
 // =============================================================================================
 
 
