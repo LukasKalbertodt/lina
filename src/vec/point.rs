@@ -142,7 +142,7 @@ impl<T: Scalar, const N: usize, S: Space> PartialEq for Point<T, N, S> {
         self.0.eq(&other.0)
     }
 }
-impl<T: Scalar, const N: usize, S: Space> Eq for Point<T, N, S> {}
+impl<T: Scalar + Eq, const N: usize, S: Space> Eq for Point<T, N, S> {}
 
 impl<T: Scalar, const N: usize, S: Space> Clone for Point<T, N, S> {
     fn clone(&self) -> Self {

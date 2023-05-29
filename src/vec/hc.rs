@@ -113,7 +113,7 @@ impl<T: Scalar, const N: usize, S: Space> PartialEq for HcPoint<T, N, S> {
         self.weight.eq(&other.weight) && self.coords.eq(&other.coords)
     }
 }
-impl<T: Scalar, const N: usize, S: Space> Eq for HcPoint<T, N, S> {}
+impl<T: Scalar + Eq, const N: usize, S: Space> Eq for HcPoint<T, N, S> {}
 
 impl<T: Scalar, const N: usize, S: Space> Clone for HcPoint<T, N, S> {
     fn clone(&self) -> Self {

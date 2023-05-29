@@ -83,7 +83,7 @@ macro_rules! shared_trait_impls {
             }
         }
         impl<
-            T: Scalar,
+            T: Scalar + Eq,
             const C: usize,
             const R: usize,
             Src: Space,

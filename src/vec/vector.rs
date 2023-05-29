@@ -197,7 +197,7 @@ impl<T: Scalar, const N: usize, S: Space> PartialEq for Vector<T, N, S> {
         self.0.eq(&other.0)
     }
 }
-impl<T: Scalar, const N: usize, S: Space> Eq for Vector<T, N, S> {}
+impl<T: Scalar + Eq, const N: usize, S: Space> Eq for Vector<T, N, S> {}
 
 impl<T: Scalar, const N: usize, S: Space> Clone for Vector<T, N, S> {
     fn clone(&self) -> Self {
