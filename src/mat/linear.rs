@@ -295,8 +295,8 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// assert_eq!(it.next(), Some(6));
     /// assert_eq!(it.next(), None);
     /// ```
-    pub fn iter(self) -> impl Iterator<Item = T> {
-        self.0.into_iter().flat_map(|col| col)
+    pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
+        self.0.iter().flat_map(|col| col).copied()
     }
 
     /// Returns the transposed version of this matrix (swapping rows and

@@ -221,6 +221,29 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         out
     }
 
+    /// Returns an iterator over all entries of this matrix, in column-major
+    /// order.
+    ///
+    /// ```
+    /// let m = <lina::HcMatrix<_, 1, 2>>::from_rows([
+    ///     [1, 2],
+    ///     [3, 4],
+    ///     [5, 6],
+    /// ]);
+    /// let mut it = m.iter();
+    ///
+    /// assert_eq!(it.next(), Some(1));
+    /// assert_eq!(it.next(), Some(3));
+    /// assert_eq!(it.next(), Some(5));
+    /// assert_eq!(it.next(), Some(2));
+    /// assert_eq!(it.next(), Some(4));
+    /// assert_eq!(it.next(), Some(6));
+    /// assert_eq!(it.next(), None);
+    /// ```
+    pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
+        (0..(C + 1) * (R + 1)).map(|idx| self.elem(idx % (R + 1), idx / (R + 1)))
+    }
+
     pub fn map<U: Scalar, F: FnMut(T) -> U>(self, mut f: F) -> HcMatrix<U, C, R> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
