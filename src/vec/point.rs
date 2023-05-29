@@ -1,7 +1,7 @@
 use std::{array, marker::PhantomData};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Vector, Scalar, Float, GenericSpace, Space};
+use crate::{Vector, Scalar, Float, GenericSpace, Space, HcPoint};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents
@@ -65,6 +65,13 @@ impl<T: Scalar, const N: usize, S: Space> Point<T, N, S> {
         T: Float,
     {
         (self - other).length()
+    }
+
+    /// Returns this point represented in homogeneous coordinates.
+    ///
+    /// Numerically, this simply extends this point with a 1 as weight value.
+    pub fn to_hc_point(self) -> HcPoint<T, N, S> {
+        self.into()
     }
 
     /// Converts this point into a vector without changing the component values.
