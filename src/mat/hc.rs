@@ -140,6 +140,45 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         self * p
     }
 
+    /// Combines the transformations of two matrices into a single
+    /// transformation matrix. First the transformation of `self` is applied,
+    /// then the one of `second`. In the language of math, this is just matrix
+    /// multiplication: `second * self`. You can also use the overloaded `*`
+    /// operator instead, but this method exists for those who find the matrix
+    /// multiplication order unintuitive and this method call easier to read.
+    ///
+    /// ```
+    /// use lina::HcMat2;
+    ///
+    /// // Translate by (3, 7)
+    /// let translate = HcMat2::from_rows([
+    ///     [1, 0, 3],
+    ///     [0, 1, 7],
+    ///     [0, 0, 1],
+    /// ]);
+    ///
+    /// // Project onto the y = 1 line.
+    /// let project = HcMat2::from_rows([
+    ///     [1, 0, 0],
+    ///     [0, 1, 0],
+    ///     [0, 1, 0],
+    /// ]);
+    ///
+    /// assert_eq!(translate.and_then(project), HcMat2::from_rows([
+    ///     [1, 0, 3],
+    ///     [0, 1, 7],
+    ///     [0, 1, 7],
+    /// ]));
+    /// assert_eq!(project.and_then(translate), HcMat2::from_rows([
+    ///     [1, 3, 0],
+    ///     [0, 8, 0],
+    ///     [0, 1, 0],
+    /// ]));
+    /// ```
+    pub fn and_then<const R2: usize>(self, second: HcMatrix<T, R, R2>) -> HcMatrix<T, C, R2> {
+        second * self
+    }
+
     pub fn transposed(&self) -> HcMatrix<T, R, C> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
@@ -340,6 +379,32 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R>
 // ===== Matrix * matrix multiplication (composition)
 // =============================================================================================
 
+/// `matrix * matrix` multiplication. You can also use [`Matrix::and_then`].
+impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<HcMatrix<T, C, S>>
+    for HcMatrix<T, S, R>
+{
+    type Output = HcMatrix<T, C, R>;
+    fn mul(self, rhs: HcMatrix<T, C, S>) -> Self::Output {
+        // This is the straight-forward n³ algorithm. Using more sophisticated
+        // algorithms with sub cubic runtime is not worth it for small
+        // matrices. However, this can certainly be micro-optimized. In
+        // particular, using SSE seems like a good idea, but "requires" all
+        // columns to be properly aligned in memory.
+        //
+        // TODO: try to optimize
+        let mut out = Self::Output::zero();
+        for c in 0..=C {
+            for r in 0..=R {
+                let mut e = T::zero();
+                for s in 0..=S {
+                    e += self.elem(r, s) * rhs.elem(s, c);
+                }
+                out.set_elem(r, c, e);
+            }
+        }
+        out
+    }
+}
 
 // =============================================================================================
 // ===== Matrix * vector multiplication (transformations)
