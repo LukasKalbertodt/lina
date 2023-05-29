@@ -327,7 +327,7 @@ unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for HcMatrix<T,
 impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "HcMatrix ")?;
-        super::debug_matrix_impl(f, C, R, |r, c| self.elem(r, c))
+        super::debug_matrix_impl(f, C + 1, R + 1, |r, c| self.elem(r, c))
     }
 }
 
