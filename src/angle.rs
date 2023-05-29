@@ -5,6 +5,10 @@ use crate::Float;
 
 macro_rules! shared_methods {
     () => {
+        pub fn zero() -> Self {
+            Self(T::zero())
+        }
+
         pub fn half_turn() -> Self {
             Self::full_turn() / T::two()
         }

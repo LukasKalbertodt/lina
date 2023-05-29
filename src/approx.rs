@@ -206,7 +206,7 @@ impl_for_mats!(Matrix);
 impl_for_mats!(HcMatrix);
 
 
-impl<T: ApproxEq<Tolerance = T> + Float> ApproxEq for SphericalPos<T> {
+impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for SphericalPos<T, S> {
     type Tolerance = T;
 
     fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {
@@ -225,7 +225,7 @@ impl<T: ApproxEq<Tolerance = T> + Float> ApproxEq for SphericalPos<T> {
     }
 }
 
-impl<T: ApproxEq<Tolerance = T> + Float> ApproxEq for NormedSphericalPos<T> {
+impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for NormedSphericalPos<T, S> {
     type Tolerance = T;
 
     fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {
