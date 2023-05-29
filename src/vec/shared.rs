@@ -1,42 +1,5 @@
 macro_rules! shared_methods {
     ($ty:ident, $tys_lower:literal, $ctor2:literal, $ctor3:literal) => {
-        /// Returns a
-        #[doc = concat!(" ", $tys_lower, " ")]
-        /// with dimension `N + 1` by adding `new` as new component.
-        ///
-        /// ```
-        #[doc = concat!("use lina::{", $ctor2, ", ", $ctor3, "};")]
-        ///
-        #[doc = concat!("assert_eq!(", $ctor2, "(2i32, 4).extend(9), ", $ctor3, "(2, 4, 9));")]
-        /// ```
-        #[cfg(feature = "nightly")]
-        pub fn extend(self, new: T) -> $ty<T, { N + 1 }, S> {
-            let mut out = [T::zero(); N + 1];
-            for i in 0..N {
-                out[i] = self[i];
-            }
-            out[N] = new;
-            out.into()
-        }
-
-        /// Returns a
-        #[doc = concat!(" ", $tys_lower, " ")]
-        /// with dimension `N - 1` by removing the last dimension.
-        ///
-        /// ```
-        #[doc = concat!("use lina::{", $ctor2, ", ", $ctor3, "};")]
-        ///
-        #[doc = concat!("assert_eq!(", $ctor3, "(2i32, 4, 9).truncate(), ", $ctor2, "(2, 4));")]
-        /// ```
-        #[cfg(feature = "nightly")]
-        pub fn truncate(self) -> $ty<T, { N - 1 }, S> {
-            let mut out = [T::zero(); N - 1];
-            for i in 0..N - 1 {
-                out[i] = self[i];
-            }
-            out.into()
-        }
-
         #[doc = concat!(" Reinterprets this ", $tys_lower, " as being in the")]
         /// space `Target` instead of `S`. Before calling this, make sure this
         /// operation makes semantic sense and don't just use it to get rid of
@@ -123,12 +86,54 @@ macro_rules! shared_methods3 {
     }
 }
 
+macro_rules! impl_extend {
+    ($ty:ident, $tys_lower:literal, $n:literal, $np1:literal) => {
+        impl<T: Scalar, S: Space>  $ty<T, $n, S> {
+            /// Returns a
+            #[doc = concat!(" ", $tys_lower, " ")]
+            /// with dimension `N + 1` by adding `new` as new component.
+            pub fn extend(self, new: T) -> $ty<T, $np1, S> {
+                let mut out = [T::zero(); $np1];
+                for i in 0..$n {
+                    out[i] = self[i];
+                }
+                out[$n] = new;
+                out.into()
+            }
+        }
+    };
+}
+
+macro_rules! impl_truncate {
+    ($ty:ident, $tys_lower:literal, $n:expr, $nm1:expr) => {
+        impl<T: Scalar, S: Space>  $ty<T, $n, S> {
+            /// Returns a
+            #[doc = concat!(" ", $tys_lower, " ")]
+            /// with dimension `N - 1` by removing the last dimension.
+            pub fn truncate(self) -> $ty<T, $nm1, S> {
+                let mut out = [T::zero(); $nm1];
+                for i in 0..$nm1 {
+                    out[i] = self[i];
+                }
+                out.into()
+            }
+        }
+    };
+}
+
 macro_rules! shared_impls {
     ($ty:ident, $tys_lower:literal, $debug:literal) => {
         use std::{
             fmt,
             ops::{self, Index, IndexMut},
         };
+
+        impl_extend!($ty, $tys_lower, 1, 2);
+        impl_extend!($ty, $tys_lower, 2, 3);
+        impl_extend!($ty, $tys_lower, 3, 4);
+        impl_truncate!($ty, $tys_lower, 2, 1);
+        impl_truncate!($ty, $tys_lower, 3, 2);
+        impl_truncate!($ty, $tys_lower, 4, 3);
 
         impl<T: Scalar, const N: usize, S: Space> Index<usize> for $ty<T, N, S> {
             type Output = T;

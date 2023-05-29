@@ -90,14 +90,6 @@ impl<T: Scalar, const N: usize, S: Space> HcPoint<T, N, S> {
         HcPoint::new(self.coords, self.weight)
     }
 
-    /// Converts this to an array of size N+1 with all the stored values
-    /// (components + weight). This is equivalent to using the corresponding
-    /// `From<Self> for [T; N + 1]` impl.
-    #[cfg(feature = "nightly")]
-    pub fn to_array(self) -> [T; N + 1] {
-        self.into()
-    }
-
     /// Returns a byte slice of this point representing the full raw data
     /// (components + weight). Useful to pass to graphics APIs.
     pub fn as_bytes(&self) -> &[u8] {
@@ -178,34 +170,46 @@ impl<T: Scalar, const N: usize, S: Space> From<HcPoint<T, N, S>> for Point<T, N,
     }
 }
 
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const N: usize, S: Space> From<[T; N + 1]> for HcPoint<T, N, S> {
-    fn from(src: [T; N + 1]) -> Self {
-        let coords = std::array::from_fn(|i| src[i]);
-        Self::new(coords, src[N])
-    }
+macro_rules! impl_np1 {
+    ($n:expr, $np1:expr) => {
+        impl<T: Scalar, S: Space> HcPoint<T, $n, S> {
+            /// Converts this to an array of size N+1 with all the stored values
+            /// (components + weight). This is equivalent to using the corresponding
+            /// `From<Self> for [T; N + 1]` impl.
+            pub fn to_array(self) -> [T; $np1] {
+                self.into()
+            }
+        }
+
+        impl<T: Scalar, S: Space> From<[T; $np1]> for HcPoint<T, $n, S> {
+            fn from(src: [T; $np1]) -> Self {
+                let coords = std::array::from_fn(|i| src[i]);
+                Self::new(coords, src[$n])
+            }
+        }
+
+        impl<T: Scalar, S: Space> From<HcPoint<T, $n, S>> for [T; $np1] {
+            fn from(src: HcPoint<T, $n, S>) -> Self {
+                std::array::from_fn(|i| if i == $n { src.weight } else { src.coords[i] })
+            }
+        }
+
+        impl<T: Scalar, S: Space> AsRef<[T; $np1]> for HcPoint<T, $n, S> {
+            fn as_ref(&self) -> &[T; $np1] {
+                bytemuck::cast_ref(self)
+            }
+        }
+
+        impl<T: Scalar, S: Space> AsMut<[T; $np1]> for HcPoint<T, $n, S> {
+            fn as_mut(&mut self) -> &mut [T; $np1] {
+                bytemuck::cast_mut(self)
+            }
+        }
+    };
 }
 
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const N: usize, S: Space> From<HcPoint<T, N, S>> for [T; N + 1] {
-    fn from(src: HcPoint<T, N, S>) -> Self {
-        std::array::from_fn(|i| if i == N { src.weight } else { src.coords[i] })
-    }
-}
+impl_np1!(2, 3);
 
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const N: usize, S: Space> AsRef<[T; N + 1]> for HcPoint<T, N, S> {
-    fn as_ref(&self) -> &[T; N + 1] {
-        bytemuck::cast_ref(self)
-    }
-}
-
-#[cfg(feature = "nightly")]
-impl<T: Scalar, const N: usize, S: Space> AsMut<[T; N + 1]> for HcPoint<T, N, S> {
-    fn as_mut(&mut self) -> &mut [T; N + 1] {
-        bytemuck::cast_mut(self)
-    }
-}
 
 impl<T: Scalar, const N: usize, S: Space> fmt::Debug for HcPoint<T, N, S> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

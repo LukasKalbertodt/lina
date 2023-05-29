@@ -1,4 +1,4 @@
-use crate::{Point, Point3f, Vec2, Vec3, Vec3f, point2, point3, vec2, vec3};
+use crate::{Point, Point3f, Vec2, Vec3, Vec3f, point2, point3, vec2, vec3, Vector};
 
 #[test]
 fn add_point_vec() {
@@ -107,4 +107,26 @@ fn vector_iter_sum() {
     assert_eq!(<Vec<Vec3f>>::new().into_iter().sum::<Vec3f>(), vec3(0.0, 0.0, 0.0));
     assert_eq!(vec![vec3(3, 4, 5)].into_iter().sum::<Vec3<i32>>(), vec3(3, 4, 5));
     assert_eq!(vec![vec2(1, 3), vec2(5, 2)].into_iter().sum::<Vec2<i32>>(), vec2(6, 5));
+}
+
+#[test]
+fn truncate() {
+    assert_eq!(<Point<_, 2>>::from([1, 2]).truncate(), Point::from([1]));
+    assert_eq!(<Point<_, 3>>::from([1, 2, 3]).truncate(), Point::from([1, 2]));
+    assert_eq!(<Point<_, 4>>::from([1, 2, 3, 4]).truncate(), Point::from([1, 2, 3]));
+
+    assert_eq!(<Vector<_, 2>>::from([1, 2]).truncate(), Vector::from([1]));
+    assert_eq!(<Vector<_, 3>>::from([1, 2, 3]).truncate(), Vector::from([1, 2]));
+    assert_eq!(<Vector<_, 4>>::from([1, 2, 3, 4]).truncate(), Vector::from([1, 2, 3]));
+}
+
+#[test]
+fn extend() {
+    assert_eq!(<Point<_, 1>>::from([1]).extend(2), Point::from([1, 2]));
+    assert_eq!(<Point<_, 2>>::from([1, 2]).extend(3), Point::from([1, 2, 3]));
+    assert_eq!(<Point<_, 3>>::from([1, 2, 3]).extend(4), Point::from([1, 2, 3, 4]));
+
+    assert_eq!(<Vector<_, 1>>::from([1]).extend(2), Vector::from([1, 2]));
+    assert_eq!(<Vector<_, 2>>::from([1, 2]).extend(3), Vector::from([1, 2, 3]));
+    assert_eq!(<Vector<_, 3>>::from([1, 2, 3]).extend(4), Vector::from([1, 2, 3, 4]));
 }

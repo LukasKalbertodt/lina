@@ -323,7 +323,6 @@ impl_det_inv!(2, 3);
 impl_det_inv!(3, 4);
 
 
-#[cfg(not(feature = "nightly"))]
 macro_rules! inc {
     (1) => { 2 };
     (2) => { 3 };
@@ -332,11 +331,7 @@ macro_rules! inc {
 
 macro_rules! gen_inc_methods {
     ($( ($c:tt, $r:tt) ),+ $(,)?) => {
-        #[cfg(feature = "nightly")]
-        gen_inc_methods!(@imp [, const C: usize, const R: usize], C, C + 1, R, R + 1);
-
         $(
-            #[cfg(not(feature = "nightly"))]
             gen_inc_methods!(@imp [], $c, inc!($c), $r, inc!($r));
         )+
     };
@@ -395,11 +390,7 @@ gen_inc_methods!(
 
 macro_rules! gen_quadratic_inc_methods {
     ($( $n:tt ),+) => {
-        #[cfg(feature = "nightly")]
-        gen_quadratic_inc_methods!(@imp [, const N: usize], N, N + 1);
-
         $(
-            #[cfg(not(feature = "nightly"))]
             gen_quadratic_inc_methods!(@imp [], $n, inc!($n));
         )+
     };
@@ -651,11 +642,7 @@ impl<'a, T: Scalar, const C: usize, const R: usize> fmt::Debug for HcCol<'a, T, 
 
 macro_rules! gen_col_row_impls {
     ($( ($c:tt, $r:tt) ),+ $(,)?) => {
-        #[cfg(feature = "nightly")]
-        gen_col_row_impls!(@imp [, const C: usize, const R: usize], C, C + 1, R, R + 1);
-
         $(
-            #[cfg(not(feature = "nightly"))]
             gen_col_row_impls!(@imp [], $c, inc!($c), $r, inc!($r));
         )+
     };

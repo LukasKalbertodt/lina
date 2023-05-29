@@ -17,16 +17,30 @@
 //!   algebra, ...
 //!
 //!
-//! ## Features
+//! ## Const generics limitations
 //!
-//! - `nightly` (default): this enables some additional functions like
-//!   `Vector<T, N>::extend(T) -> Vector<T, N + 1>`. These functions return
-//!   something with one higher or one lower dimension. This arithmetic with
-//!   const parameters is not yet allowed on stable, thus a nightly compiler is
-//!   required for this.
-
-#![cfg_attr(feature = "nightly", feature(generic_const_exprs))]
-#![cfg_attr(feature = "nightly", allow(incomplete_features))]
+//! To express the signature of some functions, `feature(generic_const_exprs)`
+//! is required. Think of [`Vector::extend`] which returns a `Vector<T, N + 1>`.
+//! The `+ 1` is the problem here as this is currently not yet allowed on
+//! stable Rust. Most of these functions are related to [`HcPoint`] or
+//! [`HcMatrix`].
+//!
+//! Not only is that feature not stabilized yet, it is also very unfinished and
+//! broken. So unfortunately, `lina` cannot use it. Instead, these functions
+//! are implemented for a small number of fixed dimensions via macro. But worry
+//! not! For one, these are just a few functions without which `lina` can still
+//! be used without a problem. Further, for the 3D graphics use case, all
+//! relevant functions exist, as one is almost never converned with anything
+//! with more than 4 dimensions. So the only relevant disadvantage of this is
+//! that the docs look less nice, as there are repetitions of the same
+//! function.
+//!
+//! One further consequence of this is the choice that the const parameters of
+//! `HcPoint` and `HcMatrix` don't reflect the number of values/rows/columns,
+//! but the the dimension of the space in which the point lives/which the
+//! transformation transforms. E.g. `HcPoint<3>` represents a 3D point, by
+//! storing 4 numbers.
+//!
 
 use std::{
     fmt::Debug,
