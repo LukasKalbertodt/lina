@@ -1,4 +1,4 @@
-use crate::{Mat2, Mat4f, Matrix, approx::assert_approx_eq};
+use crate::{Mat2, Matrix, approx::assert_approx_eq};
 
 
 #[test]
@@ -101,7 +101,10 @@ fn mul_matrix() {
 
 #[test]
 fn iter_sum() {
-    assert_eq!(<Vec<Mat4f>>::new().into_iter().sum::<Mat4f>(), Mat4f::zero());
+    assert_eq!(
+        <Vec<Matrix<f32, 4, 4>>>::new().into_iter().sum::<Matrix<f32, 4, 4>>(),
+        <Matrix<f32, 4, 4>>::zero(),
+    );
 
     let a = Matrix::from_rows([[1, 2], [3, 4]]);
     let b = Matrix::from_rows([[5, 6], [7, 8]]);
@@ -207,7 +210,7 @@ fn non_invertible3() {
 
 #[test]
 fn inv4() {
-    assert_eq!(crate::Mat4f::identity().inverted(), Some(Matrix::identity()));
+    assert_eq!(<Matrix<f32, 4, 4>>::identity().inverted(), Some(Matrix::identity()));
 
     assert_eq!(
         Matrix::from_diagonal([0.187, 1.0, 4.0, 6.5]).inverted(),

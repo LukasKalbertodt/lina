@@ -14,11 +14,11 @@
 //! # Example
 //!
 //! ```
-//! use lina::{vec2, vec3, vec4, point2, point3};
+//! use lina::{vec2, vec3, point2, point3, Vector};
 //!
 //! let v2 = vec2(1, 2);
 //! let v3 = vec3(1, 2, 3);
-//! let v4 = vec4(1, 2, 3, 4);
+//! let v4 = <Vector<_, 4>>::new(1, 2, 3, 4);
 //!
 //! // You can access components by name.
 //! let _ = (v2.x, v2.y);

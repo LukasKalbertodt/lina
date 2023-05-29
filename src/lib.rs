@@ -50,17 +50,15 @@ pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
     mat::{
-        linear::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
-        hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d, HcMat4, HcMat4f, HcMat4d},
+        linear::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d},
+        hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d},
     },
     space::{GenericSpace, Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
     spherical::{NormedSphericalPos, SphericalPos},
     vec::{
         hc::{HcPoint, HcPoint2, HcPoint3},
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
-        vector::{
-            Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, Vec4, Vec4f, Vec4d, vec2, vec3, vec4,
-        },
+        vector::{Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, vec2, vec3},
     },
 };
 

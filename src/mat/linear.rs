@@ -81,17 +81,10 @@ use crate::{Point, Scalar, Vector, dot, Float, cross, HcMatrix};
 #[repr(transparent)]
 pub struct Matrix<T: Scalar, const C: usize, const R: usize>(pub(super) [[T; R]; C]);
 
-/// A 4×4 matrix.
-pub type Mat4<T> = Matrix<T, 4, 4>;
 /// A 3×3 matrix.
 pub type Mat3<T> = Matrix<T, 3, 3>;
 /// A 2×2 matrix.
 pub type Mat2<T> = Matrix<T, 2, 2>;
-
-/// A 4×4 matrix with `f32` elements.
-pub type Mat4f = Mat4<f32>;
-/// A 4×4 matrix with `f64` elements.
-pub type Mat4d = Mat4<f64>;
 
 /// A 3×3 matrix with `f32` elements.
 pub type Mat3f = Mat3<f32>;

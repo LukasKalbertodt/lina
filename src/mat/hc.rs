@@ -12,27 +12,21 @@ use crate::{Scalar, Matrix, Vector, Point};
 pub struct HcMatrix<T, const C: usize, const R: usize>(HcMatrixStorage<T, C, R>);
 
 
-/// A 4×4 matrix.
-pub type HcMat4<T> = HcMatrix<T, 4, 4>;
-/// A 3×3 matrix.
+/// A 3×3 homogeneous transformation matrix.
 pub type HcMat3<T> = HcMatrix<T, 3, 3>;
-/// A 2×2 matrix.
+/// A 2×2 homogeneous transformation matrix.
 pub type HcMat2<T> = HcMatrix<T, 2, 2>;
 
-/// A 4×4 matrix with `f32` elements.
-pub type HcMat4f = HcMat4<f32>;
-/// A 4×4 matrix with `f64` elements.
-pub type HcMat4d = HcMat4<f64>;
-
-/// A 3×3 matrix with `f32` elements.
+/// A 3×3 homogeneous transformation matrix with `f32` elements.
 pub type HcMat3f = HcMat3<f32>;
-/// A 3×3 matrix with `f63` elements.
+/// A 3×3 homogeneous transformation matrix with `f63` elements.
 pub type HcMat3d = HcMat3<f64>;
 
-/// A 2×2 matrix with `f32` elements.
+/// A 2×2 homogeneous transformation matrix with `f32` elements.
 pub type HcMat2f = HcMat2<f32>;
-/// A 2×2 matrix with `f62` elements.
+/// A 2×2 homogeneous transformation matrix with `f62` elements.
 pub type HcMat2d = HcMat2<f64>;
+
 
 impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     pub fn zero() -> Self {

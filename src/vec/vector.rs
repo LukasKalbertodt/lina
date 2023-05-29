@@ -4,7 +4,7 @@ use bytemuck::{Pod, Zeroable};
 
 use crate::{
     Point, Scalar, Float, Space, GenericSpace,
-    named_scalar::{HasX, HasY, HasZ, HasW},
+    named_scalar::{HasX, HasY, HasZ},
 };
 
 
@@ -20,22 +20,16 @@ pub struct Vector<T: Scalar, const N: usize, S: Space = GenericSpace>(
 pub type Vec2<T, S = GenericSpace> = Vector<T, 2, S>;
 /// A 3-dimensional vector.
 pub type Vec3<T, S = GenericSpace> = Vector<T, 3, S>;
-/// A 4-dimensional vector.
-pub type Vec4<T, S = GenericSpace> = Vector<T, 4, S>;
 
 /// A 2-dimensional vector with scalar type `f32`.
 pub type Vec2f<S = GenericSpace> = Vec2<f32, S>;
 /// A 3-dimensional vector with scalar type `f32`.
 pub type Vec3f<S = GenericSpace> = Vec3<f32, S>;
-/// A 4-dimensional vector with scalar type `f32`.
-pub type Vec4f<S = GenericSpace> = Vec4<f32, S>;
 
 /// A 2-dimensional vector with scalar type `f64`.
 pub type Vec2d<S = GenericSpace> = Vec2<f64, S>;
 /// A 3-dimensional vector with scalar type `f64`.
 pub type Vec3d<S = GenericSpace> = Vec3<f64, S>;
-/// A 4-dimensional vector with scalar type `f64`.
-pub type Vec4d<S = GenericSpace> = Vec4<f64, S>;
 
 
 impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
@@ -88,20 +82,6 @@ impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
     {
         let mut out = Self::zero();
         *out.z_mut() = T::one();
-        out
-    }
-
-    /// Returns a unit vector in w direction.
-    ///
-    /// ```
-    /// assert_eq!(lina::Vec4f::unit_w(), lina::vec4(0.0, 0.0, 0.0, 1.0));
-    /// ```
-    pub fn unit_w() -> Self
-    where
-        Self: HasW<Scalar = T>,
-    {
-        let mut out = Self::zero();
-        *out.w_mut() = T::one();
         out
     }
 
@@ -199,11 +179,6 @@ pub fn vec2<T: Scalar>(x: T, y: T) -> Vec2<T> {
 /// Shorthand for `Vec3::new(...)`, but with fixed `S = Generic`.
 pub fn vec3<T: Scalar>(x: T, y: T, z: T) -> Vec3<T> {
     Vec3::new(x, y, z)
-}
-
-/// Shorthand for `Vec4::new(...)`, but with fixed `S = Generic`.
-pub fn vec4<T: Scalar>(x: T, y: T, z: T, w: T) -> Vec4<T> {
-    Vec4::new(x, y, z, w)
 }
 
 
