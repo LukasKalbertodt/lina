@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, fmt};
+use std::{marker::PhantomData, fmt, ops};
 
 use bytemuck::{Zeroable, Pod};
 
@@ -145,6 +145,26 @@ unsafe impl<T: Scalar + Zeroable, const N: usize, S: Space> Zeroable for HcPoint
 /// nad `repr(C)`.
 unsafe impl<T: Scalar + Pod, const N: usize, S: Space> Pod for HcPoint<T, N, S> {}
 
+impl<T: Scalar, const N: usize, S: Space> ops::Index<usize> for HcPoint<T, N, S> {
+    type Output = T;
+    fn index(&self, index: usize) -> &Self::Output {
+        match () {
+            () if index < N => &self.coords[index],
+            () if index == N => &self.weight,
+            _ => panic!("index ({index}) out of bounds ({})", N + 1),
+        }
+    }
+}
+
+impl<T: Scalar, const N: usize, S: Space> ops::IndexMut<usize> for HcPoint<T, N, S> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match () {
+            () if index < N => &mut self.coords[index],
+            () if index == N => &mut self.weight,
+            _ => panic!("index ({index}) out of bounds ({})", N + 1),
+        }
+    }
+}
 
 impl<T: Scalar, const N: usize, S: Space> From<Point<T, N, S>> for HcPoint<T, N, S> {
     fn from(src: Point<T, N, S>) -> Self {
