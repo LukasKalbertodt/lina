@@ -2,7 +2,7 @@ use std::{array, ops, fmt};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Scalar, Matrix, Vector};
+use crate::{Scalar, Matrix, Vector, Point};
 use super::debug_matrix_impl;
 
 
@@ -61,6 +61,14 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         self.0.0[col][row] = v;
     }
 
+    pub fn row(&self, row: usize) -> HcRow<'_, T, C, R> {
+        HcRow { matrix: self, index: row }
+    }
+
+    pub fn col(&self, col: usize) -> HcCol<'_, T, C, R> {
+        HcCol { matrix: self, index: col }
+    }
+
     pub fn linear_part(&self) -> Matrix<T, C, R> {
         Matrix::from_cols(self.0.0.0.map(|c| c.0))
     }
@@ -103,7 +111,6 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         bytemuck::bytes_of(self)
     }
 
-    // col/row
     // iter
 
     // and_then
@@ -265,26 +272,10 @@ impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
 // ===== Non-mathematical trait impls
 // =============================================================================================
 
-// These are all fine: The only stored things are `T` and the bounds on `T`
-// already make sure most of the requirements for these traits are met.
-// Further, due to `repr(C)` and the struct layout, there are no padding
-// bytes.
-unsafe impl<T, const C: usize, const R: usize> Zeroable for HcMatrix<T, C, R>
-where
-    T: Scalar + Zeroable,
-{}
-unsafe impl<T, const C: usize, const R: usize> Pod for HcMatrix<T, C, R>
-where
-    T: Scalar + Pod,
-{}
-unsafe impl<T, const C: usize, const R: usize> Zeroable for HcMatrixStorage<T, C, R>
-where
-    T: Scalar + Zeroable,
-{}
-unsafe impl<T, const C: usize, const R: usize> Pod for HcMatrixStorage<T, C, R>
-where
-    T: Scalar + Pod,
-{}
+// HcMatrix is just a wrapper around `HcMatrixStorage`
+unsafe impl<T: Scalar + Zeroable, const C: usize, const R: usize> Zeroable for HcMatrix<T, C, R> {}
+unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for HcMatrix<T, C, R> {}
+
 impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "HcMatrix ")?;
@@ -319,6 +310,16 @@ struct HcMatrixStorage<T, const C: usize, const R: usize>(NPlusOneArray<NPlusOne
 #[repr(C)]
 struct NPlusOneArray<T, const N: usize>([T; N], T);
 
+// These are all fine: The only stored things are `T` and the bounds on `T`
+// already make sure most of the requirements for these traits are met.
+// Further, due to `repr(C)` and the struct layout, there are no padding
+// bytes.
+unsafe impl<T: Scalar + Zeroable, const C: usize, const R: usize> Zeroable
+    for HcMatrixStorage<T, C, R> {}
+unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for HcMatrixStorage<T, C, R> {}
+unsafe impl<T: Scalar + Zeroable, const N: usize> Zeroable for NPlusOneArray<T, N> {}
+unsafe impl<T: Scalar + Pod, const N: usize> Pod for NPlusOneArray<T, N> {}
+
 impl<T, const N: usize> ops::Index<usize> for NPlusOneArray<T, N> {
     type Output = T;
 
@@ -340,3 +341,146 @@ impl<T, const N: usize> ops::IndexMut<usize> for NPlusOneArray<T, N> {
         }
     }
 }
+
+impl<T: Pod + Scalar, const N: usize> AsRef<[T]> for NPlusOneArray<T, N>
+where
+    [T]: Pod,
+{
+    fn as_ref(&self) -> &[T] {
+        bytemuck::cast_ref(self)
+    }
+}
+
+
+// =============================================================================================
+// ===== `Row` and `Col` proxies
+// =============================================================================================
+
+/// Proxy type representing one row of a homogeneous matrix.
+#[derive(Clone, Copy)]
+pub struct HcRow<'a, T: Scalar, const C: usize, const R: usize> {
+    matrix: &'a HcMatrix<T, C, R>,
+    index: usize,
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> HcRow<'a, T, C, R> {
+    /// Indexes into this row with the given column index, returning the element.
+    pub fn col(self, col: usize) -> T {
+        self.matrix.0.0[col][self.index]
+    }
+}
+
+/// Proxy type representing one column of a homogeneous matrix.
+#[derive(Clone, Copy)]
+pub struct HcCol<'a, T: Scalar, const C: usize, const R: usize> {
+    matrix: &'a HcMatrix<T, C, R>,
+    index: usize,
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> HcCol<'a, T, C, R> {
+    /// Indexes into this column with the given row index, returning the element.
+    pub fn row(self, row: usize) -> T {
+        self.matrix.0.0[self.index][row]
+    }
+}
+
+
+impl<'a, T: Scalar, const C: usize, const R: usize> fmt::Debug for HcRow<'a, T, C, R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        crate::util::debug_list_one_line((0..=C).map(|c| self.col(c)), f)
+    }
+}
+
+impl<'a, T: Scalar, const C: usize, const R: usize> fmt::Debug for HcCol<'a, T, C, R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        crate::util::debug_list_one_line((0..=R).map(|r| self.row(r)), f)
+    }
+}
+
+
+macro_rules! gen_col_row_impls {
+    ($( ($c:tt, $r:tt) ),+ $(,)?) => {
+        #[cfg(feature = "nightly")]
+        gen_col_row_impls!(@imp [, const C: usize, const R: usize], C, C + 1, R, R + 1);
+
+        $(
+            #[cfg(not(feature = "nightly"))]
+            gen_col_row_impls!(@imp [], $c, inc!($c), $r, inc!($r));
+        )+
+    };
+    (@imp [$($const_params:tt)*], $c:expr, $cpo:expr, $r:expr, $rpo:expr) => {
+        // Row
+        impl<'a, T: Scalar $($const_params)*> HcRow<'a, T, $c, $r> {
+            /// Returns this row as array.
+            pub fn to_array(self) -> [T; $cpo] {
+                self.into()
+            }
+
+            /// Returns this row as vector.
+            pub fn to_vec(self) -> Vector<T, {$cpo}> {
+                self.into()
+            }
+
+            /// Returns this row as point.
+            pub fn to_point(self) -> Point<T, {$cpo}> {
+                self.into()
+            }
+        }
+        impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for [T; $cpo] {
+            fn from(src: HcRow<'a, T, $c, $r>) -> Self {
+                array::from_fn(|i| src.matrix.0.0[i][src.index])
+            }
+        }
+        impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for Vector<T, {$cpo}> {
+            fn from(src: HcRow<'a, T, $c, $r>) -> Self {
+                src.to_array().into()
+            }
+        }
+        impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for Point<T, {$cpo}> {
+            fn from(src: HcRow<'a, T, $c, $r>) -> Self {
+                src.to_array().into()
+            }
+        }
+
+        // Col
+        impl<'a, T: Scalar $($const_params)*> HcCol<'a, T, $c, $r> {
+            /// Returns this column as array.
+            pub fn to_array(self) -> [T; $rpo] {
+                self.into()
+            }
+
+            /// Returns this column as vector.
+            pub fn to_vec(self) -> Vector<T, {$rpo}> {
+                self.into()
+            }
+
+            /// Returns this column as point.
+            pub fn to_point(self) -> Point<T, {$rpo}> {
+                self.into()
+            }
+        }
+
+        impl<'a, T: Scalar $($const_params)*> From<HcCol<'a, T, $c, $r>> for [T; $rpo] {
+            fn from(src: HcCol<'a, T, $c, $r>) -> Self {
+                array::from_fn(|i| src.matrix.0.0[src.index][i])
+            }
+        }
+
+        impl<'a, T: Scalar $($const_params)*> From<HcCol<'a, T, $c, $r>> for Vector<T, {$rpo}> {
+            fn from(src: HcCol<'a, T, $c, $r>) -> Self {
+                src.to_array().into()
+            }
+        }
+        impl<'a, T: Scalar $($const_params)*> From<HcCol<'a, T, $c, $r>> for Point<T, {$rpo}> {
+            fn from(src: HcCol<'a, T, $c, $r>) -> Self {
+                src.to_array().into()
+            }
+        }
+    }
+}
+
+gen_col_row_impls!(
+    (1, 1), (1, 2), (1, 3),
+    (2, 1), (2, 2), (2, 3),
+    (3, 1), (3, 2), (3, 3),
+);
