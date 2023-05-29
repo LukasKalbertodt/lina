@@ -14,7 +14,7 @@
 //!     - [`Point`] represents a location.
 //!     - [`Vector`] represents a displacement.
 //!     - [`HcPoint`] represents a point in homogeneous coordinates.
-//!     - Use [`SphericalPos`] and [`NormedSphericalPos`] for spherical coordinates.
+//!     - Use [`SphericalPos`] and [`SphericalDir`] for spherical coordinates.
 //! - **Transformations**
 //!     - [`Matrix`] represents a linear transformation.
 //!     - [`HcMatrix`] represents a potentially non-linear transformation in
@@ -109,7 +109,7 @@ pub use self::{
         hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d},
     },
     space::{Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
-    spherical::{NormedSphericalPos, SphericalPos},
+    spherical::{SphericalDir, SphericalPos},
     vec::{
         hc::{HcPoint, HcPoint2, HcPoint3},
         point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},

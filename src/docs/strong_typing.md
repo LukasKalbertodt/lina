@@ -100,7 +100,7 @@ hopefully, that will avoid some logic errors and make writing some code easier
 
 Almost all types in `lina` contain one or two `S: Space` parameters. For,
 [`Point`], [`Vector`], [`HcPoint`], [`SphericalPos`] and
-[`NormedSphericalPos`], it indicates in which *semantic space* this point or
+[`SphericalDir`], it indicates in which *semantic space* this point or
 vector lives. Similarly, for [`Matrix`] and [`HcMatrix`], the two parameter
 indicate from and into which semantic space the transformation transforms.
 
@@ -131,6 +131,6 @@ safety is worth it.
 [`Vector`]: crate::Vector
 [`HcPoint`]: crate::HcPoint
 [`SphericalPos`]: crate::SphericalPos
-[`NormedSphericalPos`]: crate::NormedSphericalPos
+[`SphericalDir`]: crate::SphericalDir
 [`Vector::to_point`]: crate::Vector::to_point
 [`Point::to_vec`]: crate::Point::to_vec

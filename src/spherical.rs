@@ -43,7 +43,7 @@ impl<T: Float, S: Space> SphericalPos<T, S> {
         self.into()
     }
 
-    pub fn without_radius(self) -> NormedSphericalPos<T, S> {
+    pub fn without_radius(self) -> SphericalDir<T, S> {
         self.into()
     }
 }
@@ -109,9 +109,9 @@ impl<T: Float + Hash, S: Space> Hash for SphericalPos<T, S> {
 
 
 
-/// A point on the boundary of a unit sphere described in spherical coordinates
-/// (without radius).
-pub struct NormedSphericalPos<T: Float, S: Space = WorldSpace> {
+/// A direction (unit vector) described in spherical coordinates (theta θ and
+/// phi φ).
+pub struct SphericalDir<T: Float, S: Space = WorldSpace> {
     /// Vertical angle θ: 0° points up (north pole), 180° points down (south pole),
     /// 90° is on the equator. Typical range: `0..=π`.
     ///
@@ -127,7 +127,7 @@ pub struct NormedSphericalPos<T: Float, S: Space = WorldSpace> {
     _dummy: PhantomData<S>,
 }
 
-impl<T: Float, S: Space> NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> SphericalDir<T, S> {
     pub fn new(theta: impl Into<Radians<T>>, phi: impl Into<Radians<T>>) -> Self {
         Self {
             theta: theta.into(),
@@ -161,21 +161,21 @@ impl<T: Float, S: Space> NormedSphericalPos<T, S> {
     }
 }
 
-impl<T: Float, S: Space> From<SphericalPos<T, S>> for NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> From<SphericalPos<T, S>> for SphericalDir<T, S> {
     fn from(p: SphericalPos<T, S>) -> Self {
         Self::new(p.theta, p.phi)
     }
 }
 
-impl<T: Float, S: Space> From<Vec3<T, S>> for NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> From<Vec3<T, S>> for SphericalDir<T, S> {
     fn from(v: Vec3<T, S>) -> Self {
         let nv = v.normalized();
         Self::new(Radians::acos(nv.z), crate::atan2(nv.y, nv.x))
     }
 }
 
-impl<T: Float, S: Space> From<NormedSphericalPos<T, S>> for Vec3<T, S> {
-    fn from(src: NormedSphericalPos<T, S>) -> Self {
+impl<T: Float, S: Space> From<SphericalDir<T, S>> for Vec3<T, S> {
+    fn from(src: SphericalDir<T, S>) -> Self {
         Vec3::new(
             src.phi.cos() * src.theta.sin(),
             src.phi.sin() * src.theta.sin(),
@@ -184,7 +184,7 @@ impl<T: Float, S: Space> From<NormedSphericalPos<T, S>> for Vec3<T, S> {
     }
 }
 
-impl<T: Float, S: Space> ops::Neg for NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> ops::Neg for SphericalDir<T, S> {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self {
@@ -195,24 +195,24 @@ impl<T: Float, S: Space> ops::Neg for NormedSphericalPos<T, S> {
     }
 }
 
-impl<T: Float, S: Space> fmt::Debug for NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> fmt::Debug for SphericalDir<T, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "(θ: {:?}, φ: {:?})", self.theta, self.phi)
     }
 }
 
-impl<T: Float, S: Space> Clone for NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> Clone for SphericalDir<T, S> {
     fn clone(&self) -> Self {
         Self::new(self.theta, self.phi)
     }
 }
-impl<T: Float, S: Space> Copy for NormedSphericalPos<T, S> {}
-impl<T: Float, S: Space> PartialEq for NormedSphericalPos<T, S> {
+impl<T: Float, S: Space> Copy for SphericalDir<T, S> {}
+impl<T: Float, S: Space> PartialEq for SphericalDir<T, S> {
     fn eq(&self, other: &Self) -> bool {
         self.theta == other.theta && self.phi == other.phi
     }
 }
-impl<T: Float + Hash, S: Space> Hash for NormedSphericalPos<T, S> {
+impl<T: Float + Hash, S: Space> Hash for SphericalDir<T, S> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.theta.hash(state);
         self.phi.hash(state);

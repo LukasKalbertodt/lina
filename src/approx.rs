@@ -3,7 +3,7 @@
 
 
 use crate::{
-    Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, NormedSphericalPos, Space, HcMatrix,
+    Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, SphericalDir, Space, HcMatrix,
 };
 
 /// Types that can be checked for approximate equality. Useful for floats.
@@ -225,7 +225,7 @@ impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for SphericalPos<T, 
     }
 }
 
-impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for NormedSphericalPos<T, S> {
+impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for SphericalDir<T, S> {
     type Tolerance = T;
 
     fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {
