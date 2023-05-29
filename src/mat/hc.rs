@@ -491,6 +491,9 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R>
 // ===== Mathematical trait impls
 // =============================================================================================
 
+super::impl_math_traits!(HcMatrix);
+super::impl_scalar_mul!(HcMatrix => f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
+
 
 // =============================================================================================
 // ===== Matrix * matrix multiplication (composition)
