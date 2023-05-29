@@ -2,7 +2,7 @@ use std::{array, ops, fmt};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Scalar, Matrix, Vector, Point};
+use crate::{Scalar, Matrix, Vector, Point, HcPoint};
 
 
 
@@ -76,6 +76,68 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
 
     pub fn q(&self) -> T {
         self.elem(R, C)
+    }
+
+    /// Transforms the given point with this matrix.
+    ///
+    /// This function accepts `C`-dimensional [`Point`]s and [`HcPoint`]s. For
+    /// `HcPoint`, this is just a simple matrix-vector-multiplication. For
+    /// `Point`, the input is first converted into a `HcPoint` (1-extended),
+    /// then transformed, and finally converted back to `Point` via
+    /// [`HcPoint::to_point`] (performing a perspective divide).
+    ///
+    /// You cannot transform [`Vector`]s with this, as that generally doesn't
+    /// make sense. A vector is a displacement in space. Translations do not
+    /// affect it and any projective transformation does not make any sense for
+    /// vectors. If you have an affine transformation (a `HcMatrix` with last
+    /// row `0, 0, .., 0, 1`), you call `m.linear_part() * vec` to only apply
+    /// the linear part of the transformation to the vector.
+    ///
+    /// Instead of using this function, you can also use the `*` operator
+    /// overload, if you prefer. It does exactly the same.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use lina::{HcMat3f, HcMat2f, HcPoint, point2, point3};
+    ///
+    /// // Scale and translate
+    /// let m = HcMat2f::from_rows([
+    ///     [2.5, 0.0, 0.3],
+    ///     [0.0, 2.5, 0.7],
+    ///     [0.0, 0.0, 1.0],
+    /// ]);
+    /// assert_eq!(
+    ///     m.transform(point2(2.0, 4.0)),
+    ///     point2(5.3, 10.7),
+    /// );
+    /// assert_eq!(
+    ///     m.transform(HcPoint::new([2.0, 4.0], 1.0)),
+    ///     HcPoint::new([5.3, 10.7], 1.0),
+    /// );
+    ///
+    ///
+    /// // Projection onto the z = 1 plane.
+    /// let m = HcMat3f::from_rows([
+    ///     [1.0, 0.0, 0.0, 0.0],
+    ///     [0.0, 1.0, 0.0, 0.0],
+    ///     [0.0, 0.0, 1.0, 0.0],
+    ///     [0.0, 0.0, 1.0, 0.0],
+    /// ]);
+    /// assert_eq!(
+    ///     m.transform(point3(4.0, 3.0, 2.0)),
+    ///     point3(2.0, 1.5, 1.0),
+    /// );
+    /// assert_eq!(
+    ///     m.transform(HcPoint::new([4.0, 3.0, 2.0], 1.0)),
+    ///     HcPoint::new([4.0, 3.0, 2.0], 2.0),
+    /// );
+    /// ```
+    pub fn transform<'a, P>(&'a self, p: P) -> <&'a Self as ops::Mul<P>>::Output
+    where
+        &'a Self: ops::Mul<P>,
+    {
+        self * p
     }
 
     pub fn transposed(&self) -> HcMatrix<T, R, C> {
@@ -282,6 +344,24 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R>
 // =============================================================================================
 // ===== Matrix * vector multiplication (transformations)
 // =============================================================================================
+
+impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Point<T, C>> for &HcMatrix<T, C, R> {
+    type Output = Point<T, R>;
+    fn mul(self, rhs: Point<T, C>) -> Self::Output {
+        (self * rhs.to_hc_point()).to_point()
+    }
+}
+
+impl<T: Scalar, const C: usize, const R: usize> ops::Mul<HcPoint<T, C>> for &HcMatrix<T, C, R> {
+    type Output = HcPoint<T, R>;
+    fn mul(self, rhs: HcPoint<T, C>) -> Self::Output {
+        let dot = |row| (0..=C)
+            .map(|col| self.elem(row, col) * rhs[col])
+            .fold(T::zero(), |acc, e| acc + e);
+
+        HcPoint::new(array::from_fn(dot), dot(C))
+    }
+}
 
 
 // =============================================================================================

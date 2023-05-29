@@ -32,7 +32,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    Float, Mat4, Vector, Matrix, Point3, Radians, Scalar, Vec3, cross, dot, HcMatrix, HcMat3, vec3,
+    Float, Vector, Matrix, Point3, Radians, Scalar, Vec3, cross, dot, HcMatrix, HcMat3, vec3,
 };
 
 
@@ -59,7 +59,7 @@ use crate::{
 ///     [0.0, 3.5, 0.0],
 ///     [0.0, 0.0, 3.5],
 /// ]));
-/// assert_eq!(m * vec3(1.0, 2.0, 3.0), vec3(3.5, 7.0, 10.5));
+/// assert_eq!(m.transform(vec3(1.0, 2.0, 3.0)), vec3(3.5, 7.0, 10.5));
 /// ```
 pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
     Matrix::from_diagonal([factor; N])
@@ -89,7 +89,7 @@ pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
 ///     [0.0, 3.0, 0.0],
 ///     [0.0, 0.0, 8.0],
 /// ]));
-/// assert_eq!(m * vec3(10.0, 20.0, 30.0), vec3(20.0, 60.0, 240.0));
+/// assert_eq!(m.transform(vec3(10.0, 20.0, 30.0)), vec3(20.0, 60.0, 240.0));
 /// ```
 pub fn scale_nonuniform<T: Scalar, const N: usize>(
     factors: [T; N],
@@ -112,17 +112,17 @@ pub fn scale_nonuniform<T: Scalar, const N: usize>(
 /// # Example
 ///
 /// ```
-/// use lina::{Mat4f, transform, vec3, vec4};
+/// use lina::{HcMat3f, transform, vec3, point3};
 ///
-/// let m = transform::translate(vec3(2.0f32, 3.0, 8.0));
+/// let m = transform::translate(vec3(2.0, 3.0, 8.0));
 ///
-/// assert_eq!(m, Mat4f::from_rows([
+/// assert_eq!(m, HcMat3f::from_rows([
 ///     [1.0, 0.0, 0.0, 2.0],
 ///     [0.0, 1.0, 0.0, 3.0],
 ///     [0.0, 0.0, 1.0, 8.0],
 ///     [0.0, 0.0, 0.0, 1.0],
 /// ]));
-/// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(12.0, 23.0, 38.0, 1.0));
+/// assert_eq!(m.transform(point3(10.0, 20.0, 30.0)), point3(12.0, 23.0, 38.0));
 /// ```
 pub fn translate<T: Scalar, const N: usize>(v: Vector<T, N>) -> HcMatrix<T, N, N> {
     HcMatrix::from_parts(Matrix::identity(), v, Vector::zero(), T::one())
@@ -245,10 +245,10 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> H
 /// defaults" for your application. Use values fitting for your use case.)
 ///
 /// ```
-/// use lina::{Degrees, transform, Mat4f, vec4};
+/// use lina::{Degrees, transform, HcMat3f};
 ///
 /// let m = transform::perspective(Degrees(90.0), 2.0, 0.1..=f32::INFINITY, 1.0..=0.0);
-/// assert_eq!(m, Mat4f::from_rows([
+/// assert_eq!(m, HcMat3f::from_rows([
 ///     [0.5, 0.0,  0.0, 0.0],
 ///     [0.0, 1.0,  0.0, 0.0],
 ///     [0.0, 0.0,  0.0, 0.1],
@@ -256,7 +256,7 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> H
 /// ]));
 ///
 /// let m = transform::perspective(Degrees(90.0), 1.0, 0.1..=100.0, 0.0..=1.0);
-/// assert_eq!(m, Mat4f::from_rows([
+/// assert_eq!(m, HcMat3f::from_rows([
 ///     [1.0, 0.0,       0.0,        0.0],
 ///     [0.0, 1.0,       0.0,        0.0],
 ///     [0.0, 0.0, -1.001001, -0.1001001],
@@ -277,9 +277,9 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> H
 /// Flip the `z` sign of all your points *before* transforming with this matrix.
 ///
 /// ```
-/// use lina::{Degrees, Mat4f, transform};
+/// use lina::{Degrees, HcMat3f, transform};
 ///
-/// let flip_z_sign = Mat4f::from_diagonal([1.0, 1.0, -1.0, 1.0]);
+/// let flip_z_sign = HcMat3f::from_diagonal_parts([1.0, 1.0, -1.0], 1.0);
 /// let rh_proj_matrix = transform::perspective(Degrees(90.0), 2.0, 0.1..=100.0, 1.0..=0.0);
 /// let lh_proj_matrix = flip_z_sign.and_then(rh_proj_matrix);
 /// ```
@@ -289,9 +289,9 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> H
 /// Flip the `y` sign of all your points *after* transforming with this matrix.
 ///
 /// ```
-/// use lina::{Degrees, Mat4f, transform};
+/// use lina::{Degrees, HcMat3f, transform};
 ///
-/// let flip_y_sign = Mat4f::from_diagonal([1.0, -1.0, 1.0, 1.0]);
+/// let flip_y_sign = HcMat3f::from_diagonal_parts([1.0, -1.0, 1.0], 1.0);
 /// let y_up_proj_matrix = transform::perspective(Degrees(90.0), 2.0, 0.1..=100.0, 1.0..=0.0);
 /// let y_down_proj_matrix = y_up_proj_matrix.and_then(flip_y_sign);
 /// ```
