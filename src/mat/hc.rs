@@ -720,12 +720,12 @@ macro_rules! gen_col_row_impls {
             }
 
             /// Returns this row as vector.
-            pub fn to_vec(self) -> Vector<T, {$cpo}> {
+            pub fn to_vec<S: Space>(self) -> Vector<T, {$cpo}, S> {
                 self.into()
             }
 
             /// Returns this row as point.
-            pub fn to_point(self) -> Point<T, {$cpo}> {
+            pub fn to_point<S: Space>(self) -> Point<T, {$cpo}, S> {
                 self.into()
             }
         }
@@ -734,12 +734,16 @@ macro_rules! gen_col_row_impls {
                 array::from_fn(|i| src.matrix.0[i][src.index])
             }
         }
-        impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for Vector<T, {$cpo}> {
+        impl<'a, T: Scalar $($const_params)*, S: Space> From<HcRow<'a, T, $c, $r>>
+            for Vector<T, {$cpo}, S>
+        {
             fn from(src: HcRow<'a, T, $c, $r>) -> Self {
                 src.to_array().into()
             }
         }
-        impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for Point<T, {$cpo}> {
+        impl<'a, T: Scalar $($const_params)*, S: Space> From<HcRow<'a, T, $c, $r>>
+            for Point<T, {$cpo}, S>
+        {
             fn from(src: HcRow<'a, T, $c, $r>) -> Self {
                 src.to_array().into()
             }
@@ -753,12 +757,12 @@ macro_rules! gen_col_row_impls {
             }
 
             /// Returns this column as vector.
-            pub fn to_vec(self) -> Vector<T, {$rpo}> {
+            pub fn to_vec<S: Space>(self) -> Vector<T, {$rpo}, S> {
                 self.into()
             }
 
             /// Returns this column as point.
-            pub fn to_point(self) -> Point<T, {$rpo}> {
+            pub fn to_point<S: Space>(self) -> Point<T, {$rpo}, S> {
                 self.into()
             }
         }
@@ -769,12 +773,16 @@ macro_rules! gen_col_row_impls {
             }
         }
 
-        impl<'a, T: Scalar $($const_params)*> From<HcCol<'a, T, $c, $r>> for Vector<T, {$rpo}> {
+        impl<'a, T: Scalar $($const_params)*, S: Space> From<HcCol<'a, T, $c, $r>>
+            for Vector<T, {$rpo}, S>
+        {
             fn from(src: HcCol<'a, T, $c, $r>) -> Self {
                 src.to_array().into()
             }
         }
-        impl<'a, T: Scalar $($const_params)*> From<HcCol<'a, T, $c, $r>> for Point<T, {$rpo}> {
+        impl<'a, T: Scalar $($const_params)*, S: Space> From<HcCol<'a, T, $c, $r>>
+            for Point<T, {$rpo}, S>
+        {
             fn from(src: HcCol<'a, T, $c, $r>) -> Self {
                 src.to_array().into()
             }

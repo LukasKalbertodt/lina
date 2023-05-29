@@ -655,10 +655,15 @@ impl<T: Float, Src: Space, Dst: Space> Matrix<T, 3, 3, Src, Dst> {
             return None;
         }
 
+        let calc_row = |col_a, col_b| cross::<_, WorldSpace>(
+            self.col(col_a).to_vec(),
+            self.col(col_b).to_vec()
+        );
+
         let m = Self::from_rows([
-            cross(self.col(1).to_vec(), self.col(2).to_vec()),
-            cross(self.col(2).to_vec(), self.col(0).to_vec()),
-            cross(self.col(0).to_vec(), self.col(1).to_vec()),
+            calc_row(1, 2),
+            calc_row(2, 0),
+            calc_row(0, 1),
         ]);
         Some(m.with_spaces() / det)
     }
@@ -831,12 +836,12 @@ impl<'a, T: Scalar, const C: usize, const R: usize> Row<'a, T, C, R> {
     }
 
     /// Returns this row as vector.
-    pub fn to_vec(self) -> Vector<T, C> {
+    pub fn to_vec<S: Space>(self) -> Vector<T, C, S> {
         self.into()
     }
 
     /// Returns this row as point.
-    pub fn to_point(self) -> Point<T, C> {
+    pub fn to_point<S: Space>(self) -> Point<T, C, S> {
         self.into()
     }
 }
@@ -860,12 +865,12 @@ impl<'a, T: Scalar, const C: usize, const R: usize> Col<'a, T, C, R> {
     }
 
     /// Returns this column as vector.
-    pub fn to_vec(self) -> Vector<T, R> {
+    pub fn to_vec<S: Space>(self) -> Vector<T, R, S> {
         self.into()
     }
 
     /// Returns this column as point.
-    pub fn to_point(self) -> Point<T, R> {
+    pub fn to_point<S: Space>(self) -> Point<T, R, S> {
         self.into()
     }
 }
@@ -875,12 +880,24 @@ impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for [
         array::from_fn(|i| src.matrix[i][src.index])
     }
 }
-impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for Vector<T, C> {
+impl<
+    'a,
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    S: Space,
+> From<Row<'a, T, C, R>> for Vector<T, C, S> {
     fn from(src: Row<'a, T, C, R>) -> Self {
         src.to_array().into()
     }
 }
-impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for Point<T, C> {
+impl<
+    'a,
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    S: Space,
+> From<Row<'a, T, C, R>> for Point<T, C, S> {
     fn from(src: Row<'a, T, C, R>) -> Self {
         src.to_array().into()
     }
@@ -896,12 +913,24 @@ impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for [
         src.matrix[src.index]
     }
 }
-impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for Vector<T, R> {
+impl<
+    'a,
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    S: Space,
+> From<Col<'a, T, C, R>> for Vector<T, R, S> {
     fn from(src: Col<'a, T, C, R>) -> Self {
         src.to_array().into()
     }
 }
-impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for Point<T, R> {
+impl<
+    'a,
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    S: Space,
+> From<Col<'a, T, C, R>> for Point<T, R, S> {
     fn from(src: Col<'a, T, C, R>) -> Self {
         src.to_array().into()
     }
