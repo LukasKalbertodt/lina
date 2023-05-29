@@ -254,6 +254,42 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         out
     }
 
+    /// Pairs up the same elements from `self` and `other`, applies the given
+    /// function to each and returns the resulting matrix. Useful for
+    /// element-wise operations.
+    ///
+    /// ```
+    /// use lina::{HcMat2f, vec3};
+    ///
+    /// let a = HcMat2f::from_rows([
+    ///     [1.0, 2.0, 3.0],
+    ///     [4.0, 5.0, 6.0],
+    ///     [7.0, 8.0, 9.0],
+    /// ]);
+    /// let b = HcMat2f::identity();
+    /// let c = a.zip_map(b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
+    ///
+    /// assert_eq!(c, HcMat2f::from_rows([
+    ///     [1.0, 0.0, 0.0],
+    ///     [0.0, 5.0, 0.0],
+    ///     [0.0, 0.0, 9.0],
+    /// ]));
+    /// ```
+    pub fn zip_map<U, O, F>(self, other: HcMatrix<U, C, R>, mut f: F) -> HcMatrix<O, C, R>
+    where
+        U: Scalar,
+        O: Scalar,
+        F: FnMut(T, U) -> O,
+    {
+        let mut out = HcMatrix::zero();
+        for c in 0..=C {
+            for r in 0..=R {
+                out.set_elem(r, c, f(self.elem(r, c), other.elem(r, c)));
+            }
+        }
+        out
+    }
+
     /// Returns a byte slice of this matrix, representing the raw column-major
     /// data. Useful to pass to graphics APIs.
     pub fn as_bytes(&self) -> &[u8] {
