@@ -55,7 +55,7 @@ macro_rules! impl_math_traits {
         impl<T: Scalar, const C: usize, const R: usize> ops::Add for $ty<T, C, R> {
             type Output = Self;
             fn add(self, rhs: Self) -> Self::Output {
-                self.zip_map(rhs, |l, r| l + r)
+                self.zip_map(&rhs, |l, r| l + r)
             }
         }
 
@@ -68,7 +68,7 @@ macro_rules! impl_math_traits {
         impl<T: Scalar, const C: usize, const R: usize> ops::Sub for $ty<T, C, R> {
             type Output = Self;
             fn sub(self, rhs: Self) -> Self::Output {
-                self.zip_map(rhs, |l, r| l - r)
+                self.zip_map(&rhs, |l, r| l - r)
             }
         }
 

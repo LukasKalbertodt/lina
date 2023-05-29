@@ -244,7 +244,7 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         (0..(C + 1) * (R + 1)).map(|idx| self.elem(idx % (R + 1), idx / (R + 1)))
     }
 
-    pub fn map<U: Scalar, F: FnMut(T) -> U>(self, mut f: F) -> HcMatrix<U, C, R> {
+    pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> HcMatrix<U, C, R> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
             for r in 0..=R {
@@ -267,7 +267,7 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     ///     [7.0, 8.0, 9.0],
     /// ]);
     /// let b = HcMat2f::identity();
-    /// let c = a.zip_map(b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
+    /// let c = a.zip_map(&b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
     ///
     /// assert_eq!(c, HcMat2f::from_rows([
     ///     [1.0, 0.0, 0.0],
@@ -275,7 +275,7 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     ///     [0.0, 0.0, 9.0],
     /// ]));
     /// ```
-    pub fn zip_map<U, O, F>(self, other: HcMatrix<U, C, R>, mut f: F) -> HcMatrix<O, C, R>
+    pub fn zip_map<U, O, F>(&self, other: &HcMatrix<U, C, R>, mut f: F) -> HcMatrix<O, C, R>
     where
         U: Scalar,
         O: Scalar,
@@ -301,17 +301,17 @@ macro_rules! impl_det_inv {
     ($d:expr, $dpo:expr) => {
         impl<T: Float> HcMatrix<T, $d, $d> {
             #[doc = include_str!("determinant_docs.md")]
-            pub fn determinant(self) -> T {
+            pub fn determinant(&self) -> T {
                 self.to_mat().determinant()
             }
 
             #[doc = include_str!("inverted_docs.md")]
-            pub fn inverted(self) -> Option<Self> {
+            pub fn inverted(&self) -> Option<Self> {
                 let inv = self.to_mat().inverted()?;
                 Some(Self::from_cols(inv.0))
             }
 
-            fn to_mat(self) -> Matrix<T, $dpo, $dpo> {
+            fn to_mat(&self) -> Matrix<T, $dpo, $dpo> {
                 Matrix::from_cols(array::from_fn(|c| self.col(c).to_array()))
             }
         }

@@ -318,7 +318,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ]));
     /// ```
     #[must_use = "to transpose in-place, use `Matrix::transpose`, not `transposed`"]
-    pub fn transposed(self) -> Matrix<T, R, C> {
+    pub fn transposed(&self) -> Matrix<T, R, C> {
         Matrix::from_rows(self.0)
     }
 
@@ -393,7 +393,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [1, 2],
     /// ]));
     /// ```
-    pub fn map<U: Scalar, F: FnMut(T) -> U>(self, mut f: F) -> Matrix<U, C, R> {
+    pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> Matrix<U, C, R> {
         Matrix(self.0.map(|col| col.map(&mut f)))
     }
 
@@ -410,7 +410,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [7.0, 8.0, 9.0],
     /// ]);
     /// let b = Mat3f::identity();
-    /// let c = a.zip_map(b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
+    /// let c = a.zip_map(&b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
     ///
     /// assert_eq!(c, Mat3f::from_rows([
     ///     [1.0, 0.0, 0.0],
@@ -418,7 +418,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [0.0, 0.0, 9.0],
     /// ]));
     /// ```
-    pub fn zip_map<U, O, F>(self, other: Matrix<U, C, R>, mut f: F) -> Matrix<O, C, R>
+    pub fn zip_map<U, O, F>(&self, other: &Matrix<U, C, R>, mut f: F) -> Matrix<O, C, R>
     where
         U: Scalar,
         O: Scalar,
@@ -554,12 +554,12 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
 
 impl<T: Float> Matrix<T, 1, 1> {
     #[doc = include_str!("determinant_docs.md")]
-    pub fn determinant(self) -> T {
+    pub fn determinant(&self) -> T {
         self.0[0][0]
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Self> {
         let det = self.determinant();
         if det.is_zero() {
             return None;
@@ -571,12 +571,12 @@ impl<T: Float> Matrix<T, 1, 1> {
 
 impl<T: Float> Matrix<T, 2, 2> {
     #[doc = include_str!("determinant_docs.md")]
-    pub fn determinant(self) -> T {
+    pub fn determinant(&self) -> T {
         self.0[0][0] * self.0[1][1] - self.0[0][1] * self.0[1][0]
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Self> {
         let det = self.determinant();
         if det.is_zero() {
             return None;
@@ -592,7 +592,7 @@ impl<T: Float> Matrix<T, 2, 2> {
 
 impl<T: Float> Matrix<T, 3, 3> {
     #[doc = include_str!("determinant_docs.md")]
-    pub fn determinant(self) -> T {
+    pub fn determinant(&self) -> T {
         T::zero()
             + self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
             + self.0[1][0] * (self.0[2][1] * self.0[0][2] - self.0[0][1] * self.0[2][2])
@@ -600,7 +600,7 @@ impl<T: Float> Matrix<T, 3, 3> {
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Self> {
         let det = self.determinant();
         if det.is_zero() {
             return None;
@@ -617,12 +617,12 @@ impl<T: Float> Matrix<T, 3, 3> {
 
 impl<T: Float> Matrix<T, 4, 4> {
     #[doc = include_str!("determinant_docs.md")]
-    pub fn determinant(self) -> T {
+    pub fn determinant(&self) -> T {
         super::inv4::det(&self)
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Self> {
         super::inv4::inv(&self)
     }
 }
