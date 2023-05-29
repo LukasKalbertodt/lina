@@ -6,7 +6,39 @@ use crate::{Scalar, Matrix, Vector, Point, HcPoint};
 
 
 
-
+/// TODO
+///
+/// ## `fmt::Debug` output
+///
+/// Setting the alternative flag `#` for debug output is recommended to have a
+/// properly formatted matrix. In order to avoid ambiguity when using
+/// single-line mode, a `row<i>` is prefixed to each row.
+///
+/// ```
+/// use lina::HcMat2;
+///
+/// let m = HcMat2::from_rows([
+///     [1, 2, 3],
+///     [4, 5, 6],
+///     [7, 8, 9],
+/// ]);
+///
+/// // Formatting without `#` alternate flag (one line)
+/// assert_eq!(
+///     format!("{m:?}"),
+///     "HcMatrix [row0 [1, 2, 3], row1 [4, 5, 6], row2 [7, 8, 9]]",
+/// );
+///
+/// // Formatting with `#` alternate flag (multi line)
+/// assert_eq!(format!("{m:#?}"), concat!(
+///     "HcMatrix [\n",
+///     "    [1, 2, 3],\n",
+///     "    [4, 5, 6],\n",
+///     "    [7, 8, 9],\n",
+///     "]",
+/// ));
+/// ```
+///
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct HcMatrix<T, const C: usize, const R: usize>(HcMatrixStorage<T, C, R>);

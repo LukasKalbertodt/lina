@@ -15,12 +15,6 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint};
 /// - [`Self::elem`]: `matrix.elem(2, 0)`
 ///
 ///
-/// *Note*: the `Debug` output (via `{:?}`) prints the matrix in row-major
-/// order, i.e. row-by-row. This is more intuitive when reading matrices. You
-/// can also use the "alternate" flag `#` (i.e. `{:#?}`) which avoids that
-/// confusion by using one actual line per matrix row.
-///
-///
 /// # Matrices as transformations
 ///
 /// Matrices in computer graphics are usually used to represent and carry out
@@ -77,6 +71,38 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint};
 /// [3b1b-lina]: https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab
 /// [3b1b-transform]: https://www.youtube.com/watch?v=kYB8IZa5AuE
 /// [hc-wiki]: https://en.wikipedia.org/wiki/Homogeneous_coordinates#Use_in_computer_graphics_and_computer_vision
+///
+///
+/// ## `fmt::Debug` output
+///
+/// Setting the alternative flag `#` for debug output is recommended to have a
+/// properly formatted matrix. In order to avoid ambiguity when using
+/// single-line mode, a `row<i>` is prefixed to each row.
+///
+/// ```
+/// use lina::Mat3;
+///
+/// let m = Mat3::from_rows([
+///     [1, 2, 3],
+///     [4, 5, 6],
+///     [7, 8, 9],
+/// ]);
+///
+/// // Formatting without `#` alternate flag (one line)
+/// assert_eq!(
+///     format!("{m:?}"),
+///     "Matrix [row0 [1, 2, 3], row1 [4, 5, 6], row2 [7, 8, 9]]",
+/// );
+///
+/// // Formatting with `#` alternate flag (multi line)
+/// assert_eq!(format!("{m:#?}"), concat!(
+///     "Matrix [\n",
+///     "    [1, 2, 3],\n",
+///     "    [4, 5, 6],\n",
+///     "    [7, 8, 9],\n",
+///     "]",
+/// ));
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Matrix<T: Scalar, const C: usize, const R: usize>(pub(super) [[T; R]; C]);
