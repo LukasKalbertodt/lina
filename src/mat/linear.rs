@@ -4,8 +4,9 @@ use bytemuck::{Pod, Zeroable};
 use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, WorldSpace};
 
 
-/// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
-/// Column-major memory layout.
+/// A `C`×`R` transformatin matrix (`C` many columns, `R` many rows)
+/// representing a linear transformation on cartesian coordinates from `Src` to
+/// `Dst`.
 ///
 /// This type does not implement `ops::Index[Mut]`. Instead, there are two main
 /// ways to access elements. Use whatever you prefer, but keep in mind that
@@ -20,44 +21,32 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, World
 /// Matrices in computer graphics are usually used to represent and carry out
 /// *transformations*. In its simplest form, a matrix can represent a
 /// *linear* transformation, which includes rotation and scaling, but *not*
-/// translation. To learn more about this, I strongly recommend watching
-/// [3blue1brown's series "Essence of Linear Algebra"][3b1b-lina], in
-/// particular [Chapter 3: Linear transformations and matrices][3b1b-transform].
+/// translation. This is what this type represents.
 ///
-/// ## Homogeneous coordinates & non-linear transformations
+/// To represent non-linear transformations (translations & projections), one
+/// needs to use [homogeneous coordinates][hc-wiki]. To represent such a
+/// transformation, use [`HcMatrix`].
 ///
-/// In computer graphics, non-linear transformations (like translations and
-/// perspective projection) are often important as well. To be able to
-/// represent those in a matrix (along with linear transformations), we use
-/// [*homogeneous coordinates*][hc-wiki] (instead of standard cartesian
-/// coordinates). To do that, we increase the dimension of our vectors and
-/// matrices by 1, e.g. having a 4D vector and 4x4 matrices to talk about 3D
-/// space. This allows matrices to represent *affine* and perspective
-/// projection transformations.
+/// To learn more about this whole topic, I strongly recommend watching
+/// [3blue1brown's series "Essence of Linear Algebra"][3b1b-lina], in particular
+/// [Chapter 3: Linear transformations and matrices][3b1b-transform].
+///
 ///
 /// ## Transforming a point or vector
 ///
 /// Mathematically, to apply a transformation to a vector/point, you multiply
 /// the matrix with the vector/point: `matrix * vec`. The relevant operator is
-/// defined, so you can just do that in Rust as well.
-///
-/// However, you can also use methods to transform vectors/points:
-///
-/// - [`Matrix::transform_vec`] and [`Matrix::transform_point`]
-/// - [`Matrix::transform_hc_vec`] and [`Matrix::transform_hc_point`]
-///
-/// The `_hc` (homogeneous coordinate) versions take a vector/point of dimension
-/// `N - 1` and correctly perform the perspective divide after the
-/// transformation.
+/// defined, so you can just do that in Rust as well. Alternatively, you can
+/// use [`Matrix::transform`], which does exactly the same.
 ///
 ///
 /// ## Combining transformations
 ///
 /// Oftentimes you want to apply multiple transformations to a set of points or
-/// vectors. You can save processing time by combining all
-/// transformation-matrices into a single matrix. That's the beauty and
-/// convenience of representing transformations as matrix: it's always possible
-/// to combine all of them into a single matrix.
+/// vectors. You can save processing time by combining all transformation
+/// matrices into a single matrix. That's the beauty and convenience of
+/// representing transformations as matrix: it's always possible to combine all
+/// of them into a single matrix.
 ///
 /// Mathematically, this composition is *matrix multiplication*: `A * B` results
 /// in a matrix that represents the combined transformation of *first* `B`,
@@ -311,9 +300,9 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     }
 
     /// Returns the transposed version of this matrix (swapping rows and
-    /// columns). Also see [`Matrix::transpose`]. You have to specify the
-    /// source and target spaces of the returned matrix manually as it's likely
-    /// different from `self`, but cannot be inferred.
+    /// columns). You have to specify the source and target spaces of the
+    /// returned matrix manually as it's likely different from `self`, but
+    /// cannot be inferred.
     ///
     /// ```
     /// use lina::{Matrix, WorldSpace};
@@ -330,7 +319,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     ///     [3, 6],
     /// ]));
     /// ```
-    #[must_use = "to transpose in-place, use `Matrix::transpose`, not `transposed`"]
+    #[must_use = "does not transpose in-place"]
     pub fn transposed<NewSrc: Space, NewDst: Space>(&self) -> Matrix<T, R, C, NewSrc, NewDst> {
         Matrix::from_rows(self.0)
     }
@@ -769,6 +758,7 @@ impl<
 // ===== Matrix * vector multiplication (transformations)
 // =============================================================================================
 
+/// See [`Matrix::transform`].
 impl<
     T: Scalar,
     const C: usize,
@@ -786,6 +776,7 @@ impl<
     }
 }
 
+/// See [`Matrix::transform`].
 impl<
     T: Scalar,
     const C: usize,
@@ -799,6 +790,7 @@ impl<
     }
 }
 
+/// See [`Matrix::transform`].
 impl<
     T: Scalar,
     const C: usize,

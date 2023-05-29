@@ -15,6 +15,8 @@
 /// space. In fact, there is almost no operation that makes sense to deal with
 /// points or vectors from two different spaces.
 ///
+/// Also see [`crate::docs::strong_typing`] for more information.
+///
 /// This trait is just a marker trait, not containing anything interesting. Taim
 /// provides a few implementations that might be useful. But you are also
 /// encouraged to create your own spaces if the provided ones don't fit your

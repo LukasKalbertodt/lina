@@ -6,7 +6,29 @@ use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 
 
 
-/// TODO
+/// A `C + 1`×`R + 1` homogeneous transformation matrix (`C + 1` many columns,
+/// `R + 1` many rows) representing a transformation from `Src` to `Dst`.
+///
+/// This transformation can be interpreted in two ways:
+/// - As a potentially non-linear transformation of Cartesian coordinates
+///   (your normal XYZ space), or
+/// - as a linear transformation of [homogeneous coordinates][hc-wiki].
+///
+/// In the vast majority of cases, in 3D application anyway, it is more useful
+/// to think about the former interpretation, as you are usually interested in
+/// your normal XYZ space. So in addition to linear transformations (which can
+/// already be fully represented by [`Matrix`]), translations and projective
+/// transformation can be represented by `HcMatrix`. The term "affine
+/// transformation" describes the set of linear transformation and
+/// translations.
+///
+/// As with [`Matrix`], you can use the `*` operator or [`HcMatrix::transform`]
+/// to transform points with this matrix. And you can also use `*` or
+/// [`HcMatrix::and_then`] to combine transformations. For more general
+/// information about this, check [the `Matrix` docs][Matrix].
+///
+/// [hc-wiki]: https://en.wikipedia.org/wiki/Homogeneous_coordinates#Use_in_computer_graphics_and_computer_vision
+///
 ///
 /// ## `fmt::Debug` output
 ///
@@ -56,12 +78,12 @@ pub type HcMat2<T, Src = WorldSpace, Dst = WorldSpace> = HcMatrix<T, 2, 2, Src, 
 
 /// A 3×3 homogeneous transformation matrix with `f32` elements.
 pub type HcMat3f<Src = WorldSpace, Dst = WorldSpace> = HcMat3<f32, Src, Dst>;
-/// A 3×3 homogeneous transformation matrix with `f63` elements.
+/// A 3×3 homogeneous transformation matrix with `f64` elements.
 pub type HcMat3d<Src = WorldSpace, Dst = WorldSpace> = HcMat3<f64, Src, Dst>;
 
 /// A 2×2 homogeneous transformation matrix with `f32` elements.
 pub type HcMat2f<Src = WorldSpace, Dst = WorldSpace> = HcMat2<f32, Src, Dst>;
-/// A 2×2 homogeneous transformation matrix with `f62` elements.
+/// A 2×2 homogeneous transformation matrix with `f64` elements.
 pub type HcMat2d<Src = WorldSpace, Dst = WorldSpace> = HcMat2<f64, Src, Dst>;
 
 
@@ -76,11 +98,21 @@ impl<
         Self(data, PhantomData)
     }
 
+    /// Returns a matrix with all elements being 0.
+    ///
+    /// Note: the zero homogeneous matrix is technically not a valid
+    /// transformation as all resulting points have 0 coordinates and a 0
+    /// weight, which is not a valid homogeneous point.
     pub fn zero() -> Self {
         let col = NPlusOneArray([T::zero(); R], T::zero());
         Self::new_impl(HcMatrixStorage(NPlusOneArray([col; C], col)))
     }
 
+    /// Creates a homogeneous matrix from individual parts.
+    ///
+    /// You can't, however, treat these parts as completely independent. This
+    /// function mainly exists to create homogeneous matrices of any size, as
+    /// `from_rows` and similar methods only work for small dimensions.
     pub fn from_parts(
         linear: Matrix<T, C, R, Src, Dst>,
         translation: Vector<T, R, Src>,
@@ -93,46 +125,44 @@ impl<
         )))
     }
 
+    /// Returns the element in the given `row` and `col`umn.
     pub fn elem(&self, row: usize, col: usize) -> T {
         self.0.0[col][row]
     }
 
+    /// Sets the element in the given `row` and `col`umn to `v`
     pub fn set_elem(&mut self, row: usize, col: usize, v: T) {
         self.0.0[col][row] = v;
     }
 
+    /// Returns the row with the given index.
     pub fn row(&self, row: usize) -> HcRow<'_, T, C, R> {
         HcRow { matrix: &self.0, index: row }
     }
 
+    /// Returns the column with the given index.
     pub fn col(&self, col: usize) -> HcCol<'_, T, C, R> {
         HcCol { matrix: &self.0, index: col }
     }
 
+    /// Returns the linear part of this matrix, i.e. the last row and column
+    /// removed.
     pub fn linear_part(&self) -> Matrix<T, C, R, Src, Dst> {
         Matrix::from_cols(self.0.0.0.map(|c| c.0))
     }
 
-    pub fn translation_part(&self) -> Vector<T, R, Src> {
-        self.0.0.1.0.into()
-    }
-
-    pub fn projection_part(&self) -> Vector<T, C, Src> {
-        array::from_fn(|i| self.elem(R, i)).into()
-    }
-
-    pub fn q(&self) -> T {
-        self.elem(R, C)
-    }
-
+    /// Reinterprets this matrix to be a transformation into the space `New`.
     pub fn with_target_space<New: Space>(self) -> HcMatrix<T, C, R, Src, New> {
         HcMatrix::new_impl(self.0)
     }
 
+    /// Reinterprets this matrix to be a transformation from the space `New`.
     pub fn with_source_space<New: Space>(self) -> HcMatrix<T, C, R, New, Dst> {
         HcMatrix::new_impl(self.0)
     }
 
+    /// Reinterprets this matrix to be a transformation from the space `NewSrc`
+    /// into the space `NewDst`.
     pub fn with_spaces<NewSrc: Space, NewDst: Space>(self) -> HcMatrix<T, C, R, NewSrc, NewDst> {
         HcMatrix::new_impl(self.0)
     }
@@ -274,6 +304,8 @@ impl<
         (0..(C + 1) * (R + 1)).map(|idx| self.elem(idx % (R + 1), idx / (R + 1)))
     }
 
+    /// Applies the given function to each element and returns the resulting new
+    /// matrix.
     pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> HcMatrix<U, C, R, Src, Dst> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
@@ -452,6 +484,7 @@ macro_rules! gen_quadratic_inc_methods {
 gen_quadratic_inc_methods!(1, 2, 3);
 
 impl<T: Scalar, const N: usize, Src: Space, Dst: Space> HcMatrix<T, N, N, Src, Dst> {
+    /// Returns the identity matrix (1s along diagonal, everything else 0s).
     pub fn identity() -> Self {
         Self::from_diagonal_parts([T::one(); N], T::one())
     }
@@ -485,6 +518,8 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> HcMatrix<T, N, N, Src, D
         true
     }
 
+    /// Returns the *trace* of the matrix, i.e. the sum of all elements on the
+    /// diagonal.
     pub fn trace(&self) -> T {
         let (l, q) = self.diagonal_parts();
         q + l.into_iter().fold(q, |acc, e| acc + e)
@@ -574,6 +609,7 @@ impl<
 // ===== Matrix * vector multiplication (transformations)
 // =============================================================================================
 
+/// See [`HcMatrix::transform`].
 impl<
     T: Scalar,
     const C: usize,
@@ -587,6 +623,7 @@ impl<
     }
 }
 
+/// See [`HcMatrix::transform`].
 impl<
     T: Scalar,
     const C: usize,

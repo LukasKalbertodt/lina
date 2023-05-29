@@ -1,21 +1,62 @@
-//! Yet another linear algebra library with a focus on computer graphics.
+//! Linear algebra library with a focus on computer graphics, heavily using
+//! strong typing and const generics (while still allowing access via `.x`,
+//! `.y`, `.z` and `.w`).
 //!
-//! This library heavily uses const generics for vectors, points and matrices,
-//! but still allows scalar access via `.x`, `.y`, `.z` and `.w` for small
-//! vectors and points. While these three types are generic over their
-//! dimension, some features are only implemented for small dimensions.
+//! `lina` leans heavily into strong typing by distinguishing points and
+//! vectors, Cartesian and homogeneous coordinates, and even elements from
+//! different semantic spaces. See [these docs][docs::strong_typing] for more
+//! information.
 //!
-//! - [Vectors][Vector] and [points][Point] with generic dimension (see
-//!   [this explanation][docs::point_vs_vector] on why `lina` has two
-//!   vector-like types)
-//! - [Matrices][Matrix] with generic dimensions
-//! - Strongly typed angles: [`Degrees`] and [`Radians`]
-//! - Commonly used [transformations][transform]
-//! - Spherical coordinates: [`SphericalPos`] and [`NormedSphericalPos`]
-//! - Several helper functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], ...
-//! - [Auxiliary documentation][docs] about topics like computer graphics, linear
-//!   algebra, ...
 //!
+//! # Quick start / overview
+//!
+//! - **Locations and displacements**
+//!     - [`Point`] represents a location.
+//!     - [`Vector`] represents a displacement.
+//!     - [`HcPoint`] represents a point in homogeneous coordinates.
+//!     - Use [`SphericalPos`] and [`NormedSphericalPos`] for spherical coordinates.
+//! - **Transformations**
+//!     - [`Matrix`] represents a linear transformation.
+//!     - [`HcMatrix`] represents a potentially non-linear transformation in
+//!       homogeneous coordinates.
+//!     - Use [`transform`] to get common transformation matrices.
+//!     - Use `*` or `and_then` to combine two matrices.
+//!     - Use `*` or `transform` to transform a vector or point with a matrix.
+//! - Operators are overloaded as you would expect.
+//! - Many types have a [`Space`] parameter to use strong typing.
+//! - Most types have a `to_bytes` method to pass them to graphic APIs.
+//! - Other features:
+//!     - Strongly typed angles: [`Degrees`] and [`Radians`]
+//!     - Useful functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], [`cross`], [`dot`], ...
+//!     - [`ApproxEq`] for approximate float equality
+//!
+//! This example shows some basic usage:
+//!
+//! ```
+//! use lina::{point3, vec3, transform, Degrees, Vector};
+//!
+//! // Basic vector/point usage
+//! let player_pos = point3(4.0, 5.0, 1.8);
+//! let fox_pos = point3(10.0, 3.0, 0.5);
+//! let view_direction = vec3(1.3, 0.2, 0.0).normalized();
+//! let speed = 1.5;
+//! let new_player_pos = player_pos + view_direction * speed;
+//!
+//! println!("{:.2}m still to go!", player_pos.distance_from(fox_pos));
+//!
+//! // Create and compose transformation matrices
+//! let view_matrix = transform::look_into(new_player_pos, view_direction, Vector::unit_z());
+//! let proj_matrix = transform::perspective(
+//!     Degrees(90.0),
+//!     16.0 / 9.0,
+//!     0.1..=f32::INFINITY,
+//!     1.0..=0.0,
+//! );
+//! let view_proj = view_matrix.and_then(proj_matrix); // or `proj_matrix * view_matrix`
+//!
+//! // Transform points with matrices
+//! let fox_on_screen = view_proj.transform(fox_pos);  // or `view_proj * fox_pos`
+//! ```
 //!
 //! ## Const generics limitations
 //!

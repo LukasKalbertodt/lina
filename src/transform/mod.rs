@@ -9,25 +9,6 @@
 //!
 //! - **Perspective projection**: [`perspective`]
 //!
-//!
-//! # Cartesian and Homogeneous coordinates
-//!
-//! An N×N matrix can only represent *linear* transformations in N-dimensional
-//! space. To represent other transformations with matrices, homogeneous
-//! coordinates are used. This requires us to add one dimension to our matrix:
-//! an N×N matrix can now represent linear, affine and perspective
-//! transformations in N − 1 dimensional space.
-//!
-//! In this library, a *homogenous transformation matrix* describes a matrix
-//! that is intended to transform vectors in homogeneous coordinates. In
-//! contrast, a *linear transformation matrix* is one that is intended to
-//! transform vectors in standard, cartesian coordinates.
-//!
-//! All functions for linear transformations have two versions: `_cc` for
-//! cartesian coordinates and `_hc` for homogeneous coordinates. Using
-//! homogeneous coordinates for linear transformations is not necessary, except
-//! if you want to combine it with other non-linear transformations. That's
-//! what the `_hc` versions are for.
 
 use std::ops::RangeInclusive;
 
@@ -38,10 +19,9 @@ use crate::{
 };
 
 
-/// *Linear* transformation matrix that scales all `N` axis by `factor`.
+/// Linear transformation matrix that scales all `N` axis by `factor`.
 ///
-/// For the homogeneous coordinate version, see [`scale_hc`]. Example for `Mat3`
-/// (with `f` being `factor`):
+/// Example for `Mat3` (with `f` being `factor`):
 ///
 /// ```text
 /// ⎡ f 0 0 ⎤
@@ -67,9 +47,8 @@ pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N, WorldSpace
     Matrix::from_diagonal([factor; N])
 }
 
-/// *Linear* transformation matrix that scales each axis according to `factors`.
+/// Linear transformation matrix that scales each axis according to `factors`.
 ///
-/// For the homogeneous coordinate version, see [`scale_nonuniform_hc`].
 /// Equivalent to [`Matrix::from_diagonal`]. Example for `Mat3` (with `factors`
 /// being `[x, y, z]`):
 ///
@@ -100,9 +79,9 @@ pub fn scale_nonuniform<T: Scalar, const N: usize>(
 }
 
 
-/// *Homogeneous* transformation matrix that translates according to `v`.
+/// Affine transformation matrix that translates according to `v`.
 ///
-/// Example for `Mat4` (with `v` being `[x, y, z]`):
+/// Example for `HcMat3` (with `v` being `[x, y, z]`):
 ///
 /// ```text
 /// ⎡ 1 0 0 x ⎤
@@ -132,7 +111,8 @@ pub fn translate<T: Scalar, const N: usize, S: Space>(
     HcMatrix::from_parts(Matrix::identity(), v, Vector::zero(), T::one())
 }
 
-/// *Homogeneous* transformation from world space into camera/view space.
+/// Affine transformation from world space into camera/view space, typically
+/// called the "view matrix".
 ///
 /// In view space, the camera is at the origin, +x points right, +y points up.
 /// This view space is right-handed, and thus, +z points outside of the screen
@@ -209,14 +189,8 @@ pub fn look_into<T: Float>(
     HcMat3::from_parts(linear, translation, Vector::zero(), T::one())
 }
 
-/// *Homogeneous* transformation for perspective projection from view space to
-/// NDC.
-///
-/// Note that unlike most other homogeneous transformation matrices, this matrix
-/// does not necessarily keep `w = 1` in transformed vectors. So you might need
-/// to devide the transformed vector by `w`, also called the "perspective
-/// divide". You can use [`Matrix::transform_hc_vec`] or
-/// [`Matrix::transform_hc_point`] to perform that divide for you.
+/// Homogeneous transformation for perspective projection from view space to
+/// NDC/projection space.
 ///
 /// View space is assumed to be right-handed, i.e. +y pointing up and -z
 /// pointing into the screen (satisfied by [`look_into`]). In NDC, `x/w` and
