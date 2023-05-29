@@ -1,7 +1,7 @@
 //! Transformation matrices for common transformations.
 //!
 //! - **Linear** transformations:
-//!   - Scale: [`scale_cc`], [`scale_hc`], [`scale_nonuniform_cc`], [`scale_nonuniform_hc`]
+//!   - Scale: [`scale`] and [`scale_nonuniform`]
 //!
 //! - **Affine** transformations:
 //!   - [`translate`]
@@ -32,7 +32,9 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    Float, Vector, Matrix, Point3, Radians, Scalar, Vec3, cross, dot, HcMatrix, HcMat3, vec3,
+    cross, dot,
+    Float, Scalar, Vector, Matrix, Point3, Radians, Vec3, HcMatrix, HcMat3,
+    WorldSpace, ViewSpace, ProjSpace, Space,
 };
 
 
@@ -61,7 +63,7 @@ use crate::{
 /// ]));
 /// assert_eq!(m.transform(vec3(1.0, 2.0, 3.0)), vec3(3.5, 7.0, 10.5));
 /// ```
-pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
+pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N, WorldSpace, WorldSpace> {
     Matrix::from_diagonal([factor; N])
 }
 
@@ -93,7 +95,7 @@ pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
 /// ```
 pub fn scale_nonuniform<T: Scalar, const N: usize>(
     factors: [T; N],
-) -> Matrix<T, N, N> {
+) -> Matrix<T, N, N, WorldSpace, WorldSpace> {
     Matrix::from_diagonal(factors)
 }
 
@@ -124,7 +126,9 @@ pub fn scale_nonuniform<T: Scalar, const N: usize>(
 /// ]));
 /// assert_eq!(m.transform(point3(10.0, 20.0, 30.0)), point3(12.0, 23.0, 38.0));
 /// ```
-pub fn translate<T: Scalar, const N: usize>(v: Vector<T, N>) -> HcMatrix<T, N, N> {
+pub fn translate<T: Scalar, const N: usize, S: Space>(
+    v: Vector<T, N, S>,
+) -> HcMatrix<T, N, N, S, S> {
     HcMatrix::from_parts(Matrix::identity(), v, Vector::zero(), T::one())
 }
 
@@ -171,7 +175,11 @@ pub fn translate<T: Scalar, const N: usize>(v: Vector<T, N>) -> HcMatrix<T, N, N
 /// the `up` vector over time. For example, if the player moves the
 /// mouse/controller you don't just adjust the look direction, but also the up
 /// vector.
-pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> HcMat3<T> {
+pub fn look_into<T: Float>(
+    eye: Point3<T, WorldSpace>,
+    direction: Vec3<T, WorldSpace>,
+    up: Vec3<T, WorldSpace>,
+) -> HcMat3<T, WorldSpace, ViewSpace> {
     // This function is unlikely to be called often, so we improve developer
     // experience by having these checks and normalizations.
     assert!(!direction.is_zero(), "direction vector must not be the zero vector");
@@ -197,7 +205,7 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> H
         [ u.x,  u.y,  u.z],
         [-d.x, -d.y, -d.z],
     ]);
-    let translation = vec3(-dot(eye, r), -dot(eye, u), dot(eye, d));
+    let translation = Vec3::new(-dot(eye, r), -dot(eye, u), dot(eye, d));
     HcMat3::from_parts(linear, translation, Vector::zero(), T::one())
 }
 
@@ -300,7 +308,7 @@ pub fn perspective<T: Float>(
     aspect_ratio: T,
     depth_range_in: RangeInclusive<T>,
     depth_range_out: RangeInclusive<T>,
-) -> HcMat3<T> {
+) -> HcMat3<T, ViewSpace, ProjSpace> {
     let vertical_fov = vertical_fov.into();
     assert!(vertical_fov.0 < T::PI(), "`vertical_fov` has to be < π radians/180°");
     assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");

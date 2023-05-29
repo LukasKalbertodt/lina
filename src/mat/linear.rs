@@ -1,7 +1,7 @@
-use std::{array, fmt, ops};
+use std::{array, fmt, ops, marker::PhantomData};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint};
+use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, GenericSpace};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -103,30 +103,41 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint};
 ///     "]",
 /// ));
 /// ```
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
-pub struct Matrix<T: Scalar, const C: usize, const R: usize>(pub(super) [[T; R]; C]);
+pub struct Matrix<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space = GenericSpace,
+    Dst: Space = GenericSpace,
+>(pub(super) [[T; R]; C], PhantomData<(Src, Dst)>);
+
+pub(super) type MatrixStorage<T, const C: usize, const R: usize> = [[T; R]; C];
 
 /// A 3×3 matrix.
-pub type Mat3<T> = Matrix<T, 3, 3>;
+pub type Mat3<T, Src = GenericSpace, Dst = GenericSpace> = Matrix<T, 3, 3, Src, Dst>;
 /// A 2×2 matrix.
-pub type Mat2<T> = Matrix<T, 2, 2>;
+pub type Mat2<T, Src = GenericSpace, Dst = GenericSpace> = Matrix<T, 2, 2, Src, Dst>;
 
 /// A 3×3 matrix with `f32` elements.
-pub type Mat3f = Mat3<f32>;
+pub type Mat3f<Src = GenericSpace, Dst = GenericSpace> = Mat3<f32, Src, Dst>;
 /// A 3×3 matrix with `f63` elements.
-pub type Mat3d = Mat3<f64>;
+pub type Mat3d<Src = GenericSpace, Dst = GenericSpace> = Mat3<f64, Src, Dst>;
 
 /// A 2×2 matrix with `f32` elements.
-pub type Mat2f = Mat2<f32>;
+pub type Mat2f<Src = GenericSpace, Dst = GenericSpace> = Mat2<f32, Src, Dst>;
 /// A 2×2 matrix with `f62` elements.
-pub type Mat2d = Mat2<f64>;
+pub type Mat2d<Src = GenericSpace, Dst = GenericSpace> = Mat2<f64, Src, Dst>;
 
 
-impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
+impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T, C, R, Src, Dst> {
+    fn new_impl(data: [[T; R]; C]) -> Self {
+        Self(data, PhantomData)
+    }
+
     /// Returns a matrix with all elements being zero.
     pub fn zero() -> Self {
-        Self([[T::zero(); R]; C])
+        Self::new_impl([[T::zero(); R]; C])
     }
 
     /// Returns a matrix with the specified rows. This is opposite of the memory
@@ -177,13 +188,13 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     where
         V: Into<[T; R]>,
     {
-        Self(cols.map(|v| v.into()))
+        Self::new_impl(cols.map(|v| v.into()))
     }
 
     /// Returns the column with index `idx`.
     pub fn col(&self, index: usize) -> Col<'_, T, C, R> {
         Col {
-            matrix: self,
+            matrix: &self.0,
             index,
         }
     }
@@ -209,7 +220,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// Returns the row with index `idx`.
     pub fn row(&self, index: usize) -> Row<'_, T, C, R> {
         Row {
-            matrix: self,
+            matrix: &self.0,
             index,
         }
     }
@@ -318,8 +329,20 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     /// ]));
     /// ```
     #[must_use = "to transpose in-place, use `Matrix::transpose`, not `transposed`"]
-    pub fn transposed(&self) -> Matrix<T, R, C> {
+    pub fn transposed<NewSrc: Space, NewDst: Space>(&self) -> Matrix<T, R, C, NewSrc, NewDst> {
         Matrix::from_rows(self.0)
+    }
+
+    pub fn with_target_space<New: Space>(self) -> Matrix<T, C, R, Src, New> {
+        Matrix::new_impl(self.0)
+    }
+
+    pub fn with_source_space<New: Space>(self) -> Matrix<T, C, R, New, Dst> {
+        Matrix::new_impl(self.0)
+    }
+
+    pub fn with_spaces<NewSrc: Space, NewDst: Space>(self) -> Matrix<T, C, R, NewSrc, NewDst> {
+        Matrix::new_impl(self.0)
     }
 
     /// Transforms the given point or vector with this matrix (numerically just
@@ -372,11 +395,14 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [2,  0],
     /// ]));
     /// ```
-    pub fn and_then<const R2: usize>(self, second: Matrix<T, R, R2>) -> Matrix<T, C, R2> {
+    pub fn and_then<const R2: usize, Dst2: Space>(
+        self,
+        second: Matrix<T, R, R2, Dst, Dst2>,
+    ) -> Matrix<T, C, R2, Src, Dst2> {
         second * self
     }
 
-    pub fn to_homogeneous(&self) -> HcMatrix<T, C, R> {
+    pub fn to_homogeneous(&self) -> HcMatrix<T, C, R, Src, Dst> {
         HcMatrix::from_parts(*self, Vector::zero(), Vector::zero(), T::one())
     }
 
@@ -393,8 +419,8 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [1, 2],
     /// ]));
     /// ```
-    pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> Matrix<U, C, R> {
-        Matrix(self.0.map(|col| col.map(&mut f)))
+    pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> Matrix<U, C, R, Src, Dst> {
+        Matrix::new_impl(self.0.map(|col| col.map(&mut f)))
     }
 
     /// Pairs up the same elements from `self` and `other`, applies the given
@@ -418,13 +444,17 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     ///     [0.0, 0.0, 9.0],
     /// ]));
     /// ```
-    pub fn zip_map<U, O, F>(&self, other: &Matrix<U, C, R>, mut f: F) -> Matrix<O, C, R>
+    pub fn zip_map<U, O, F>(
+        &self,
+        other: &Matrix<U, C, R, Src, Dst>,
+        mut f: F,
+    ) -> Matrix<O, C, R, Src, Dst>
     where
         U: Scalar,
         O: Scalar,
         F: FnMut(T, U) -> O,
     {
-        Matrix(array::from_fn(|i| array::from_fn(|j| f(self.0[i][j], other.0[i][j]))))
+        Matrix::new_impl(array::from_fn(|i| array::from_fn(|j| f(self.0[i][j], other.0[i][j]))))
     }
 
     /// Returns a byte slice of this matrix, representing the raw column-major
@@ -434,7 +464,7 @@ impl<T: Scalar, const C: usize, const R: usize> Matrix<T, C, R> {
     }
 }
 
-impl<T: Scalar, const N: usize> Matrix<T, N, N> {
+impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst> {
     /// Returns the identity matrix with all elements 0, except the diagonal
     /// which is all 1.
     ///
@@ -512,11 +542,6 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
         }
     }
 
-    /// Transposes this matrix in-place. Also see [`Matrix::transposed`].
-    pub fn transpose(&mut self) {
-        *self = self.transposed();
-    }
-
     /// Checks whether this matrix is *symmetric*, i.e. whether transposing
     /// does *not* change the matrix.
     ///
@@ -552,31 +577,31 @@ impl<T: Scalar, const N: usize> Matrix<T, N, N> {
     }
 }
 
-impl<T: Float> Matrix<T, 1, 1> {
+impl<T: Float, Src: Space, Dst: Space> Matrix<T, 1, 1, Src, Dst> {
     #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(&self) -> T {
         self.0[0][0]
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(&self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Matrix<T, 1, 1, Dst, Src>> {
         let det = self.determinant();
         if det.is_zero() {
             return None;
         }
 
-        Some(Self::identity() / det)
+        Some(Matrix::identity() / det)
     }
 }
 
-impl<T: Float> Matrix<T, 2, 2> {
+impl<T: Float, Src: Space, Dst: Space> Matrix<T, 2, 2, Src, Dst> {
     #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(&self) -> T {
         self.0[0][0] * self.0[1][1] - self.0[0][1] * self.0[1][0]
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(&self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Matrix<T, 2, 2, Dst, Src>> {
         let det = self.determinant();
         if det.is_zero() {
             return None;
@@ -586,11 +611,11 @@ impl<T: Float> Matrix<T, 2, 2> {
             [ self.row(1).col(1), -self.row(0).col(1)],
             [-self.row(1).col(0),  self.row(0).col(0)],
         ]);
-        Some(m / det)
+        Some(m.with_spaces() / det)
     }
 }
 
-impl<T: Float> Matrix<T, 3, 3> {
+impl<T: Float, Src: Space, Dst: Space> Matrix<T, 3, 3, Src, Dst> {
     #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(&self) -> T {
         T::zero()
@@ -600,7 +625,7 @@ impl<T: Float> Matrix<T, 3, 3> {
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(&self) -> Option<Self> {
+    pub fn inverted(&self) -> Option<Matrix<T, 3, 3, Dst, Src>> {
         let det = self.determinant();
         if det.is_zero() {
             return None;
@@ -611,19 +636,19 @@ impl<T: Float> Matrix<T, 3, 3> {
             cross(self.col(2).to_vec(), self.col(0).to_vec()),
             cross(self.col(0).to_vec(), self.col(1).to_vec()),
         ]);
-        Some(m / det)
+        Some(m.with_spaces() / det)
     }
 }
 
-impl<T: Float> Matrix<T, 4, 4> {
+impl<T: Float, Src: Space, Dst: Space> Matrix<T, 4, 4, Src, Dst> {
     #[doc = include_str!("determinant_docs.md")]
     pub fn determinant(&self) -> T {
-        super::inv4::det(&self)
+        super::inv4::det(&self.0)
     }
 
     #[doc = include_str!("inverted_docs.md")]
-    pub fn inverted(&self) -> Option<Self> {
-        super::inv4::inv(&self)
+    pub fn inverted(&self) -> Option<Matrix<T, 4, 4, Dst, Src>> {
+        super::inv4::inv(&self.0).map(Matrix::new_impl)
     }
 }
 
@@ -634,14 +659,32 @@ impl<T: Float> Matrix<T, 4, 4> {
 
 /// The inner array implements `Zeroable` and `Matrix` is just a newtype wrapper
 /// around that array with `repr(transparent)`.
-unsafe impl<T: Scalar + Zeroable, const C: usize, const R: usize> Zeroable for Matrix<T, C, R> {}
+unsafe impl<
+    T: Scalar + Zeroable,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> Zeroable for Matrix<T, C, R, Src, Dst> {}
 
 /// The struct is marked as `repr(transparent)` so is guaranteed to have the
 /// same layout as `[[T; R]; C]`. And `bytemuck` itself has an impl for arrays
 /// where `T: Pod`.
-unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for Matrix<T, C, R> {}
+unsafe impl<
+    T: Scalar + Pod,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> Pod for Matrix<T, C, R, Src, Dst> {}
 
-impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> fmt::Debug for Matrix<T, C, R, Src, Dst> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Matrix ")?;
         super::debug_matrix_impl(f, C, R, |r, c| self.elem(r, c))
@@ -653,7 +696,7 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for Matrix<T, C, R> {
 // ===== Mathematical trait impls
 // =============================================================================================
 
-super::impl_math_traits!(Matrix);
+super::shared_trait_impls!(Matrix);
 super::impl_scalar_mul!(Matrix => f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
 
 
@@ -662,11 +705,17 @@ super::impl_scalar_mul!(Matrix => f32, f64, u8, u16, u32, u64, u128, i8, i16, i3
 // =============================================================================================
 
 /// `matrix * matrix` multiplication. You can also use [`Matrix::and_then`].
-impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<T, C, S>>
-    for Matrix<T, S, R>
-{
-    type Output = Matrix<T, C, R>;
-    fn mul(self, rhs: Matrix<T, C, S>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    const S: usize,
+    Src: Space,
+    Mid: Space,
+    Dst: Space,
+> ops::Mul<Matrix<T, C, S, Src, Mid>> for Matrix<T, S, R, Mid, Dst> {
+    type Output = Matrix<T, C, R, Src, Dst>;
+    fn mul(self, rhs: Matrix<T, C, S, Src, Mid>) -> Self::Output {
         // This is the straight-forward n³ algorithm. Using more sophisticated
         // algorithms with sub cubic runtime is not worth it for small
         // matrices. However, this can certainly be micro-optimized. In
@@ -691,9 +740,15 @@ impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<Matrix<
 // ===== Matrix * vector multiplication (transformations)
 // =============================================================================================
 
-impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Vector<T, C>> for &Matrix<T, C, R> {
-    type Output = Vector<T, R>;
-    fn mul(self, rhs: Vector<T, C>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<Vector<T, C, Src>> for &Matrix<T, C, R, Src, Dst> {
+    type Output = Vector<T, R, Dst>;
+    fn mul(self, rhs: Vector<T, C, Src>) -> Self::Output {
         array::from_fn(|row| {
             (0..C)
                 .map(|col| self.elem(row, col) * rhs[col])
@@ -702,16 +757,28 @@ impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Vector<T, C>> for &Matr
     }
 }
 
-impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Point<T, C>> for &Matrix<T, C, R> {
-    type Output = Point<T, R>;
-    fn mul(self, rhs: Point<T, C>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<Point<T, C, Src>> for &Matrix<T, C, R, Src, Dst> {
+    type Output = Point<T, R, Dst>;
+    fn mul(self, rhs: Point<T, C, Src>) -> Self::Output {
         (self * rhs.to_vec()).to_point()
     }
 }
 
-impl<T: Scalar, const C: usize, const R: usize> ops::Mul<HcPoint<T, C>> for &Matrix<T, C, R> {
-    type Output = HcPoint<T, R>;
-    fn mul(self, rhs: HcPoint<T, C>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<HcPoint<T, C, Src>> for &Matrix<T, C, R, Src, Dst> {
+    type Output = HcPoint<T, R, Dst>;
+    fn mul(self, rhs: HcPoint<T, C, Src>) -> Self::Output {
         HcPoint::new(self * Vector::from(rhs.coords), rhs.weight)
     }
 }
@@ -724,14 +791,14 @@ impl<T: Scalar, const C: usize, const R: usize> ops::Mul<HcPoint<T, C>> for &Mat
 /// Proxy type representing one row of a matrix.
 #[derive(Clone, Copy)]
 pub struct Row<'a, T: Scalar, const C: usize, const R: usize> {
-    matrix: &'a Matrix<T, C, R>,
+    matrix: &'a MatrixStorage<T, C, R>,
     index: usize,
 }
 
 impl<'a, T: Scalar, const C: usize, const R: usize> Row<'a, T, C, R> {
     /// Indexes into this row with the given column index, returning the element.
     pub fn col(self, col: usize) -> T {
-        self.matrix.0[col][self.index]
+        self.matrix[col][self.index]
     }
 
     /// Returns this row as array.
@@ -753,14 +820,14 @@ impl<'a, T: Scalar, const C: usize, const R: usize> Row<'a, T, C, R> {
 /// Proxy type representing one column of a matrix.
 #[derive(Clone, Copy)]
 pub struct Col<'a, T: Scalar, const C: usize, const R: usize> {
-    matrix: &'a Matrix<T, C, R>,
+    matrix: &'a MatrixStorage<T, C, R>,
     index: usize,
 }
 
 impl<'a, T: Scalar, const C: usize, const R: usize> Col<'a, T, C, R> {
     /// Indexes into this column with the given row index, returning the element.
     pub fn row(self, row: usize) -> T {
-        self.matrix.0[self.index][row]
+        self.matrix[self.index][row]
     }
 
     /// Returns this column as array.
@@ -781,7 +848,7 @@ impl<'a, T: Scalar, const C: usize, const R: usize> Col<'a, T, C, R> {
 
 impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for [T; C] {
     fn from(src: Row<'a, T, C, R>) -> Self {
-        array::from_fn(|i| src.matrix.0[i][src.index])
+        array::from_fn(|i| src.matrix[i][src.index])
     }
 }
 impl<'a, T: Scalar, const C: usize, const R: usize> From<Row<'a, T, C, R>> for Vector<T, C> {
@@ -802,7 +869,7 @@ impl<'a, T: Scalar, const C: usize, const R: usize> fmt::Debug for Row<'a, T, C,
 
 impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for [T; R] {
     fn from(src: Col<'a, T, C, R>) -> Self {
-        src.matrix.0[src.index]
+        src.matrix[src.index]
     }
 }
 impl<'a, T: Scalar, const C: usize, const R: usize> From<Col<'a, T, C, R>> for Vector<T, R> {

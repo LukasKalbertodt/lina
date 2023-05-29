@@ -50,78 +50,189 @@ fn debug_matrix_impl<T: Scalar>(
     list.finish()
 }
 
-macro_rules! impl_math_traits {
+macro_rules! shared_trait_impls {
     ($ty:ident) => {
-        impl<T: Scalar, const C: usize, const R: usize> ops::Add for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > Clone for $ty<T, C, R, Src, Dst> {
+            fn clone(&self) -> Self {
+                Self(self.0, PhantomData)
+            }
+        }
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > Copy for $ty<T, C, R, Src, Dst> {}
+
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > PartialEq for $ty<T, C, R, Src, Dst> {
+            fn eq(&self, other: &Self) -> bool {
+                self.0.eq(&other.0)
+            }
+        }
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > Eq for $ty<T, C, R, Src, Dst> {}
+
+        impl<
+            T: Scalar + std::hash::Hash,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > std::hash::Hash for $ty<T, C, R, Src, Dst> {
+            fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+                self.0.hash(state)
+            }
+        }
+
+
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::Add for $ty<T, C, R, Src, Dst> {
             type Output = Self;
             fn add(self, rhs: Self) -> Self::Output {
                 self.zip_map(&rhs, |l, r| l + r)
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::AddAssign for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::AddAssign for $ty<T, C, R, Src, Dst> {
             fn add_assign(&mut self, rhs: Self) {
                 *self = *self + rhs;
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::Sub for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::Sub for $ty<T, C, R, Src, Dst> {
             type Output = Self;
             fn sub(self, rhs: Self) -> Self::Output {
                 self.zip_map(&rhs, |l, r| l - r)
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::SubAssign for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::SubAssign for $ty<T, C, R, Src, Dst> {
             fn sub_assign(&mut self, rhs: Self) {
                 *self = *self - rhs;
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::Mul<T> for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::Mul<T> for $ty<T, C, R, Src, Dst> {
             type Output = Self;
             fn mul(self, rhs: T) -> Self::Output {
                 self.map(|elem| elem * rhs)
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::MulAssign<T> for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::MulAssign<T> for $ty<T, C, R, Src, Dst> {
             fn mul_assign(&mut self, rhs: T) {
                 *self = *self * rhs;
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::Div<T> for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::Div<T> for $ty<T, C, R, Src, Dst> {
             type Output = Self;
             fn div(self, rhs: T) -> Self::Output {
                 self.map(|elem| elem / rhs)
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> ops::DivAssign<T> for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::DivAssign<T> for $ty<T, C, R, Src, Dst> {
             fn div_assign(&mut self, rhs: T) {
                 *self = *self / rhs;
             }
         }
 
-        impl<T: Scalar + ops::Neg, const C: usize, const R: usize> ops::Neg for $ty<T, C, R>
+        impl<
+            T: Scalar + ops::Neg,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::Neg for $ty<T, C, R, Src, Dst>
         where
             <T as ops::Neg>::Output: Scalar,
         {
-            type Output = $ty<<T as ops::Neg>::Output, C, R>;
+            type Output = $ty<<T as ops::Neg>::Output, C, R, Src, Dst>;
             fn neg(self) -> Self::Output {
                 self.map(|elem| -elem)
             }
         }
 
-        impl<T: Scalar, const C: usize, const R: usize> std::iter::Sum<Self> for $ty<T, C, R> {
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > std::iter::Sum<Self> for $ty<T, C, R, Src, Dst> {
             fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
                 iter.fold(Self::zero(), |acc, x| acc + x)
             }
         }
     };
 }
-use impl_math_traits;
+use shared_trait_impls;
 
 // Scalar multiplication: `scalar * matrix`. Unfortunately, due to Rust's orphan
 // rules, this cannot be implemented generically. So we just implement it for
@@ -129,9 +240,14 @@ use impl_math_traits;
 macro_rules! impl_scalar_mul {
     ($ty:ident => $($scalar:ident),*) => {
         $(
-            impl<const C: usize, const R: usize> ops::Mul<$ty<$scalar, C, R>> for $scalar {
-                type Output = $ty<$scalar, C, R>;
-                fn mul(self, rhs: $ty<$scalar, C, R>) -> Self::Output {
+            impl<
+                const C: usize,
+                const R: usize,
+                Src: Space,
+                Dst: Space,
+            > ops::Mul<$ty<$scalar, C, R, Src, Dst>> for $scalar {
+                type Output = $ty<$scalar, C, R, Src, Dst>;
+                fn mul(self, rhs: $ty<$scalar, C, R, Src, Dst>) -> Self::Output {
                     rhs * self
                 }
             }

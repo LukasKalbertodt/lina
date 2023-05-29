@@ -146,8 +146,8 @@ where
 /// ```
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Cross_product
-pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
-    vec3(
+pub fn cross<T: Scalar, S: Space>(a: Vec3<T, S>, b: Vec3<T, S>) -> Vec3<T, S> {
+    Vec3::new(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x,

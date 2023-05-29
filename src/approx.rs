@@ -179,9 +179,11 @@ impl_for_angles!(Degrees);
 
 macro_rules! impl_for_mats {
     ($ty:ident) => {
-        impl<T, const C: usize, const R: usize> ApproxEq for $ty<T, C, R>
+        impl<T, const C: usize, const R: usize, Src, Dst> ApproxEq for $ty<T, C, R, Src, Dst>
         where
             T: ApproxEq<Tolerance = T> + Scalar,
+            Src: Space,
+            Dst: Space,
         {
             type Tolerance = T;
 

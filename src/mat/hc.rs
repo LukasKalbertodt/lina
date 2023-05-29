@@ -1,8 +1,8 @@
-use std::{array, ops, fmt};
+use std::{array, ops, fmt, marker::PhantomData};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint};
+use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, GenericSpace};
 
 
 
@@ -39,40 +39,55 @@ use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint};
 /// ));
 /// ```
 ///
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(C)]
-pub struct HcMatrix<T, const C: usize, const R: usize>(HcMatrixStorage<T, C, R>);
+pub struct HcMatrix<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space = GenericSpace,
+    Dst: Space = GenericSpace,
+>(HcMatrixStorage<T, C, R>, PhantomData<(Src, Dst)>);
 
 
 /// A 3×3 homogeneous transformation matrix.
-pub type HcMat3<T> = HcMatrix<T, 3, 3>;
+pub type HcMat3<T, Src = GenericSpace, Dst = GenericSpace> = HcMatrix<T, 3, 3, Src, Dst>;
 /// A 2×2 homogeneous transformation matrix.
-pub type HcMat2<T> = HcMatrix<T, 2, 2>;
+pub type HcMat2<T, Src = GenericSpace, Dst = GenericSpace> = HcMatrix<T, 2, 2, Src, Dst>;
 
 /// A 3×3 homogeneous transformation matrix with `f32` elements.
-pub type HcMat3f = HcMat3<f32>;
+pub type HcMat3f<Src = GenericSpace, Dst = GenericSpace> = HcMat3<f32, Src, Dst>;
 /// A 3×3 homogeneous transformation matrix with `f63` elements.
-pub type HcMat3d = HcMat3<f64>;
+pub type HcMat3d<Src = GenericSpace, Dst = GenericSpace> = HcMat3<f64, Src, Dst>;
 
 /// A 2×2 homogeneous transformation matrix with `f32` elements.
-pub type HcMat2f = HcMat2<f32>;
+pub type HcMat2f<Src = GenericSpace, Dst = GenericSpace> = HcMat2<f32, Src, Dst>;
 /// A 2×2 homogeneous transformation matrix with `f62` elements.
-pub type HcMat2d = HcMat2<f64>;
+pub type HcMat2d<Src = GenericSpace, Dst = GenericSpace> = HcMat2<f64, Src, Dst>;
 
 
-impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> HcMatrix<T, C, R, Src, Dst> {
+    fn new_impl(data: HcMatrixStorage<T, C, R>) -> Self {
+        Self(data, PhantomData)
+    }
+
     pub fn zero() -> Self {
         let col = NPlusOneArray([T::zero(); R], T::zero());
-        Self(HcMatrixStorage(NPlusOneArray([col; C], col)))
+        Self::new_impl(HcMatrixStorage(NPlusOneArray([col; C], col)))
     }
 
     pub fn from_parts(
-        linear: Matrix<T, C, R>,
-        translation: Vector<T, R>,
-        projection: Vector<T, C>,
+        linear: Matrix<T, C, R, Src, Dst>,
+        translation: Vector<T, R, Src>,
+        projection: Vector<T, C, Src>,
         q: T,
     ) -> Self {
-        Self(HcMatrixStorage(NPlusOneArray(
+        Self::new_impl(HcMatrixStorage(NPlusOneArray(
             array::from_fn(|c| NPlusOneArray(linear.col(c).to_array(), projection[c])),
             NPlusOneArray(translation.into(), q),
         )))
@@ -87,27 +102,39 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     }
 
     pub fn row(&self, row: usize) -> HcRow<'_, T, C, R> {
-        HcRow { matrix: self, index: row }
+        HcRow { matrix: &self.0, index: row }
     }
 
     pub fn col(&self, col: usize) -> HcCol<'_, T, C, R> {
-        HcCol { matrix: self, index: col }
+        HcCol { matrix: &self.0, index: col }
     }
 
-    pub fn linear_part(&self) -> Matrix<T, C, R> {
+    pub fn linear_part(&self) -> Matrix<T, C, R, Src, Dst> {
         Matrix::from_cols(self.0.0.0.map(|c| c.0))
     }
 
-    pub fn translation_part(&self) -> Vector<T, R> {
+    pub fn translation_part(&self) -> Vector<T, R, Src> {
         self.0.0.1.0.into()
     }
 
-    pub fn projection_part(&self) -> Vector<T, C> {
+    pub fn projection_part(&self) -> Vector<T, C, Src> {
         array::from_fn(|i| self.elem(R, i)).into()
     }
 
     pub fn q(&self) -> T {
         self.elem(R, C)
+    }
+
+    pub fn with_target_space<New: Space>(self) -> HcMatrix<T, C, R, Src, New> {
+        HcMatrix::new_impl(self.0)
+    }
+
+    pub fn with_source_space<New: Space>(self) -> HcMatrix<T, C, R, New, Dst> {
+        HcMatrix::new_impl(self.0)
+    }
+
+    pub fn with_spaces<NewSrc: Space, NewDst: Space>(self) -> HcMatrix<T, C, R, NewSrc, NewDst> {
+        HcMatrix::new_impl(self.0)
     }
 
     /// Transforms the given point with this matrix.
@@ -207,11 +234,14 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     ///     [0, 1, 0],
     /// ]));
     /// ```
-    pub fn and_then<const R2: usize>(self, second: HcMatrix<T, R, R2>) -> HcMatrix<T, C, R2> {
+    pub fn and_then<const R2: usize, Dst2: Space>(
+        self,
+        second: HcMatrix<T, R, R2, Dst, Dst2>,
+    ) -> HcMatrix<T, C, R2, Src, Dst2> {
         second * self
     }
 
-    pub fn transposed(&self) -> HcMatrix<T, R, C> {
+    pub fn transposed<NewSrc: Space, NewDst: Space>(&self) -> HcMatrix<T, R, C, NewSrc, NewDst> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
             for r in 0..=R {
@@ -244,7 +274,7 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
         (0..(C + 1) * (R + 1)).map(|idx| self.elem(idx % (R + 1), idx / (R + 1)))
     }
 
-    pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> HcMatrix<U, C, R> {
+    pub fn map<U: Scalar, F: FnMut(T) -> U>(&self, mut f: F) -> HcMatrix<U, C, R, Src, Dst> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
             for r in 0..=R {
@@ -275,7 +305,11 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
     ///     [0.0, 0.0, 9.0],
     /// ]));
     /// ```
-    pub fn zip_map<U, O, F>(&self, other: &HcMatrix<U, C, R>, mut f: F) -> HcMatrix<O, C, R>
+    pub fn zip_map<U, O, F>(
+        &self,
+        other: &HcMatrix<U, C, R, Src, Dst>,
+        mut f: F,
+    ) -> HcMatrix<O, C, R, Src, Dst>
     where
         U: Scalar,
         O: Scalar,
@@ -299,19 +333,19 @@ impl<T: Scalar, const C: usize, const R: usize> HcMatrix<T, C, R> {
 
 macro_rules! impl_det_inv {
     ($d:expr, $dpo:expr) => {
-        impl<T: Float> HcMatrix<T, $d, $d> {
+        impl<T: Float, Src: Space, Dst: Space> HcMatrix<T, $d, $d, Src, Dst> {
             #[doc = include_str!("determinant_docs.md")]
             pub fn determinant(&self) -> T {
                 self.to_mat().determinant()
             }
 
             #[doc = include_str!("inverted_docs.md")]
-            pub fn inverted(&self) -> Option<Self> {
+            pub fn inverted(&self) -> Option<HcMatrix<T, $d, $d, Dst, Src>> {
                 let inv = self.to_mat().inverted()?;
-                Some(Self::from_cols(inv.0))
+                Some(<HcMatrix<T, $d, $d, Dst, Src>>::from_cols(inv.0))
             }
 
-            fn to_mat(&self) -> Matrix<T, $dpo, $dpo> {
+            fn to_mat(&self) -> Matrix<T, $dpo, $dpo, Src, Dst> {
                 Matrix::from_cols(array::from_fn(|c| self.col(c).to_array()))
             }
         }
@@ -336,7 +370,7 @@ macro_rules! gen_inc_methods {
         )+
     };
     (@imp [$($const_params:tt)*],$c:expr, $cpo:expr, $r:expr, $rpo:expr) => {
-        impl<T: Scalar $($const_params)*> HcMatrix<T, $c, $r> {
+        impl<T: Scalar $($const_params)*, Src: Space, Dst: Space> HcMatrix<T, $c, $r, Src, Dst> {
             pub fn from_rows<V: Into<[T; $cpo]>>(rows: [V; $rpo]) -> Self {
                 let mut out = Self::zero();
                 for (r, row) in rows.into_iter().enumerate() {
@@ -346,7 +380,7 @@ macro_rules! gen_inc_methods {
             }
 
             pub fn from_cols<V: Into<[T; $rpo]>>(cols: [V; $cpo]) -> Self {
-                Self(cols.map(Into::into).into())
+                Self::new_impl(cols.map(Into::into).into())
             }
 
             pub fn set_row(&mut self, index: usize, row: [T; $cpo]) {
@@ -395,7 +429,7 @@ macro_rules! gen_quadratic_inc_methods {
         )+
     };
     (@imp [$($const_params:tt)*], $n:expr, $npo:expr) => {
-        impl<T: Scalar $($const_params)*> HcMatrix<T, $n, $n> {
+        impl<T: Scalar $($const_params)*, Src: Space, Dst: Space> HcMatrix<T, $n, $n, Src, Dst> {
             pub fn from_diagonal(diagonal: [T; $npo]) -> Self {
                 let mut out = Self::zero();
                 out.set_diagonal(diagonal);
@@ -417,7 +451,7 @@ macro_rules! gen_quadratic_inc_methods {
 
 gen_quadratic_inc_methods!(1, 2, 3);
 
-impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
+impl<T: Scalar, const N: usize, Src: Space, Dst: Space> HcMatrix<T, N, N, Src, Dst> {
     pub fn identity() -> Self {
         Self::from_diagonal_parts([T::one(); N], T::one())
     }
@@ -437,11 +471,6 @@ impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
             self.set_elem(i, i, linear[i]);
         }
         self.set_elem(N, N, q);
-    }
-
-
-    pub fn transpose(&mut self) {
-        *self = self.transposed();
     }
 
     pub fn is_symmetric(&self) -> bool {
@@ -468,10 +497,28 @@ impl<T: Scalar, const N: usize> HcMatrix<T, N, N> {
 // =============================================================================================
 
 // HcMatrix is just a wrapper around `HcMatrixStorage`
-unsafe impl<T: Scalar + Zeroable, const C: usize, const R: usize> Zeroable for HcMatrix<T, C, R> {}
-unsafe impl<T: Scalar + Pod, const C: usize, const R: usize> Pod for HcMatrix<T, C, R> {}
+unsafe impl<
+    T: Scalar + Zeroable,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> Zeroable for HcMatrix<T, C, R, Src, Dst> {}
+unsafe impl<
+    T: Scalar + Pod,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> Pod for HcMatrix<T, C, R, Src, Dst> {}
 
-impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R> {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> fmt::Debug for HcMatrix<T, C, R, Src, Dst> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "HcMatrix ")?;
         super::debug_matrix_impl(f, C + 1, R + 1, |r, c| self.elem(r, c))
@@ -482,7 +529,7 @@ impl<T: Scalar, const C: usize, const R: usize> fmt::Debug for HcMatrix<T, C, R>
 // ===== Mathematical trait impls
 // =============================================================================================
 
-super::impl_math_traits!(HcMatrix);
+super::shared_trait_impls!(HcMatrix);
 super::impl_scalar_mul!(HcMatrix => f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
 
 
@@ -491,11 +538,17 @@ super::impl_scalar_mul!(HcMatrix => f32, f64, u8, u16, u32, u64, u128, i8, i16, 
 // =============================================================================================
 
 /// `matrix * matrix` multiplication. You can also use [`Matrix::and_then`].
-impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<HcMatrix<T, C, S>>
-    for HcMatrix<T, S, R>
-{
-    type Output = HcMatrix<T, C, R>;
-    fn mul(self, rhs: HcMatrix<T, C, S>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    const S: usize,
+    Src: Space,
+    Mid: Space,
+    Dst: Space,
+> ops::Mul<HcMatrix<T, C, S, Src, Mid>> for HcMatrix<T, S, R, Mid, Dst> {
+    type Output = HcMatrix<T, C, R, Src, Dst>;
+    fn mul(self, rhs: HcMatrix<T, C, S, Src, Mid>) -> Self::Output {
         // This is the straight-forward n³ algorithm. Using more sophisticated
         // algorithms with sub cubic runtime is not worth it for small
         // matrices. However, this can certainly be micro-optimized. In
@@ -521,16 +574,28 @@ impl<T: Scalar, const C: usize, const R: usize, const S: usize> ops::Mul<HcMatri
 // ===== Matrix * vector multiplication (transformations)
 // =============================================================================================
 
-impl<T: Scalar, const C: usize, const R: usize> ops::Mul<Point<T, C>> for &HcMatrix<T, C, R> {
-    type Output = Point<T, R>;
-    fn mul(self, rhs: Point<T, C>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<Point<T, C, Src>> for &HcMatrix<T, C, R, Src, Dst> {
+    type Output = Point<T, R, Dst>;
+    fn mul(self, rhs: Point<T, C, Src>) -> Self::Output {
         (self * rhs.to_hc_point()).to_point()
     }
 }
 
-impl<T: Scalar, const C: usize, const R: usize> ops::Mul<HcPoint<T, C>> for &HcMatrix<T, C, R> {
-    type Output = HcPoint<T, R>;
-    fn mul(self, rhs: HcPoint<T, C>) -> Self::Output {
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<HcPoint<T, C, Src>> for &HcMatrix<T, C, R, Src, Dst> {
+    type Output = HcPoint<T, R, Dst>;
+    fn mul(self, rhs: HcPoint<T, C, Src>) -> Self::Output {
         let dot = |row| (0..=C)
             .map(|col| self.elem(row, col) * rhs[col])
             .fold(T::zero(), |acc, e| acc + e);
@@ -601,28 +666,28 @@ where
 /// Proxy type representing one row of a homogeneous matrix.
 #[derive(Clone, Copy)]
 pub struct HcRow<'a, T: Scalar, const C: usize, const R: usize> {
-    matrix: &'a HcMatrix<T, C, R>,
+    matrix: &'a HcMatrixStorage<T, C, R>,
     index: usize,
 }
 
 impl<'a, T: Scalar, const C: usize, const R: usize> HcRow<'a, T, C, R> {
     /// Indexes into this row with the given column index, returning the element.
     pub fn col(self, col: usize) -> T {
-        self.matrix.0.0[col][self.index]
+        self.matrix.0[col][self.index]
     }
 }
 
 /// Proxy type representing one column of a homogeneous matrix.
 #[derive(Clone, Copy)]
 pub struct HcCol<'a, T: Scalar, const C: usize, const R: usize> {
-    matrix: &'a HcMatrix<T, C, R>,
+    matrix: &'a HcMatrixStorage<T, C, R>,
     index: usize,
 }
 
 impl<'a, T: Scalar, const C: usize, const R: usize> HcCol<'a, T, C, R> {
     /// Indexes into this column with the given row index, returning the element.
     pub fn row(self, row: usize) -> T {
-        self.matrix.0.0[self.index][row]
+        self.matrix.0[self.index][row]
     }
 }
 
@@ -666,7 +731,7 @@ macro_rules! gen_col_row_impls {
         }
         impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for [T; $cpo] {
             fn from(src: HcRow<'a, T, $c, $r>) -> Self {
-                array::from_fn(|i| src.matrix.0.0[i][src.index])
+                array::from_fn(|i| src.matrix.0[i][src.index])
             }
         }
         impl<'a, T: Scalar $($const_params)*> From<HcRow<'a, T, $c, $r>> for Vector<T, {$cpo}> {
@@ -700,7 +765,7 @@ macro_rules! gen_col_row_impls {
 
         impl<'a, T: Scalar $($const_params)*> From<HcCol<'a, T, $c, $r>> for [T; $rpo] {
             fn from(src: HcCol<'a, T, $c, $r>) -> Self {
-                array::from_fn(|i| src.matrix.0.0[src.index][i])
+                array::from_fn(|i| src.matrix.0[src.index][i])
             }
         }
 
