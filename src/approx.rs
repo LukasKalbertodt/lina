@@ -3,7 +3,7 @@
 
 
 use crate::{
-    Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, NormedSphericalPos, Space,
+    Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, NormedSphericalPos, Space, HcMatrix,
 };
 
 /// Types that can be checked for approximate equality. Useful for floats.
@@ -177,24 +177,32 @@ macro_rules! impl_for_angles {
 impl_for_angles!(Radians);
 impl_for_angles!(Degrees);
 
-impl<T, const C: usize, const R: usize> ApproxEq for Matrix<T, C, R>
-where
-    T: ApproxEq<Tolerance = T> + Scalar,
-{
-    type Tolerance = T;
+macro_rules! impl_for_mats {
+    ($ty:ident) => {
+        impl<T, const C: usize, const R: usize> ApproxEq for $ty<T, C, R>
+        where
+            T: ApproxEq<Tolerance = T> + Scalar,
+        {
+            type Tolerance = T;
 
-    fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {
-        self.iter().zip(other.iter()).all(|(a, b)| T::approx_eq_abs(a, b, abs_tolerance))
-    }
+            fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {
+                self.iter().zip(other.iter()).all(|(a, b)| T::approx_eq_abs(a, b, abs_tolerance))
+            }
 
-    fn approx_eq_rel(self, other: Self, rel_tolerance: Self::Tolerance) -> bool {
-        self.iter().zip(other.iter()).all(|(a, b)| T::approx_eq_rel(a, b, rel_tolerance))
-    }
+            fn approx_eq_rel(self, other: Self, rel_tolerance: Self::Tolerance) -> bool {
+                self.iter().zip(other.iter()).all(|(a, b)| T::approx_eq_rel(a, b, rel_tolerance))
+            }
 
-    fn approx_eq_ulps(self, other: Self, max_steps_apart: u32) -> bool {
-        self.iter().zip(other.iter()).all(|(a, b)| T::approx_eq_ulps(a, b, max_steps_apart))
+            fn approx_eq_ulps(self, other: Self, max_steps_apart: u32) -> bool {
+                self.iter().zip(other.iter()).all(|(a, b)| T::approx_eq_ulps(a, b, max_steps_apart))
+            }
+        }
     }
 }
+
+impl_for_mats!(Matrix);
+impl_for_mats!(HcMatrix);
+
 
 impl<T: ApproxEq<Tolerance = T> + Float> ApproxEq for SphericalPos<T> {
     type Tolerance = T;
