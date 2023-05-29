@@ -82,7 +82,7 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, World
 /// ```
 /// use lina::Mat3;
 ///
-/// let m = Mat3::from_rows([
+/// let m = <Mat3<_>>::from_rows([
 ///     [1, 2, 3],
 ///     [4, 5, 6],
 ///     [7, 8, 9],
@@ -204,7 +204,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// ```
     /// use lina::{Mat3, vec3};
     ///
-    /// let mut mat = Mat3::identity();
+    /// let mut mat = <Mat3<_>>::identity();
     /// mat.set_col(1, vec3(2, 4, 6));
     ///
     /// assert_eq!(mat, Mat3::from_rows([
@@ -230,7 +230,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// ```
     /// use lina::{Mat3, vec3};
     ///
-    /// let mut mat = Mat3::identity();
+    /// let mut mat = <Mat3<_>>::identity();
     /// mat.set_row(1, vec3(2, 4, 6));
     ///
     /// assert_eq!(mat, Mat3::from_rows([
@@ -252,7 +252,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// ```
     /// use lina::{Mat3, vec3};
     ///
-    /// let mat = Mat3::from_rows([
+    /// let mat = <Mat3<_>>::from_rows([
     ///     [1, 0, 8],
     ///     [0, 9, 0],
     ///     [0, 7, 1],
@@ -273,7 +273,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// ```
     /// use lina::{Mat3, vec3};
     ///
-    /// let mut mat = Mat3::identity();
+    /// let mut mat = <Mat3<_>>::identity();
     /// mat.set_elem(1, 1, 9);
     /// mat.set_elem(0, 2, 8);
     /// mat.set_elem(2, 1, 7);
@@ -291,7 +291,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// Returns an iterator over all entries of this matrix, in column-major order.
     ///
     /// ```
-    /// let m = lina::Matrix::from_rows([
+    /// let m = <lina::Matrix<_, 2, 3>>::from_rows([
     ///     [1, 2],
     ///     [3, 4],
     ///     [5, 6],
@@ -311,16 +311,18 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     }
 
     /// Returns the transposed version of this matrix (swapping rows and
-    /// columns). Also see [`Matrix::transpose`].
+    /// columns). Also see [`Matrix::transpose`]. You have to specify the
+    /// source and target spaces of the returned matrix manually as it's likely
+    /// different from `self`, but cannot be inferred.
     ///
     /// ```
-    /// use lina::{Matrix, vec2};
+    /// use lina::{Matrix, WorldSpace};
     ///
-    /// let m = Matrix::from_rows([
+    /// let m = <Matrix<_, 3, 2>>::from_rows([
     ///     [1, 2, 3],
     ///     [4, 5, 6],
     /// ]);
-    /// let t = m.transposed();
+    /// let t = m.transposed::<WorldSpace, WorldSpace>();
     ///
     /// assert_eq!(t, Matrix::from_rows([
     ///     [1, 4],
@@ -333,14 +335,18 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
         Matrix::from_rows(self.0)
     }
 
+    /// Reinterprets this matrix to be a transformation into the space `New`.
     pub fn with_target_space<New: Space>(self) -> Matrix<T, C, R, Src, New> {
         Matrix::new_impl(self.0)
     }
 
+    /// Reinterprets this matrix to be a transformation from the space `New`.
     pub fn with_source_space<New: Space>(self) -> Matrix<T, C, R, New, Dst> {
         Matrix::new_impl(self.0)
     }
 
+    /// Reinterprets this matrix to be a transformation from the space `NewSrc`
+    /// into the space `NewDst`.
     pub fn with_spaces<NewSrc: Space, NewDst: Space>(self) -> Matrix<T, C, R, NewSrc, NewDst> {
         Matrix::new_impl(self.0)
     }
@@ -375,13 +381,13 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// use lina::Mat2;
     ///
     /// // Rotation by 90° counter clock wise.
-    /// let rotate = Mat2::from_rows([
+    /// let rotate = <Mat2<_>>::from_rows([
     ///     [0, -1],
     ///     [1,  0],
     /// ]);
     ///
     /// // Scale x-axis by 2, y-axis by 3.
-    /// let scale = Mat2::from_rows([
+    /// let scale = <Mat2<_>>::from_rows([
     ///     [2, 0],
     ///     [0, 3],
     /// ]);
@@ -402,6 +408,24 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
         second * self
     }
 
+    /// Returns the homogeneous version of this matrix by first adding one row
+    /// and one column, all filled with 0s, except the element in the bottom
+    /// right corner, which is a 1.
+    ///
+    /// ```
+    /// use lina::{Mat2, HcMat2};
+    ///
+    /// let linear = <Mat2<_>>::from_rows([
+    ///     [1, 2],
+    ///     [3, 4],
+    /// ]);
+    ///
+    /// assert_eq!(linear.to_homogeneous(), <HcMat2<_>>::from_rows([
+    ///     [1, 2, 0],
+    ///     [3, 4, 0],
+    ///     [0, 0, 1],
+    /// ]));
+    /// ```
     pub fn to_homogeneous(&self) -> HcMatrix<T, C, R, Src, Dst> {
         HcMatrix::from_parts(*self, Vector::zero(), Vector::zero(), T::one())
     }
@@ -412,7 +436,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// ```
     /// use lina::{Mat2, vec2};
     ///
-    /// let mat = Mat2::identity().map(|e: i32| e + 1);
+    /// let mat = <Mat2<_>>::identity().map(|e: i32| e + 1);
     ///
     /// assert_eq!(mat, Mat2::from_rows([
     ///     [2, 1],
@@ -430,7 +454,7 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
     /// ```
     /// use lina::{Mat3f, vec3};
     ///
-    /// let a = Mat3f::from_rows([
+    /// let a = <Mat3f>::from_rows([
     ///     [1.0, 2.0, 3.0],
     ///     [4.0, 5.0, 6.0],
     ///     [7.0, 8.0, 9.0],
@@ -469,10 +493,10 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst
     /// which is all 1.
     ///
     /// ```
-    /// use lina::{Mat3, vec3};
+    /// use lina::{Mat3f, vec3};
     ///
-    /// let mat = Mat3::identity();
-    /// assert_eq!(mat, Mat3::from_rows([
+    /// let mat = <Mat3f>::identity();
+    /// assert_eq!(mat, Mat3f::from_rows([
     ///     [1.0, 0.0, 0.0],
     ///     [0.0, 1.0, 0.0],
     ///     [0.0, 0.0, 1.0],
@@ -487,7 +511,7 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst
     /// ```
     /// use lina::Mat3;
     ///
-    /// let mat = Mat3::from_diagonal([1, 2, 3]);
+    /// let mat = <Mat3<_>>::from_diagonal([1, 2, 3]);
     ///
     /// assert_eq!(mat, Mat3::from_rows([
     ///     [1, 0, 0],
@@ -506,7 +530,7 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst
     /// ```
     /// use lina::Mat3;
     ///
-    /// let mat = Mat3::from_rows([
+    /// let mat = <Mat3<_>>::from_rows([
     ///     [1, 2, 3],
     ///     [4, 5, 6],
     ///     [7, 8, 9],
@@ -522,7 +546,7 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst
     /// ```
     /// use lina::Mat3;
     ///
-    /// let mut mat = Mat3::from_rows([
+    /// let mut mat = <Mat3<_>>::from_rows([
     ///     [1, 2, 3],
     ///     [4, 5, 6],
     ///     [7, 8, 9],
@@ -548,8 +572,8 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst
     /// ```
     /// use lina::{Mat3f, Mat2};
     ///
-    /// assert!(Mat3f::identity().is_symmetric());
-    /// assert!(!Mat2::from_rows([[1, 2], [3, 4]]).is_symmetric());
+    /// assert!(<Mat3f>::identity().is_symmetric());
+    /// assert!(!<Mat2<_>>::from_rows([[1, 2], [3, 4]]).is_symmetric());
     /// ```
     pub fn is_symmetric(&self) -> bool {
         for c in 1..N {
@@ -569,8 +593,8 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> Matrix<T, N, N, Src, Dst
     /// ```
     /// use lina::{Mat2, Mat3f};
     ///
-    /// assert_eq!(Mat3f::identity().trace(), 3.0);
-    /// assert_eq!(Mat2::from_rows([[1, 2], [3, 4]]).trace(), 5);
+    /// assert_eq!(<Mat3f>::identity().trace(), 3.0);
+    /// assert_eq!(<Mat2<_>>::from_rows([[1, 2], [3, 4]]).trace(), 5);
     /// ```
     pub fn trace(&self) -> T {
         self.diagonal().as_ref().iter().fold(T::zero(), |a, b| a + *b)

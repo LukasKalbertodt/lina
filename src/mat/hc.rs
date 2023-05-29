@@ -17,7 +17,7 @@ use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 /// ```
 /// use lina::HcMat2;
 ///
-/// let m = HcMat2::from_rows([
+/// let m = <HcMat2<_>>::from_rows([
 ///     [1, 2, 3],
 ///     [4, 5, 6],
 ///     [7, 8, 9],
@@ -210,14 +210,14 @@ impl<
     /// use lina::HcMat2;
     ///
     /// // Translate by (3, 7)
-    /// let translate = HcMat2::from_rows([
+    /// let translate = <HcMat2<_>>::from_rows([
     ///     [1, 0, 3],
     ///     [0, 1, 7],
     ///     [0, 0, 1],
     /// ]);
     ///
     /// // Project onto the y = 1 line.
-    /// let project = HcMat2::from_rows([
+    /// let project = <HcMat2<_>>::from_rows([
     ///     [1, 0, 0],
     ///     [0, 1, 0],
     ///     [0, 1, 0],
@@ -291,12 +291,12 @@ impl<
     /// ```
     /// use lina::{HcMat2f, vec3};
     ///
-    /// let a = HcMat2f::from_rows([
+    /// let a = <HcMat2f>::from_rows([
     ///     [1.0, 2.0, 3.0],
     ///     [4.0, 5.0, 6.0],
     ///     [7.0, 8.0, 9.0],
     /// ]);
-    /// let b = HcMat2f::identity();
+    /// let b = <HcMat2f>::identity();
     /// let c = a.zip_map(&b, |elem_a, elem_b| elem_a * elem_b);   // element-wise multiplication
     ///
     /// assert_eq!(c, HcMat2f::from_rows([

@@ -285,9 +285,9 @@ pub fn look_into<T: Float>(
 /// Flip the `z` sign of all your points *before* transforming with this matrix.
 ///
 /// ```
-/// use lina::{Degrees, HcMat3f, transform};
+/// use lina::{Degrees, HcMat3f, transform, ViewSpace};
 ///
-/// let flip_z_sign = HcMat3f::from_diagonal_parts([1.0, 1.0, -1.0], 1.0);
+/// let flip_z_sign = <HcMat3f<ViewSpace, ViewSpace>>::from_diagonal([1.0, 1.0, -1.0, 1.0]);
 /// let rh_proj_matrix = transform::perspective(Degrees(90.0), 2.0, 0.1..=100.0, 1.0..=0.0);
 /// let lh_proj_matrix = flip_z_sign.and_then(rh_proj_matrix);
 /// ```
@@ -297,9 +297,9 @@ pub fn look_into<T: Float>(
 /// Flip the `y` sign of all your points *after* transforming with this matrix.
 ///
 /// ```
-/// use lina::{Degrees, HcMat3f, transform};
+/// use lina::{Degrees, HcMat3f, transform, ProjSpace};
 ///
-/// let flip_y_sign = HcMat3f::from_diagonal_parts([1.0, -1.0, 1.0], 1.0);
+/// let flip_y_sign = <HcMat3f<ProjSpace, ProjSpace>>::from_diagonal([1.0, -1.0, 1.0, 1.0]);
 /// let y_up_proj_matrix = transform::perspective(Degrees(90.0), 2.0, 0.1..=100.0, 1.0..=0.0);
 /// let y_down_proj_matrix = y_up_proj_matrix.and_then(flip_y_sign);
 /// ```
