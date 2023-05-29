@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use bytemuck::{Pod, Zeroable};
 
 use crate::{
-    Point, Scalar, Float, Space, GenericSpace,
+    Point, Scalar, Float, Space, WorldSpace,
     named_scalar::{HasX, HasY, HasZ},
 };
 
@@ -11,25 +11,25 @@ use crate::{
 /// An `N`-dimensional vector with scalar type `T`. This represents
 /// a *displacement* in space.
 #[repr(transparent)]
-pub struct Vector<T: Scalar, const N: usize, S: Space = GenericSpace>(
+pub struct Vector<T: Scalar, const N: usize, S: Space = WorldSpace>(
     pub(crate) [T; N],
     PhantomData<S>,
 );
 
 /// A 2-dimensional vector.
-pub type Vec2<T, S = GenericSpace> = Vector<T, 2, S>;
+pub type Vec2<T, S = WorldSpace> = Vector<T, 2, S>;
 /// A 3-dimensional vector.
-pub type Vec3<T, S = GenericSpace> = Vector<T, 3, S>;
+pub type Vec3<T, S = WorldSpace> = Vector<T, 3, S>;
 
 /// A 2-dimensional vector with scalar type `f32`.
-pub type Vec2f<S = GenericSpace> = Vec2<f32, S>;
+pub type Vec2f<S = WorldSpace> = Vec2<f32, S>;
 /// A 3-dimensional vector with scalar type `f32`.
-pub type Vec3f<S = GenericSpace> = Vec3<f32, S>;
+pub type Vec3f<S = WorldSpace> = Vec3<f32, S>;
 
 /// A 2-dimensional vector with scalar type `f64`.
-pub type Vec2d<S = GenericSpace> = Vec2<f64, S>;
+pub type Vec2d<S = WorldSpace> = Vec2<f64, S>;
 /// A 3-dimensional vector with scalar type `f64`.
-pub type Vec3d<S = GenericSpace> = Vec3<f64, S>;
+pub type Vec3d<S = WorldSpace> = Vec3<f64, S>;
 
 
 impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {

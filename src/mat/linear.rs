@@ -1,7 +1,7 @@
 use std::{array, fmt, ops, marker::PhantomData};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, GenericSpace};
+use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, WorldSpace};
 
 
 /// A `C`×`R` matrix with element type `T` (`C` many columns, `R` many rows).
@@ -108,26 +108,26 @@ pub struct Matrix<
     T: Scalar,
     const C: usize,
     const R: usize,
-    Src: Space = GenericSpace,
-    Dst: Space = GenericSpace,
+    Src: Space = WorldSpace,
+    Dst: Space = WorldSpace,
 >(pub(super) [[T; R]; C], PhantomData<(Src, Dst)>);
 
 pub(super) type MatrixStorage<T, const C: usize, const R: usize> = [[T; R]; C];
 
 /// A 3×3 matrix.
-pub type Mat3<T, Src = GenericSpace, Dst = GenericSpace> = Matrix<T, 3, 3, Src, Dst>;
+pub type Mat3<T, Src = WorldSpace, Dst = WorldSpace> = Matrix<T, 3, 3, Src, Dst>;
 /// A 2×2 matrix.
-pub type Mat2<T, Src = GenericSpace, Dst = GenericSpace> = Matrix<T, 2, 2, Src, Dst>;
+pub type Mat2<T, Src = WorldSpace, Dst = WorldSpace> = Matrix<T, 2, 2, Src, Dst>;
 
 /// A 3×3 matrix with `f32` elements.
-pub type Mat3f<Src = GenericSpace, Dst = GenericSpace> = Mat3<f32, Src, Dst>;
+pub type Mat3f<Src = WorldSpace, Dst = WorldSpace> = Mat3<f32, Src, Dst>;
 /// A 3×3 matrix with `f63` elements.
-pub type Mat3d<Src = GenericSpace, Dst = GenericSpace> = Mat3<f64, Src, Dst>;
+pub type Mat3d<Src = WorldSpace, Dst = WorldSpace> = Mat3<f64, Src, Dst>;
 
 /// A 2×2 matrix with `f32` elements.
-pub type Mat2f<Src = GenericSpace, Dst = GenericSpace> = Mat2<f32, Src, Dst>;
+pub type Mat2f<Src = WorldSpace, Dst = WorldSpace> = Mat2<f32, Src, Dst>;
 /// A 2×2 matrix with `f62` elements.
-pub type Mat2d<Src = GenericSpace, Dst = GenericSpace> = Mat2<f64, Src, Dst>;
+pub type Mat2d<Src = WorldSpace, Dst = WorldSpace> = Mat2<f64, Src, Dst>;
 
 
 impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T, C, R, Src, Dst> {

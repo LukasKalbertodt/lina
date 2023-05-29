@@ -1,9 +1,9 @@
-use crate::{Mat2, Matrix, approx::assert_approx_eq, GenericSpace, Scalar, Mat3};
+use crate::{Mat2, Matrix, approx::assert_approx_eq, Scalar, Mat3};
 
 
 fn from_rows<T: Scalar, const C: usize, const R: usize>(
     rows: [[T; C]; R],
-) -> Matrix<T, C, R, GenericSpace, GenericSpace> {
+) -> Matrix<T, C, R> {
     Matrix::from_rows(rows)
 }
 

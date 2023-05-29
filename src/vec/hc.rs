@@ -2,7 +2,7 @@ use std::{marker::PhantomData, fmt, ops};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Scalar, Space, GenericSpace, Point};
+use crate::{Scalar, Space, WorldSpace, Point};
 
 
 /// A point in `N`-dimensional space represented by *homogeneous coordinates*
@@ -36,7 +36,7 @@ use crate::{Scalar, Space, GenericSpace, Point};
 /// assert_eq!(hc.to_point(), point2(3.5, 2.5));
 /// ```
 #[repr(C)]
-pub struct HcPoint<T: Scalar, const N: usize, S: Space = GenericSpace> {
+pub struct HcPoint<T: Scalar, const N: usize, S: Space = WorldSpace> {
     pub(crate) coords: [T; N],
     pub weight: T,
     _dummy: PhantomData<S>,
@@ -44,11 +44,11 @@ pub struct HcPoint<T: Scalar, const N: usize, S: Space = GenericSpace> {
 
 /// A point in 2-dimensional space represented by homogeneous coordinates
 /// (with 3 values).
-pub type HcPoint2<T, S = GenericSpace> = HcPoint<T, 2, S>;
+pub type HcPoint2<T, S = WorldSpace> = HcPoint<T, 2, S>;
 
 /// A point in 3-dimensional space represented by homogeneous coordinates
 /// (with 4 values).
-pub type HcPoint3<T, S = GenericSpace> = HcPoint<T, 3, S>;
+pub type HcPoint3<T, S = WorldSpace> = HcPoint<T, 3, S>;
 
 
 impl<T: Scalar, const N: usize, S: Space> HcPoint<T, N, S> {

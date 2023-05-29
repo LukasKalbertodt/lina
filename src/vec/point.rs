@@ -1,31 +1,31 @@
 use std::{array, marker::PhantomData};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Vector, Scalar, Float, GenericSpace, Space, HcPoint};
+use crate::{Vector, Scalar, Float, WorldSpace, Space, HcPoint};
 
 
 /// A point in `N`-dimensional space with scalar type `T`. It represents
 /// a *location* in space.
 #[repr(transparent)]
-pub struct Point<T: Scalar, const N: usize, S: Space = GenericSpace>(
+pub struct Point<T: Scalar, const N: usize, S: Space = WorldSpace>(
     pub(crate) [T; N],
     PhantomData<S>,
 );
 
 /// A point in 2-dimensional space.
-pub type Point2<T, S = GenericSpace> = Point<T, 2, S>;
+pub type Point2<T, S = WorldSpace> = Point<T, 2, S>;
 /// A point in 3-dimensional space.
-pub type Point3<T, S = GenericSpace> = Point<T, 3, S>;
+pub type Point3<T, S = WorldSpace> = Point<T, 3, S>;
 
 /// A point in 2-dimensional space with scalar type `f32`.
-pub type Point2f<S = GenericSpace> = Point2<f32, S>;
+pub type Point2f<S = WorldSpace> = Point2<f32, S>;
 /// A point in 3-dimensional space with scalar type `f32`.
-pub type Point3f<S = GenericSpace> = Point3<f32, S>;
+pub type Point3f<S = WorldSpace> = Point3<f32, S>;
 
 /// A point in 2-dimensional space with scalar type `f64`.
-pub type Point2d<S = GenericSpace> = Point2<f64, S>;
+pub type Point2d<S = WorldSpace> = Point2<f64, S>;
 /// A point in 3-dimensional space with scalar type `f64`.
-pub type Point3d<S = GenericSpace> = Point3<f64, S>;
+pub type Point3d<S = WorldSpace> = Point3<f64, S>;
 
 
 impl<T: Scalar, const N: usize, S: Space> Point<T, N, S> {

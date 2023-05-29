@@ -27,13 +27,6 @@
 /// space", "world space", "view space" and others.
 pub trait Space: 'static {}
 
-/// A generic space without any semantics, used as default space.
-///
-/// This space's main purpose is to make using the `S` parameter of types
-/// optional. Users who don't want to use the space strong typing feature, can
-/// thus ignore it, just keeping all vectors and points in this generic space.
-pub enum GenericSpace {}
-impl Space for GenericSpace {}
 
 /// A space that is model/object-local usually with a single object at the center.
 ///

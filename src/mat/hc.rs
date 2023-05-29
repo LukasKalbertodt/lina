@@ -2,7 +2,7 @@ use std::{array, ops, fmt, marker::PhantomData};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, GenericSpace};
+use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 
 
 
@@ -44,25 +44,25 @@ pub struct HcMatrix<
     T: Scalar,
     const C: usize,
     const R: usize,
-    Src: Space = GenericSpace,
-    Dst: Space = GenericSpace,
+    Src: Space = WorldSpace,
+    Dst: Space = WorldSpace,
 >(HcMatrixStorage<T, C, R>, PhantomData<(Src, Dst)>);
 
 
 /// A 3×3 homogeneous transformation matrix.
-pub type HcMat3<T, Src = GenericSpace, Dst = GenericSpace> = HcMatrix<T, 3, 3, Src, Dst>;
+pub type HcMat3<T, Src = WorldSpace, Dst = WorldSpace> = HcMatrix<T, 3, 3, Src, Dst>;
 /// A 2×2 homogeneous transformation matrix.
-pub type HcMat2<T, Src = GenericSpace, Dst = GenericSpace> = HcMatrix<T, 2, 2, Src, Dst>;
+pub type HcMat2<T, Src = WorldSpace, Dst = WorldSpace> = HcMatrix<T, 2, 2, Src, Dst>;
 
 /// A 3×3 homogeneous transformation matrix with `f32` elements.
-pub type HcMat3f<Src = GenericSpace, Dst = GenericSpace> = HcMat3<f32, Src, Dst>;
+pub type HcMat3f<Src = WorldSpace, Dst = WorldSpace> = HcMat3<f32, Src, Dst>;
 /// A 3×3 homogeneous transformation matrix with `f63` elements.
-pub type HcMat3d<Src = GenericSpace, Dst = GenericSpace> = HcMat3<f64, Src, Dst>;
+pub type HcMat3d<Src = WorldSpace, Dst = WorldSpace> = HcMat3<f64, Src, Dst>;
 
 /// A 2×2 homogeneous transformation matrix with `f32` elements.
-pub type HcMat2f<Src = GenericSpace, Dst = GenericSpace> = HcMat2<f32, Src, Dst>;
+pub type HcMat2f<Src = WorldSpace, Dst = WorldSpace> = HcMat2<f32, Src, Dst>;
 /// A 2×2 homogeneous transformation matrix with `f62` elements.
-pub type HcMat2d<Src = GenericSpace, Dst = GenericSpace> = HcMat2<f64, Src, Dst>;
+pub type HcMat2d<Src = WorldSpace, Dst = WorldSpace> = HcMat2<f64, Src, Dst>;
 
 
 impl<

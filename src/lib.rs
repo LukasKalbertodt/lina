@@ -67,7 +67,7 @@ pub use self::{
         linear::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d},
         hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d},
     },
-    space::{GenericSpace, Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
+    space::{Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
     spherical::{NormedSphericalPos, SphericalPos},
     vec::{
         hc::{HcPoint, HcPoint2, HcPoint3},
