@@ -2,7 +2,7 @@ use std::{hash::Hash, fmt, ops};
 
 use bytemuck::{Zeroable, Pod};
 
-use crate::{Space, Vector, Scalar, WorldSpace, SphericalDir, Float, SphericalPos};
+use crate::{Space, Vector, Scalar, WorldSpace, SphericalDir, Float, SphericalPos, Vec2, Vec3};
 
 
 
@@ -68,6 +68,12 @@ impl<T: Scalar, const N: usize, S: Space> Dir<T, N, S> {
 }
 
 impl<T: Scalar, S: Space> Dir2<T, S> {
+    /// Creates a `Dir` without checking that the given values form a unit
+    /// vector.
+    pub const fn new_unchecked(x: T, y: T) -> Self {
+        Self(Vec2::new(x, y))
+    }
+
     /// Returns `(1, 0, 0)`.
     pub fn unit_x() -> Self {
         Self(Vector::unit_x())
@@ -90,6 +96,12 @@ impl<T: Scalar, S: Space> Dir2<T, S> {
 }
 
 impl<T: Scalar, S: Space> Dir3<T, S> {
+    /// Creates a `Dir` without checking that the given values form a unit
+    /// vector.
+    pub const fn new_unchecked(x: T, y: T, z: T) -> Self {
+        Self(Vec3::new(x, y, z))
+    }
+
     /// Returns `(1, 0, 0)`.
     pub fn unit_x() -> Self {
         Self(Vector::unit_x())
