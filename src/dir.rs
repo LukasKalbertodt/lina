@@ -1,8 +1,9 @@
 use std::{hash::Hash, fmt, ops};
 
 use bytemuck::{Zeroable, Pod};
+use num_traits::NumCast;
 
-use crate::{Space, Vector, Scalar, WorldSpace, SphericalDir, Float, SphericalPos, Vec2, Vec3};
+use crate::{Space, Vector, Scalar, WorldSpace, SphericalDir, Float, SphericalPos, Vec2, Vec3, Point};
 
 
 
@@ -48,11 +49,33 @@ impl<T: Scalar, const N: usize, S: Space> Dir<T, N, S> {
         self.0
     }
 
+    /// Returns the point corresponding to this unit vector (a point on the unit sphere).
+    pub fn to_point(&self) -> Point<T, N, S> {
+        self.0.to_point()
+    }
+
     /// Reinterprets this direction as being in the space `Target` instead of
     /// `S`. Before calling this, make sure this operation makes semantic sense
     /// and don't just use it to get rid of compiler errors.
     pub fn in_space<Target: Space>(self) -> Dir<T, N, Target> {
         Dir(self.0.in_space())
+    }
+
+    /// Casts `self` to using `f32` as scalar.
+    pub fn to_f32(self) -> Dir<f32, N, S>
+    where
+        T: NumCast,
+    {
+
+        Dir(self.0.map(|s| num_traits::cast(s).unwrap()))
+    }
+
+    /// Casts `self` to using `f64` as scalar.
+    pub fn to_f64(self) -> Dir<f64, N, S>
+    where
+        T: NumCast,
+    {
+        Dir(self.0.map(|s| num_traits::cast(s).unwrap()))
     }
 
     /// Returns a byte slice of the unit vector representing this direction.
@@ -223,6 +246,16 @@ impl<T: Scalar, const N: usize, S: Space> ops::Div<T> for Dir<T, N, S> {
     type Output = Vector<T, N, S>;
     fn div(self, rhs: T) -> Self::Output {
         self.0 / rhs
+    }
+}
+
+impl<T: Scalar + ops::Neg, const N: usize, S: Space> ops::Neg for Dir<T, N, S>
+where
+    <T as ops::Neg>::Output: Scalar,
+{
+    type Output = Dir<<T as ops::Neg>::Output, N, S>;
+    fn neg(self) -> Self::Output {
+        Dir(-self.0)
     }
 }
 

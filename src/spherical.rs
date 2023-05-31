@@ -46,6 +46,30 @@ impl<T: Float, S: Space> SphericalPos<T, S> {
     pub fn without_radius(self) -> SphericalDir<T, S> {
         self.into()
     }
+
+    /// Casts `self` to using `f32` as scalar.
+    pub fn to_f32(self) -> SphericalPos<f32, S>
+    where
+        T: num_traits::NumCast,
+    {
+        SphericalPos::new(
+            Radians(num_traits::cast(self.theta.0).unwrap()),
+            Radians(num_traits::cast(self.phi.0).unwrap()),
+            num_traits::cast(self.r).unwrap(),
+        )
+    }
+
+    /// Casts `self` to using `f64` as scalar.
+    pub fn to_f64(self) -> SphericalPos<f64, S>
+    where
+        T: num_traits::NumCast,
+    {
+        SphericalPos::new(
+            Radians(num_traits::cast(self.theta.0).unwrap()),
+            Radians(num_traits::cast(self.phi.0).unwrap()),
+            num_traits::cast(self.r).unwrap(),
+        )
+    }
 }
 
 impl<T: Float, S: Space> From<Point3<T, S>> for SphericalPos<T, S> {
@@ -162,6 +186,28 @@ impl<T: Float, S: Space> SphericalDir<T, S> {
     /// Convenience method for `Vec3::from(self)`.
     pub fn to_unit_vec(self) -> Vec3<T, S> {
         self.into()
+    }
+
+    /// Casts `self` to using `f32` as scalar.
+    pub fn to_f32(self) -> SphericalDir<f32, S>
+    where
+        T: num_traits::NumCast,
+    {
+        SphericalDir::new(
+            Radians(num_traits::cast(self.theta.0).unwrap()),
+            Radians(num_traits::cast(self.phi.0).unwrap()),
+        )
+    }
+
+    /// Casts `self` to using `f64` as scalar.
+    pub fn to_f64(self) -> SphericalDir<f64, S>
+    where
+        T: num_traits::NumCast,
+    {
+        SphericalDir::new(
+            Radians(num_traits::cast(self.theta.0).unwrap()),
+            Radians(num_traits::cast(self.phi.0).unwrap()),
+        )
     }
 }
 

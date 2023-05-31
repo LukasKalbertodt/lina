@@ -94,6 +94,31 @@ impl<T: Scalar, const N: usize, S: Space> HcPoint<T, N, S> {
         }
     }
 
+
+    /// Casts `self` to using `f32` as scalar.
+    pub fn to_f32(self) -> HcPoint<f32, N, S>
+    where
+        T: num_traits::NumCast,
+    {
+        HcPoint {
+            coords: self.coords.map(|s| num_traits::cast(s).unwrap()),
+            weight: num_traits::cast(self.weight).unwrap(),
+            _dummy: PhantomData,
+        }
+    }
+
+    /// Casts `self` to using `f64` as scalar.
+    pub fn to_f64(self) -> HcPoint<f64, N, S>
+    where
+        T: num_traits::NumCast,
+    {
+        HcPoint {
+            coords: self.coords.map(|s| num_traits::cast(s).unwrap()),
+            weight: num_traits::cast(self.weight).unwrap(),
+            _dummy: PhantomData,
+        }
+    }
+
     /// Returns a byte slice of this point representing the full raw data
     /// (components + weight). Useful to pass to graphics APIs.
     pub fn as_bytes(&self) -> &[u8] {

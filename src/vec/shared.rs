@@ -46,6 +46,22 @@ macro_rules! shared_methods {
             std::array::from_fn(|i| f(self.0[i], other.0[i])).into()
         }
 
+        /// Casts `self` to using `f32` as scalar.
+        pub fn to_f32(self) -> $ty<f32, N, S>
+        where
+            T: num_traits::NumCast,
+        {
+            self.map(|s| num_traits::cast(s).unwrap())
+        }
+
+        /// Casts `self` to using `f64` as scalar.
+        pub fn to_f64(self) -> $ty<f64, N, S>
+        where
+            T: num_traits::NumCast,
+        {
+            self.map(|s| num_traits::cast(s).unwrap())
+        }
+
         #[doc = concat!("Returns a byte slice of this ", $tys_lower, ", ")]
         /// representing the full raw data. Useful to pass to graphics APIs.
         pub fn as_bytes(&self) -> &[u8] {
