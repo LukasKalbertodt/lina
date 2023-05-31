@@ -15,7 +15,7 @@ use std::ops::RangeInclusive;
 use crate::{
     cross, dot,
     Float, Scalar, Vector, Matrix, Point3, Radians, Vec3, HcMatrix, HcMat3,
-    WorldSpace, ViewSpace, ProjSpace, Space,
+    WorldSpace, ViewSpace, ProjSpace, Space, Mat3,
 };
 
 
@@ -78,6 +78,59 @@ pub fn scale_nonuniform<T: Scalar, const N: usize>(
     Matrix::from_diagonal(factors)
 }
 
+/// 3D Rotation around the x-axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡ 1       0        0 ⎤
+/// ⎢ 0  cos(θ)  -sin(θ) ⎥
+/// ⎣ 0  sin(θ)   cos(θ) ⎦
+/// ```
+pub fn rotate3d_around_x<T: Float>(
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, WorldSpace, WorldSpace> {
+    let a = angle.into();
+    Matrix::from_rows([
+        [ T::one(), T::zero(), T::zero()],
+        [T::zero(),   a.cos(),  -a.sin()],
+        [T::zero(),   a.sin(),   a.cos()],
+    ])
+}
+
+/// 3D Rotation around the y-axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡  cos(θ)   0  sin(θ) ⎤
+/// ⎢       0   1       0 ⎥
+/// ⎣ -sin(θ)   0  cos(θ) ⎦
+/// ```
+pub fn rotate3d_around_y<T: Float>(
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, WorldSpace, WorldSpace> {
+    let a = angle.into();
+    Matrix::from_rows([
+        [  a.cos(), T::zero(),   a.sin()],
+        [T::zero(), T::one(),  T::zero()],
+        [ -a.sin(), T::zero(),   a.cos()],
+    ])
+}
+
+/// 3D Rotation around the z-axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡ cos(θ)  -sin(θ)  0 ⎤
+/// ⎢ sin(θ)   cos(θ)  0 ⎥
+/// ⎣      0        0  1 ⎦
+/// ```
+pub fn rotate3d_around_z<T: Float>(
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, WorldSpace, WorldSpace> {
+    let a = angle.into();
+    Matrix::from_rows([
+        [  a.cos(),  -a.sin(), T::zero()],
+        [  a.sin(),   a.cos(), T::zero()],
+        [T::zero(), T::zero(),  T::one()],
+    ])
+}
 
 /// Affine transformation matrix that translates according to `v`.
 ///
