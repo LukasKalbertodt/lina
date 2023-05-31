@@ -14,6 +14,7 @@
 //!     - [`Point`] represents a location.
 //!     - [`Vector`] represents a displacement.
 //!     - [`HcPoint`] represents a point in homogeneous coordinates.
+//!     - [`Dir`] represents a direction via unit vector.
 //!     - Use [`SphericalPos`] and [`SphericalDir`] for spherical coordinates.
 //! - **Transformations**
 //!     - [`Matrix`] represents a linear transformation.
@@ -92,6 +93,7 @@ use num_traits::Num;
 
 mod angle;
 mod approx;
+mod dir;
 mod mat;
 mod space;
 mod spherical;
@@ -104,6 +106,7 @@ pub mod transform;
 pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
+    dir::{Dir, Dir2, Dir2f, Dir2d, Dir3, Dir3f, Dir3d},
     mat::{
         linear::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d},
         hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d},
