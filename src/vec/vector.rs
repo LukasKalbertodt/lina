@@ -162,13 +162,6 @@ impl<T: Scalar, S: Space> Vector<T, 3, S> {
     shared_methods3!(Vector, "vector");
 }
 
-impl<T: Scalar, S: Space> Vector<T, 4, S> {
-    /// Returns a 4D vector from the given coordinates.
-    pub fn new(x: T, y: T, z: T, w: T) -> Self {
-        [x, y, z, w].into()
-    }
-}
-
 shared_impls!(Vector, "vector", "Vec");
 
 /// Shorthand for `Vec2::new(...)`, but with fixed `S = Generic`.

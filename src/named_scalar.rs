@@ -18,7 +18,7 @@
 //!
 //! let v2 = vec2(1, 2);
 //! let v3 = vec3(1, 2, 3);
-//! let v4 = <Vector<_, 4>>::new(1, 2, 3, 4);
+//! let v4 = <Vector<_, 4>>::from([1, 2, 3, 4]);
 //!
 //! // You can access components by name.
 //! let _ = (v2.x, v2.y);
