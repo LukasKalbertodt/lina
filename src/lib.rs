@@ -190,7 +190,12 @@ where
 /// ```
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Cross_product
-pub fn cross<T: Scalar, S: Space>(a: Vec3<T, S>, b: Vec3<T, S>) -> Vec3<T, S> {
+pub fn cross<T: Scalar, S: Space>(
+    a: impl Into<Vec3<T, S>>,
+    b: impl Into<Vec3<T, S>>,
+) -> Vec3<T, S> {
+    let a = a.into();
+    let b = b.into();
     Vec3::new(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -222,8 +227,14 @@ pub fn cross<T: Scalar, S: Space>(a: Vec3<T, S>, b: Vec3<T, S>) -> Vec3<T, S> {
 /// ```
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Dot_product
-pub fn dot<T: Scalar, const N: usize, S: Space>(a: Vector<T, N, S>, b: Vector<T, N, S>) -> T {
+pub fn dot<T: Scalar, const N: usize, S: Space>(
+    a: impl Into<Vector<T, N, S>>,
+    b: impl Into<Vector<T, N, S>>,
+) -> T {
     assert!(N != 0, "the dot product of 0-dimensional vectors is not useful");
+
+    let a = a.into();
+    let b = b.into();
 
     let mut out = a[0] * b[0];
     for i in 1..N {
@@ -257,9 +268,12 @@ pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
 /// assert_eq!(angle_between(vec2(0.2, 0.0), vec2(0.0, 7.3)), Radians(PI / 2.0));  // 90°
 /// ```
 pub fn angle_between<T: Float, const N: usize, S: Space>(
-    a: Vector<T, N, S>,
-    b: Vector<T, N, S>,
+    a: impl Into<Vector<T, N, S>>,
+    b: impl Into<Vector<T, N, S>>,
 ) -> Radians<T> {
+    let a = a.into();
+    let b = b.into();
+
     debug_assert!(!a.is_zero());
     debug_assert!(!b.is_zero());
 
