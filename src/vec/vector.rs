@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use bytemuck::{Pod, Zeroable};
 
 use crate::{
-    Point, Scalar, Float, Space, WorldSpace,
+    Dir, Point, Scalar, Float, Space, WorldSpace,
     named_scalar::{HasX, HasY, HasZ},
 };
 
@@ -83,6 +83,13 @@ impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
         let mut out = Self::zero();
         *out.z_mut() = T::one();
         out
+    }
+
+    pub fn to_dir(self) -> Dir<T, N, S>
+    where
+        T: Float,
+    {
+        Dir::from_vec(self)
     }
 
     /// Converts this vector into a point without changing the component values.
