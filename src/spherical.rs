@@ -56,6 +56,10 @@ impl<T: Float, S: Space> From<Point3<T, S>> for SphericalPos<T, S> {
 
 impl<T: Float, S: Space> From<Vec3<T, S>> for SphericalPos<T, S> {
     fn from(v: Vec3<T, S>) -> Self {
+        if v.length2().is_zero() {
+            return Self::new(Radians::zero(), Radians::zero(), T::zero());
+        }
+
         let nv = v.normalized();
         Self {
             theta: Radians::acos(nv.z),
@@ -169,7 +173,9 @@ impl<T: Float, S: Space> From<SphericalPos<T, S>> for SphericalDir<T, S> {
 
 impl<T: Float, S: Space> From<Vec3<T, S>> for SphericalDir<T, S> {
     fn from(v: Vec3<T, S>) -> Self {
-        let nv = v.normalized();
+        let l = v.length();
+        assert!(!l.is_zero(), "zero vector in `SphericalDir::from`");
+        let nv = v / l;
         Self::new(Radians::acos(nv.z), crate::atan2(nv.y, nv.x))
     }
 }
