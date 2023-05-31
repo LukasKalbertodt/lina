@@ -1,4 +1,4 @@
-use crate::{Mat2, Matrix, approx::assert_approx_eq, Scalar, Mat3};
+use crate::{Mat2, Matrix, assert_approx_eq, Scalar, Mat3};
 
 
 fn from_rows<T: Scalar, const C: usize, const R: usize>(
@@ -223,7 +223,7 @@ fn inv4() {
         Some(Matrix::from_diagonal([1.0 / 0.187, 1.0, 1.0 / 4.0, 1.0 / 6.5])),
     );
 
-    assert_approx_eq!(
+    assert_approx_eq!(ulps <= 1 =>
         from_rows([
             [ 1.0,  4.0,  5.0, -1.0],
             [-2.0,  3.0, -1.0,  0.0],
@@ -235,8 +235,7 @@ fn inv4() {
             [ 0.0,  0.25,  0.25,  0.0],
             [ 0.2, -0.05, -0.45,  0.2],
             [-0.1,  0.65, -0.65,  0.9],
-        ]);
-        ulps <= 1
+        ]),
     );
 }
 
