@@ -118,12 +118,12 @@ impl<T: Scalar, S: Space> Point<T, 3, S> {
 shared_impls!(Point, "point", "Point");
 
 /// Shorthand for `Point2::new(...)`, but with fixed `S = Generic`.
-pub fn point2<T: Scalar>(x: T, y: T) -> Point2<T> {
+pub const fn point2<T: Scalar>(x: T, y: T) -> Point2<T> {
     Point2::new(x, y)
 }
 
 /// Shorthand for `Point3::new(...)`, but with fixed `S = Generic`.
-pub fn point3<T: Scalar>(x: T, y: T, z: T) -> Point3<T> {
+pub const fn point3<T: Scalar>(x: T, y: T, z: T) -> Point3<T> {
     Point3::new(x, y, z)
 }
 

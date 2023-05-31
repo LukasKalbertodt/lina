@@ -4,7 +4,7 @@ macro_rules! shared_methods {
         /// space `Target` instead of `S`. Before calling this, make sure this
         /// operation makes semantic sense and don't just use it to get rid of
         /// compiler errors.
-        pub fn in_space<Target: Space>(self) -> $ty<T, N, Target> {
+        pub const fn in_space<Target: Space>(self) -> $ty<T, N, Target> {
             $ty(self.0, PhantomData)
         }
 
@@ -71,8 +71,8 @@ macro_rules! shared_methods {
 macro_rules! shared_methods2 {
     ($ty:ident, $tys_lower:literal) => {
         #[doc = concat!("Returns a 2D ", $tys_lower, " from the given coordinates.")]
-        pub fn new(x: T, y: T) -> Self {
-            [x, y].into()
+        pub const fn new(x: T, y: T) -> Self {
+            Self([x, y], PhantomData)
         }
     }
 }
@@ -80,8 +80,8 @@ macro_rules! shared_methods2 {
 macro_rules! shared_methods3 {
     ($ty:ident, $tys_lower:literal) => {
         #[doc = concat!("Returns a 3D ", $tys_lower, " from the given coordinates.")]
-        pub fn new(x: T, y: T, z: T) -> Self {
-            [x, y, z].into()
+        pub const fn new(x: T, y: T, z: T) -> Self {
+            Self([x, y, z], PhantomData)
         }
     }
 }

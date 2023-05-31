@@ -165,12 +165,12 @@ impl<T: Scalar, S: Space> Vector<T, 3, S> {
 shared_impls!(Vector, "vector", "Vec");
 
 /// Shorthand for `Vec2::new(...)`, but with fixed `S = Generic`.
-pub fn vec2<T: Scalar>(x: T, y: T) -> Vec2<T> {
+pub const fn vec2<T: Scalar>(x: T, y: T) -> Vec2<T> {
     Vec2::new(x, y)
 }
 
 /// Shorthand for `Vec3::new(...)`, but with fixed `S = Generic`.
-pub fn vec3<T: Scalar>(x: T, y: T, z: T) -> Vec3<T> {
+pub const fn vec3<T: Scalar>(x: T, y: T, z: T) -> Vec3<T> {
     Vec3::new(x, y, z)
 }
 

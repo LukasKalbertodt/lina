@@ -86,8 +86,12 @@ impl<T: Scalar, const N: usize, S: Space> HcPoint<T, N, S> {
     /// Reinterprets this points as being in the space `Target` instead of `S`.
     /// Before calling this, make sure this operation makes semantic sense and
     /// don't just use it to get rid of compiler errors.
-    pub fn in_space<Target: Space>(self) -> HcPoint<T, N, Target> {
-        HcPoint::new(self.coords, self.weight)
+    pub const fn in_space<Target: Space>(self) -> HcPoint<T, N, Target> {
+        HcPoint {
+            coords: self.coords,
+            weight: self.weight,
+            _dummy: PhantomData,
+        }
     }
 
     /// Returns a byte slice of this point representing the full raw data
