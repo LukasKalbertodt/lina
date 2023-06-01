@@ -1,7 +1,7 @@
 use std::{array, fmt, ops, marker::PhantomData};
 use bytemuck::{Pod, Zeroable};
 
-use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, WorldSpace, dot};
+use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, WorldSpace, dot, Dir};
 
 
 /// A `C`×`R` transformatin matrix (`C` many columns, `R` many rows)
@@ -769,6 +769,20 @@ impl<
     type Output = Vector<T, R, Dst>;
     fn mul(self, rhs: Vector<T, C, Src>) -> Self::Output {
         array::from_fn(|row| dot(self.row(row), rhs)).into()
+    }
+}
+
+/// See [`Matrix::transform`].
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<Dir<T, C, Src>> for &Matrix<T, C, R, Src, Dst> {
+    type Output = Vector<T, R, Dst>;
+    fn mul(self, rhs: Dir<T, C, Src>) -> Self::Output {
+        array::from_fn(|row| dot(self.row(row), rhs.to_unit_vec())).into()
     }
 }
 
