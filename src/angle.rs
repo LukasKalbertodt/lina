@@ -26,6 +26,9 @@ macro_rules! shared_methods {
         pub fn tan(self) -> T {
             Radians::from(self).0.tan()
         }
+        pub fn sin_cos(self) -> (T, T) {
+            Radians::from(self).0.sin_cos()
+        }
 
         pub fn asin(v: T) -> Self {
             Radians(v.asin()).into()

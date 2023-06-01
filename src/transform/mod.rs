@@ -88,11 +88,11 @@ pub fn scale_nonuniform<T: Scalar, const N: usize>(
 pub fn rotate3d_around_x<T: Float>(
     angle: impl Into<Radians<T>>,
 ) -> Mat3<T, WorldSpace, WorldSpace> {
-    let a = angle.into();
+    let (sin, cos) = angle.into().sin_cos();
     Matrix::from_rows([
         [ T::one(), T::zero(), T::zero()],
-        [T::zero(),   a.cos(),  -a.sin()],
-        [T::zero(),   a.sin(),   a.cos()],
+        [T::zero(),       cos,      -sin],
+        [T::zero(),       sin,       cos],
     ])
 }
 
@@ -106,11 +106,11 @@ pub fn rotate3d_around_x<T: Float>(
 pub fn rotate3d_around_y<T: Float>(
     angle: impl Into<Radians<T>>,
 ) -> Mat3<T, WorldSpace, WorldSpace> {
-    let a = angle.into();
+    let (sin, cos) = angle.into().sin_cos();
     Matrix::from_rows([
-        [  a.cos(), T::zero(),   a.sin()],
+        [      cos, T::zero(),       sin],
         [T::zero(), T::one(),  T::zero()],
-        [ -a.sin(), T::zero(),   a.cos()],
+        [     -sin, T::zero(),       cos],
     ])
 }
 
@@ -124,10 +124,10 @@ pub fn rotate3d_around_y<T: Float>(
 pub fn rotate3d_around_z<T: Float>(
     angle: impl Into<Radians<T>>,
 ) -> Mat3<T, WorldSpace, WorldSpace> {
-    let a = angle.into();
+    let (sin, cos) = angle.into().sin_cos();
     Matrix::from_rows([
-        [  a.cos(),  -a.sin(), T::zero()],
-        [  a.sin(),   a.cos(), T::zero()],
+        [      cos,      -sin, T::zero()],
+        [      sin,       cos, T::zero()],
         [T::zero(), T::zero(),  T::one()],
     ])
 }
