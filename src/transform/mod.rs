@@ -208,11 +208,11 @@ pub fn translate<T: Scalar, const N: usize, S: Space>(
 /// the `up` vector over time. For example, if the player moves the
 /// mouse/controller you don't just adjust the look direction, but also the up
 /// vector.
-pub fn look_into<T: Float>(
-    eye: Point3<T, WorldSpace>,
-    direction: Vec3<T, WorldSpace>,
-    up: Vec3<T, WorldSpace>,
-) -> HcMat3<T, WorldSpace, ViewSpace> {
+pub fn look_into<T: Float, S: Space>(
+    eye: Point3<T, S>,
+    direction: Vec3<T, S>,
+    up: Vec3<T, S>,
+) -> HcMat3<T, S, ViewSpace> {
     // This function is unlikely to be called often, so we improve developer
     // experience by having these checks and normalizations.
     assert!(!direction.is_zero(), "direction vector must not be the zero vector");
