@@ -15,7 +15,7 @@ use std::ops::RangeInclusive;
 use crate::{
     cross, dot,
     Float, Scalar, Vector, Matrix, Point3, Radians, Vec3, HcMatrix, HcMat3,
-    WorldSpace, ViewSpace, ProjSpace, Space, Mat3,
+    WorldSpace, ViewSpace, ProjSpace, Space, Mat3, Dir3,
 };
 
 
@@ -129,6 +129,27 @@ pub fn rotate3d_around_z<T: Float>(
         [      cos,      -sin, T::zero()],
         [      sin,       cos, T::zero()],
         [T::zero(), T::zero(),  T::one()],
+    ])
+}
+
+/// 3D Rotation around the given axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡ cos(θ)  -sin(θ)  0 ⎤
+/// ⎢ sin(θ)   cos(θ)  0 ⎥
+/// ⎣      0        0  1 ⎦
+/// ```
+pub fn rotate3d_around<T: Float, S: Space>(
+    axis: Dir3<T, S>,
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, S, S> {
+    let (sin, cos) = angle.into().sin_cos();
+    let omc = T::one() - cos;
+    let [x, y, z] = axis.to_array();
+    Matrix::from_rows([
+        [x * x * omc + cos    , x * y * omc - z * sin, x * z * omc + y * sin],
+        [y * x * omc + z * sin, y * y * omc + cos    , y * z * omc - x * sin],
+        [z * x * omc - y * sin, z * y * omc + x * sin, z * z * omc + cos    ],
     ])
 }
 
