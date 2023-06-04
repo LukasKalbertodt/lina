@@ -67,6 +67,19 @@ impl<T: Scalar, const N: usize, S: Space> Point<T, N, S> {
         (self - other).length()
     }
 
+    /// Returns the vector from `self` to `other`. This is equivalent to
+    /// `other - self`.
+    ///
+    /// ```
+    /// use lina::{point2, vec2};
+    ///
+    /// let v = point2(1.0, 5.5).vec_to(point2(4.0, 1.5));
+    /// assert_eq!(v, vec2(3.0, -4.0));
+    /// ```
+    pub fn vec_to(self, other: Self) -> Vector<T, N, S> {
+        other - self
+    }
+
     /// Returns this point represented in homogeneous coordinates.
     ///
     /// Numerically, this simply extends this point with a 1 as weight value.
