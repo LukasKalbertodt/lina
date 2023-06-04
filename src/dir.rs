@@ -91,6 +91,15 @@ impl<T: Scalar, const N: usize, S: Space> Dir<T, N, S> {
 }
 
 impl<T: Scalar, S: Space> Dir2<T, S> {
+    /// Creates a `Dir` by normalizing the vector specified by the given
+    /// coordinates.
+    pub fn new(x: T, y: T) -> Self
+    where
+        T: Float,
+    {
+        Self::from_vec(Vec2::new(x, y))
+    }
+
     /// Creates a `Dir` without checking that the given values form a unit
     /// vector.
     pub const fn new_unchecked(x: T, y: T) -> Self {
@@ -119,6 +128,15 @@ impl<T: Scalar, S: Space> Dir2<T, S> {
 }
 
 impl<T: Scalar, S: Space> Dir3<T, S> {
+    /// Creates a `Dir` by normalizing the vector specified by the given
+    /// coordinates.
+    pub fn new(x: T, y: T, z: T) -> Self
+    where
+        T: Float,
+    {
+        Self::from_vec(Vec3::new(x, y, z))
+    }
+
     /// Creates a `Dir` without checking that the given values form a unit
     /// vector.
     pub const fn new_unchecked(x: T, y: T, z: T) -> Self {
