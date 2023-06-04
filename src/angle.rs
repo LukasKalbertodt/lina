@@ -157,6 +157,13 @@ macro_rules! impl_ops {
             }
         }
 
+        impl<T: Float> ops::Div<$ty<T>> for $ty<T> {
+            type Output = T;
+            fn div(self, rhs: $ty<T>) -> Self::Output {
+                self.0 / rhs.0
+            }
+        }
+
         impl<T: Float> ops::Neg for $ty<T> {
             type Output = Self;
             fn neg(self) -> Self {
