@@ -270,13 +270,13 @@ macro_rules! assert_approx_eq {
         }
     }};
     (@imp abs <= $v:expr => $a:ident, $b:ident) => {
-        $crate::approx::ApproxEq::approx_eq_abs($a, $b, $v)
+        $crate::ApproxEq::approx_eq_abs($a, $b, $v)
     };
     (@imp rel <= $v:expr => $a:ident, $b:ident) => {
-        $crate::approx::ApproxEq::approx_eq_rel($a, $b, $v)
+        $crate::ApproxEq::approx_eq_rel($a, $b, $v)
     };
     (@imp ulps <= $v:expr => $a:ident, $b:ident) => {
-        $crate::approx::ApproxEq::approx_eq_ulps($a, $b, $v)
+        $crate::ApproxEq::approx_eq_ulps($a, $b, $v)
     };
 }
 
