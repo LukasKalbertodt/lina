@@ -46,16 +46,16 @@ macro_rules! shared_methods {
         #[doc = concat!("use lina::{assert_approx_eq, ", stringify!($ty), "};")]
         ///
         #[doc = concat!("let q = ", stringify!($ty), "::quarter_turn();")]
-        /// assert_approx_eq!(ulps <= 4 => (q * -4.0).normalized(), q * 0.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * -3.0).normalized(), q * 1.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * -2.0).normalized(), q * 2.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * -1.0).normalized(), q * 3.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * 0.0).normalized(), q * 0.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * 1.0).normalized(), q * 1.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * 2.0).normalized(), q * 2.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * 3.0).normalized(), q * 3.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * 4.0).normalized(), q * 0.0);
-        /// assert_approx_eq!(ulps <= 4 => (q * 5.0).normalized(), q * 1.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -4.0).normalized(), q * 0.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -3.0).normalized(), q * 1.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -2.0).normalized(), q * 2.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -1.0).normalized(), q * 3.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 0.0).normalized(), q * 0.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 1.0).normalized(), q * 1.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 2.0).normalized(), q * 2.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 3.0).normalized(), q * 3.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 4.0).normalized(), q * 0.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 5.0).normalized(), q * 1.0);
         /// ```
         #[must_use = "to normalize in-place, use `normalize`, not `normalized`"]
         pub fn normalized(self) -> Self {

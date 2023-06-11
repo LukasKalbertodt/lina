@@ -223,7 +223,7 @@ fn inv4() {
         Some(Matrix::from_diagonal([1.0 / 0.187, 1.0, 1.0 / 4.0, 1.0 / 6.5])),
     );
 
-    assert_approx_eq!(ulps <= 1 =>
+    assert_approx_eq!(ulps <= 1;
         from_rows([
             [ 1.0,  4.0,  5.0, -1.0],
             [-2.0,  3.0, -1.0,  0.0],

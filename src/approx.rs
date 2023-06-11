@@ -248,18 +248,18 @@ impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for SphericalDir<T, 
 /// Like `assert_eq`, but using [`ApproxEq`] to compare for approximate equality.
 ///
 /// The mode and parameters of the comparison are passed first, e.g.:
-/// - `assert_approx_eq!(ulps <= 4 => a, b)`
-/// - `assert_approx_eq!(rel <= 40 * f32::EPSILON => a, b)`
-/// - `assert_approx_eq!(abs <= 001 => a, b)`
+/// - `assert_approx_eq!(ulps <= 4; a, b)`
+/// - `assert_approx_eq!(rel <= 40 * f32::EPSILON; a, b)`
+/// - `assert_approx_eq!(abs <= 001; a, b)`
 ///
 /// The only reason to use this over `assert!(ApproxEq::...)` is better error
 /// messages.
 #[macro_export]
 macro_rules! assert_approx_eq {
-    ($mode:ident <= $v:expr => $a:expr, $b:expr $(,)?) => {{
+    ($mode:ident <= $v:expr; $a:expr, $b:expr $(,)?) => {{
         let a = $a;
         let b = $b;
-        if !$crate::assert_approx_eq!(@imp $mode <= $v => a, b) {
+        if !$crate::assert_approx_eq!(@imp $mode <= $v; a, b) {
             panic!(
                 "assert_approx_eq failed!\n\
                     left:  {:#?}\n\
@@ -269,13 +269,13 @@ macro_rules! assert_approx_eq {
             );
         }
     }};
-    (@imp abs <= $v:expr => $a:ident, $b:ident) => {
+    (@imp abs <= $v:expr; $a:ident, $b:ident) => {
         $crate::ApproxEq::approx_eq_abs($a, $b, $v)
     };
-    (@imp rel <= $v:expr => $a:ident, $b:ident) => {
+    (@imp rel <= $v:expr; $a:ident, $b:ident) => {
         $crate::ApproxEq::approx_eq_rel($a, $b, $v)
     };
-    (@imp ulps <= $v:expr => $a:ident, $b:ident) => {
+    (@imp ulps <= $v:expr; $a:ident, $b:ident) => {
         $crate::ApproxEq::approx_eq_ulps($a, $b, $v)
     };
 }
