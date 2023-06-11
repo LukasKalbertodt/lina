@@ -6,8 +6,8 @@ use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 
 
 
-/// A `C + 1`×`R + 1` homogeneous transformation matrix (`C + 1` many columns,
-/// `R + 1` many rows) representing a transformation from `Src` to `Dst`.
+/// A homogeneous transformation matrix with `C` + 1 columns and `R` + 1 rows
+/// representing a transformation from `Src` to `Dst`.
 ///
 /// This transformation can be interpreted in two ways:
 /// - As a potentially non-linear transformation of Cartesian coordinates
@@ -21,6 +21,9 @@ use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 /// transformation can be represented by `HcMatrix`. The term "affine
 /// transformation" describes the set of linear transformation and
 /// translations.
+///
+/// The const parameters of this type represent the dimension of the cartesian
+/// coordinate space that is being transformed.
 ///
 /// As with [`Matrix`], you can use the `*` operator or [`HcMatrix::transform`]
 /// to transform points with this matrix. And you can also use `*` or

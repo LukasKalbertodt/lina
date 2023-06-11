@@ -4,9 +4,8 @@ use bytemuck::{Pod, Zeroable};
 use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, WorldSpace, dot, Dir};
 
 
-/// A `C`×`R` transformatin matrix (`C` many columns, `R` many rows)
-/// representing a linear transformation on cartesian coordinates from `Src` to
-/// `Dst`.
+/// A linear transformatin matrix with `C` columns and `R` rows. Represents a
+/// linear transformation on cartesian coordinates from `Src` to `Dst`.
 ///
 /// This type does not implement `ops::Index[Mut]`. Instead, there are two main
 /// ways to access elements. Use whatever you prefer, but keep in mind that
@@ -103,15 +102,15 @@ pub struct Matrix<
 
 pub(super) type MatrixStorage<T, const C: usize, const R: usize> = [[T; R]; C];
 
-/// A 3×3 matrix.
+/// A 3×3 linear transformation matrix.
 pub type Mat3<T, Src = WorldSpace, Dst = WorldSpace> = Matrix<T, 3, 3, Src, Dst>;
-/// A 2×2 matrix.
+/// A 2×2 linear transformation matrix.
 pub type Mat2<T, Src = WorldSpace, Dst = WorldSpace> = Matrix<T, 2, 2, Src, Dst>;
 
-/// A 3×3 matrix with `f32` elements.
+/// A 3×3 linear transformation matrix with `f32` elements.
 pub type Mat3f<Src = WorldSpace, Dst = WorldSpace> = Mat3<f32, Src, Dst>;
 
-/// A 2×2 matrix with `f32` elements.
+/// A 2×2 linear transformation matrix with `f32` elements.
 pub type Mat2f<Src = WorldSpace, Dst = WorldSpace> = Mat2<f32, Src, Dst>;
 
 
