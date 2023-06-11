@@ -104,24 +104,61 @@ Almost all types in `lina` contain one or two `S: Space` parameters. For,
 vector lives. Similarly, for [`Matrix`] and [`HcMatrix`], the two parameter
 indicate from and into which semantic space the transformation transforms.
 
-See [the viewing pipeline docs][viewing_pipeline] for the typical examples of
-different spaces, i.e. model, world, view, and projection space. But adding to
-that, another example: imagine a game with a huge world, e.g. Minecraft or
-Elite Dangerous, a space game where the game world is the entire Milky Way to
-scale. Here, you can run into floating point precision problems. Minecraft
-simply does not deal with that problem and kind of gets away with it, but Elite
-Dangerous certainly has to. So while you travel through the galaxy, the game
-switches between different frames of references with different scales. In other
-words: different spaces.
+[The viewing pipeline docs][viewing_pipeline] show typical examples of different
+spaces, i.e. model, world, view, and projection space. But apart from those,
+there are actually many use cases for using multiple coordinate systems.
+
+Let's assume you are developing a game where the player can walk around on a
+planet. The natural coordinate system has the planet's center at `[0, 0, 0]`
+with the north pole at `[0, 0, radius]`. But you also want to calculate the
+motion of the sun and other objects in the sky. As early astronomers can
+attest, calculating the orbits in a planet-centric coordinate system is ouch in
+the bum. So for that, you want a different coordinate system with the sun at
+the origin. Let's call that the helio-centric space or `HelioSpace`. The
+planet-centric space you could call `PlanetSpace`.
+
+But that's not all! Let's say you want a big planet. If it has the same radius
+as earth, using `f32` gives you a half-meter precision at the surface. Oof.
+Using `f64` is not an option unless you prefer to measure your game's
+performance in spf (seconds/frame). So now you want a `DrawSpace`, a space that
+is centered at the players spawn point. All rendering is done in that space.
+(Let's hope the player never travels too far from the spawn point in one
+session...)
 
 In short: in typical 3D applications there are many different spaces that points
 and vectors logically live in. Mixing points or vectors of different spaces
 usually makes no sense. To avoid doing that, `lina` uses strong typing.
 
-This unfortunately bloats the API quite a bit and makes using `lina` a bit more
-annoying at some places, as `rustc` will ask for type annotations. But in
-typical applications this shouldn't be a problem and hopefully the added type
-safety is worth it.
+For the example from above, it's useful to add the following items to your
+project:
+
+```rust
+enum HelioSpace {}
+impl lina::Space for HelioSpace {}
+enum PlanetSpace {}
+impl lina::Space for PlanetSpace {}
+enum DrawSpace {}
+impl lina::Space for DrawSpace {}
+
+type HelioPoint = lina::Point<f64, 3, HelioSpace>;
+type PlanetPoint = lina::Point<f32, 3, PlanetSpace>;
+type DrawPoint = lina::Point<f32, 3, DrawSpace>;
+// ... more type aliases for vectors, directions, ...
+```
+
+These type aliases are useful as you can usually fix all generic parameters: the
+dimension, scalar type and space! For example, the `HelioSpace` points never
+reach the GPU and might require additional precision, so `f64` is fine.
+
+It's worth noting that not only does this prevent switcheroos between
+vectors/points of different spaces, but it can also help code readability and
+automatically documents functions! Without spaces, you would have to include in
+the function's docs in what space a vector is expected.
+
+All of this unfortunately bloats lina's API quite a bit and makes using `lina` a
+bit more annoying at some places. For example, `rustc` might ask for type
+annotations. But in typical applications this shouldn't be a problem and
+hopefully the added benefits are worth it.
 
 
 

@@ -4,22 +4,21 @@ use bytemuck::{Pod, Zeroable};
 use crate::{Vector, Scalar, Float, WorldSpace, Space, HcPoint};
 
 
-/// A point in `N`-dimensional space with scalar type `T`. It represents
-/// a *location* in space.
+/// A *location* in `N`-dimensional space with scalar type `T`.
 #[repr(transparent)]
 pub struct Point<T: Scalar, const N: usize, S: Space = WorldSpace>(
     pub(crate) [T; N],
     PhantomData<S>,
 );
 
-/// A point in 2-dimensional space.
+/// A *location* in 2-dimensional space.
 pub type Point2<T, S = WorldSpace> = Point<T, 2, S>;
-/// A point in 3-dimensional space.
+/// A *location* in 3-dimensional space.
 pub type Point3<T, S = WorldSpace> = Point<T, 3, S>;
 
-/// A point in 2-dimensional space with scalar type `f32`.
+/// A *location* in 2-dimensional space with scalar type `f32`.
 pub type Point2f<S = WorldSpace> = Point2<f32, S>;
-/// A point in 3-dimensional space with scalar type `f32`.
+/// A *location* in 3-dimensional space with scalar type `f32`.
 pub type Point3f<S = WorldSpace> = Point3<f32, S>;
 
 

@@ -5,7 +5,7 @@ use bytemuck::{Zeroable, Pod};
 use crate::{Scalar, Space, WorldSpace, Point};
 
 
-/// A point in `N`-dimensional space represented by *homogeneous coordinates*
+/// A location in `N`-dimensional space represented by *homogeneous coordinates*
 /// (with `N + 1` values).
 ///
 /// Any given point can not only be represented in the familiar cartesian
@@ -42,19 +42,19 @@ pub struct HcPoint<T: Scalar, const N: usize, S: Space = WorldSpace> {
     _dummy: PhantomData<S>,
 }
 
-/// A point in 2-dimensional space represented by homogeneous coordinates
+/// A location in 2-dimensional space represented by homogeneous coordinates
 /// (with 3 values).
 pub type HcPoint2<T, S = WorldSpace> = HcPoint<T, 2, S>;
 
-/// A point in 3-dimensional space represented by homogeneous coordinates
+/// A location in 3-dimensional space represented by homogeneous coordinates
 /// (with 4 values).
 pub type HcPoint3<T, S = WorldSpace> = HcPoint<T, 3, S>;
 
-/// A point in 2-dimensional space represented by homogeneous coordinates
+/// A location in 2-dimensional space represented by homogeneous coordinates
 /// (with 3 `f32` values).
 pub type HcPoint2f<S = WorldSpace> = HcPoint2<f32, S>;
 
-/// A point in 3-dimensional space represented by homogeneous coordinates
+/// A location in 3-dimensional space represented by homogeneous coordinates
 /// (with 4 `f32` values).
 pub type HcPoint3f<S = WorldSpace> = HcPoint3<f32, S>;
 

@@ -1,4 +1,4 @@
-//! Auxiliary documentation about linear algebra and computer graphics.
+//! Auxiliary documentation.
 //!
 //! These docs are almost too off-topic to appear in this library's
 //! documentation. But I still hope they help!

@@ -25,6 +25,9 @@
 //!     - Use `*` or `transform` to transform a vector or point with a matrix.
 //! - Operators are overloaded as you would expect.
 //! - Many types have a [`Space`] parameter to use strong typing.
+//!     - Use `in_space` or `with_spaces` methods to cast/reinterpret the space parameter.
+//!     - Recommendation: make type aliases for specific types used in your app,
+//!       e.g. `type HelioPoint = Point<f64, 3, HelioSpace>`.
 //! - Most types have a `to_bytes` method to pass them to graphic APIs.
 //! - Other features:
 //!     - Strongly typed angles: [`Degrees`] and [`Radians`]

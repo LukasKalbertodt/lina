@@ -8,22 +8,21 @@ use crate::{
 };
 
 
-/// An `N`-dimensional vector with scalar type `T`. This represents
-/// a *displacement* in space.
+/// A *displacement* in `N`-dimensional space with scalar type `T`.
 #[repr(transparent)]
 pub struct Vector<T: Scalar, const N: usize, S: Space = WorldSpace>(
     pub(crate) [T; N],
     PhantomData<S>,
 );
 
-/// A 2-dimensional vector.
+/// A *displacement* in 2-dimensional space.
 pub type Vec2<T, S = WorldSpace> = Vector<T, 2, S>;
-/// A 3-dimensional vector.
+/// A *displacement* in 3-dimensional space.
 pub type Vec3<T, S = WorldSpace> = Vector<T, 3, S>;
 
-/// A 2-dimensional vector with scalar type `f32`.
+/// A *displacement* in 2-dimensional space with scalar type `f32`.
 pub type Vec2f<S = WorldSpace> = Vec2<f32, S>;
-/// A 3-dimensional vector with scalar type `f32`.
+/// A *displacement* in 3-dimensional space with scalar type `f32`.
 pub type Vec3f<S = WorldSpace> = Vec3<f32, S>;
 
 
