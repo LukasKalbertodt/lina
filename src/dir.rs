@@ -24,10 +24,6 @@ pub type Dir2f<S = WorldSpace> = Dir2<f32, S>;
 /// A 3-dimensional direction with scalar type `f32`.
 pub type Dir3f<S = WorldSpace> = Dir3<f32, S>;
 
-/// A 2-dimensional direction with scalar type `f64`.
-pub type Dir2d<S = WorldSpace> = Dir2<f64, S>;
-/// A 3-dimensional direction with scalar type `f64`.
-pub type Dir3d<S = WorldSpace> = Dir3<f64, S>;
 
 impl<T: Scalar, const N: usize, S: Space> Dir<T, N, S> {
     /// Returns the direction of the given vector. If `v` is the null vector,

@@ -26,11 +26,6 @@ pub type Vec2f<S = WorldSpace> = Vec2<f32, S>;
 /// A 3-dimensional vector with scalar type `f32`.
 pub type Vec3f<S = WorldSpace> = Vec3<f32, S>;
 
-/// A 2-dimensional vector with scalar type `f64`.
-pub type Vec2d<S = WorldSpace> = Vec2<f64, S>;
-/// A 3-dimensional vector with scalar type `f64`.
-pub type Vec3d<S = WorldSpace> = Vec3<f64, S>;
-
 
 impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
     /// Returns the zero vector.

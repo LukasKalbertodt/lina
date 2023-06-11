@@ -106,17 +106,17 @@ pub mod transform;
 pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
-    dir::{Dir, Dir2, Dir2f, Dir2d, Dir3, Dir3f, Dir3d},
+    dir::{Dir, Dir2, Dir2f, Dir3, Dir3f},
     mat::{
-        linear::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d},
-        hc::{HcMatrix, HcMat2, HcMat2f, HcMat2d, HcMat3, HcMat3f, HcMat3d},
+        linear::{Matrix, Mat2, Mat2f, Mat3, Mat3f},
+        hc::{HcMatrix, HcMat2, HcMat2f, HcMat3, HcMat3f},
     },
     space::{Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
     spherical::{SphericalDir, SphericalPos},
     vec::{
-        hc::{HcPoint, HcPoint2, HcPoint3},
-        point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
-        vector::{Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, vec2, vec3},
+        hc::{HcPoint, HcPoint2, HcPoint2f, HcPoint3, HcPoint3f},
+        point::{Point, Point2, Point2f, Point3, Point3f, point2, point3},
+        vector::{Vector, Vec2, Vec2f, Vec3, Vec3f, vec2, vec3},
     },
 };
 

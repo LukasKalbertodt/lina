@@ -110,13 +110,9 @@ pub type Mat2<T, Src = WorldSpace, Dst = WorldSpace> = Matrix<T, 2, 2, Src, Dst>
 
 /// A 3×3 matrix with `f32` elements.
 pub type Mat3f<Src = WorldSpace, Dst = WorldSpace> = Mat3<f32, Src, Dst>;
-/// A 3×3 matrix with `f63` elements.
-pub type Mat3d<Src = WorldSpace, Dst = WorldSpace> = Mat3<f64, Src, Dst>;
 
 /// A 2×2 matrix with `f32` elements.
 pub type Mat2f<Src = WorldSpace, Dst = WorldSpace> = Mat2<f32, Src, Dst>;
-/// A 2×2 matrix with `f62` elements.
-pub type Mat2d<Src = WorldSpace, Dst = WorldSpace> = Mat2<f64, Src, Dst>;
 
 
 impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T, C, R, Src, Dst> {

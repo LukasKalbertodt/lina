@@ -71,20 +71,15 @@ pub struct HcMatrix<
 >(HcMatrixStorage<T, C, R>, PhantomData<(Src, Dst)>);
 
 
-/// A 3×3 homogeneous transformation matrix.
+/// A homogeneous transformation matrix storing 4×4 elements.
 pub type HcMat3<T, Src = WorldSpace, Dst = WorldSpace> = HcMatrix<T, 3, 3, Src, Dst>;
-/// A 2×2 homogeneous transformation matrix.
+/// A homogeneous transformation matrix storing 3×3 elements.
 pub type HcMat2<T, Src = WorldSpace, Dst = WorldSpace> = HcMatrix<T, 2, 2, Src, Dst>;
 
-/// A 3×3 homogeneous transformation matrix with `f32` elements.
+/// A homogeneous transformation matrix storing 4×4 `f32` elements.
 pub type HcMat3f<Src = WorldSpace, Dst = WorldSpace> = HcMat3<f32, Src, Dst>;
-/// A 3×3 homogeneous transformation matrix with `f64` elements.
-pub type HcMat3d<Src = WorldSpace, Dst = WorldSpace> = HcMat3<f64, Src, Dst>;
-
-/// A 2×2 homogeneous transformation matrix with `f32` elements.
+/// A homogeneous transformation matrix storing 3×3 `f32` elements.
 pub type HcMat2f<Src = WorldSpace, Dst = WorldSpace> = HcMat2<f32, Src, Dst>;
-/// A 2×2 homogeneous transformation matrix with `f64` elements.
-pub type HcMat2d<Src = WorldSpace, Dst = WorldSpace> = HcMat2<f64, Src, Dst>;
 
 
 impl<

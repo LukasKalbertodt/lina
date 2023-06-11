@@ -50,6 +50,14 @@ pub type HcPoint2<T, S = WorldSpace> = HcPoint<T, 2, S>;
 /// (with 4 values).
 pub type HcPoint3<T, S = WorldSpace> = HcPoint<T, 3, S>;
 
+/// A point in 2-dimensional space represented by homogeneous coordinates
+/// (with 3 `f32` values).
+pub type HcPoint2f<S = WorldSpace> = HcPoint2<f32, S>;
+
+/// A point in 3-dimensional space represented by homogeneous coordinates
+/// (with 4 `f32` values).
+pub type HcPoint3f<S = WorldSpace> = HcPoint3<f32, S>;
+
 
 impl<T: Scalar, const N: usize, S: Space> HcPoint<T, N, S> {
     /// Returns a representation of the origin in N-dimensional space.

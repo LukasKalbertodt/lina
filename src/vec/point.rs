@@ -22,11 +22,6 @@ pub type Point2f<S = WorldSpace> = Point2<f32, S>;
 /// A point in 3-dimensional space with scalar type `f32`.
 pub type Point3f<S = WorldSpace> = Point3<f32, S>;
 
-/// A point in 2-dimensional space with scalar type `f64`.
-pub type Point2d<S = WorldSpace> = Point2<f64, S>;
-/// A point in 3-dimensional space with scalar type `f64`.
-pub type Point3d<S = WorldSpace> = Point3<f64, S>;
-
 
 impl<T: Scalar, const N: usize, S: Space> Point<T, N, S> {
     /// Returns a point with all coordinates being zero (representing the origin).
