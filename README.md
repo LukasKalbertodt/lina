@@ -5,20 +5,17 @@
 [<img alt="docs.rs" src="https://img.shields.io/crates/v/lina?color=blue&label=docs&style=for-the-badge" height="23">](https://docs.rs/lina)
 
 
-`lina` is a linear algebra library leaning very heavily into strong typing. Its
-focus is on 3D applications like games, i.e. low-dimensional vectors and
-matrices.
+`lina` is a linear algebra library making heavy use of strong typing.
+Its focus is on 3D applications like games, i.e. low-dimensional vectors and matrices.
 
 Notable features setting `lina` apart from other similar libraries:
 
-- Usage of const generics, while still allowing scalar access via `.x`, `.y`,
-  `.z` and `.w`.
+- Usage of const generics, while still allowing scalar access via `.x`, `.y`, `.z` and `.w`.
 - Separate types for homogeneous coordinates (`HcPoint` and `HcMatrix`).
-- Most types have a `Space` parameter to represent the *logical space* the
-  vector, point, ... lives in.
+- Most types have a `Space` parameter to represent the *logical space* (e.g. model, world, view, ... space) the vector, point, etc lives in.
 - Distinction between locations (`Point`) and displacements (`Vector`).
 
-The last three of these illustrate what is meant by "leaning heavily into strong typing".
+The last three of these illustrate the philosophy of `lina` regarding strong typing.
 For motivation and examples, please read [this document](https://docs.rs/lina/latest/lina/docs/strong_typing/).
 In fact, this is all still a bit of an experiment, but so far I am very happy with the results in practice!
 However, I'm sure this is not for everyone and many would prefer a different API.
