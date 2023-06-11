@@ -1,43 +1,106 @@
-//! Yet another linear algebra library with a focus on computer graphics.
+//! Linear algebra library with a focus on computer graphics, heavily using
+//! strong typing and const generics (while still allowing access via `.x`,
+//! `.y`, `.z` and `.w`).
 //!
-//! This library heavily uses const generics for vectors, points and matrices,
-//! but still allows scalar access via `.x`, `.y`, `.z` and `.w` for small
-//! vectors and points. While these three types are generic over their
-//! dimension, some features are only implemented for small dimensions.
-//!
-//! - [Vectors][Vector] and [points][Point] with generic dimension (see
-//!   [this explanation][docs::point_vs_vector] on why `lina` has two
-//!   vector-like types)
-//! - [Matrices][Matrix] with generic dimensions
-//! - Strongly typed angles: [`Degrees`] and [`Radians`]
-//! - Commonly used [transformations][transform]
-//! - Spherical coordinates: [`SphericalPos`] and [`NormedSphericalPos`]
-//! - Several helper functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], ...
-//! - [Auxiliary documentation][docs] about topics like computer graphics, linear
-//!   algebra, ...
+//! `lina` leans heavily into strong typing by distinguishing points and
+//! vectors, Cartesian and homogeneous coordinates, and even elements from
+//! different semantic spaces. See [these docs][docs::strong_typing] for more
+//! information.
 //!
 //!
-//! ## Features
+//! # Quick start / overview
 //!
-//! - `nightly` (default): this enables some additional functions like
-//!   `Vector<T, N>::extend(T) -> Vector<T, N + 1>`. These functions return
-//!   something with one higher or one lower dimension. This arithmetic with
-//!   const parameters is not yet allowed on stable, thus a nightly compiler is
-//!   required for this.
-
-#![cfg_attr(feature = "nightly", feature(generic_const_exprs))]
-#![cfg_attr(feature = "nightly", allow(incomplete_features))]
+//! - **Locations and displacements**
+//!     - [`Point`] represents a location.
+//!     - [`Vector`] represents a displacement.
+//!     - [`HcPoint`] represents a point in homogeneous coordinates.
+//!     - [`Dir`] represents a direction via unit vector.
+//!     - Use [`SphericalPos`] and [`SphericalDir`] for spherical coordinates.
+//! - **Transformations**
+//!     - [`Matrix`] represents a linear transformation.
+//!     - [`HcMatrix`] represents a potentially non-linear transformation in
+//!       homogeneous coordinates.
+//!     - Use [`transform`] to get common transformation matrices.
+//!     - Use `*` or `and_then` to combine two matrices.
+//!     - Use `*` or `transform` to transform a vector or point with a matrix.
+//! - Operators are overloaded as you would expect.
+//! - Many types have a [`Space`] parameter to use strong typing.
+//!     - Use `in_space` or `with_spaces` methods to cast/reinterpret the space parameter.
+//!     - Recommendation: make type aliases for specific types used in your app,
+//!       e.g. `type HelioPoint = Point<f64, 3, HelioSpace>`.
+//! - Most types have a `to_bytes` method to pass them to graphic APIs.
+//! - Other features:
+//!     - Strongly typed angles: [`Degrees`] and [`Radians`]
+//!     - Useful functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], [`cross`], [`dot`], ...
+//!     - [`ApproxEq`] for approximate float equality
+//!
+//! This example shows some basic usage:
+//!
+//! ```
+//! use lina::{point3, vec3, transform, Degrees, Vector};
+//!
+//! // Basic vector/point usage
+//! let player_pos = point3(4.0, 5.0, 1.8);
+//! let fox_pos = point3(10.0, 3.0, 0.5);
+//! let view_direction = vec3(1.3, 0.2, 0.0).normalized();
+//! let speed = 1.5;
+//! let new_player_pos = player_pos + view_direction * speed;
+//!
+//! println!("{:.2}m still to go!", player_pos.distance_from(fox_pos));
+//!
+//! // Create and compose transformation matrices
+//! let view_matrix = transform::look_into(new_player_pos, view_direction, Vector::unit_z());
+//! let proj_matrix = transform::perspective(
+//!     Degrees(90.0),
+//!     16.0 / 9.0,
+//!     0.1..=f32::INFINITY,
+//!     1.0..=0.0,
+//! );
+//! let view_proj = view_matrix.and_then(proj_matrix); // or `proj_matrix * view_matrix`
+//!
+//! // Transform points with matrices
+//! let fox_on_screen = view_proj.transform(fox_pos);  // or `view_proj * fox_pos`
+//! ```
+//!
+//! ## Const generics limitations
+//!
+//! To express the signature of some functions, `feature(generic_const_exprs)`
+//! is required. Think of [`Vector::extend`] which returns a `Vector<T, N + 1>`.
+//! The `+ 1` is the problem here as this is currently not yet allowed on
+//! stable Rust. Most of these functions are related to [`HcPoint`] or
+//! [`HcMatrix`].
+//!
+//! Not only is that feature not stabilized yet, it is also very unfinished and
+//! broken. So unfortunately, `lina` cannot use it. Instead, these functions
+//! are implemented for a small number of fixed dimensions via macro. But worry
+//! not! For one, these are just a few functions without which `lina` can still
+//! be used without a problem. Further, for the 3D graphics use case, all
+//! relevant functions exist, as one is almost never converned with anything
+//! with more than 4 dimensions. So the only relevant disadvantage of this is
+//! that the docs look less nice, as there are repetitions of the same
+//! function.
+//!
+//! One further consequence of this is the choice that the const parameters of
+//! `HcPoint` and `HcMatrix` don't reflect the number of values/rows/columns,
+//! but the the dimension of the space in which the point lives/which the
+//! transformation transforms. E.g. `HcPoint<3>` represents a 3D point, by
+//! storing 4 numbers.
+//!
 
 use std::{
     fmt::Debug,
-    ops::{self, AddAssign, SubAssign, MulAssign, DivAssign},
+    ops::{self, AddAssign, SubAssign, MulAssign, DivAssign, RangeInclusive},
 };
 use bytemuck::Pod;
 use num_traits::Num;
 
 mod angle;
+mod approx;
+mod dir;
 mod mat;
+mod space;
 mod spherical;
+mod util;
 mod vec;
 pub mod docs;
 pub mod named_scalar;
@@ -45,15 +108,28 @@ pub mod transform;
 
 pub use self::{
     angle::{Degrees, Radians},
-    mat::{Matrix, Mat2, Mat2f, Mat2d, Mat3, Mat3f, Mat3d, Mat4, Mat4f, Mat4d},
-    spherical::{NormedSphericalPos, SphericalPos},
+    approx::ApproxEq,
+    dir::{Dir, Dir2, Dir2f, Dir3, Dir3f},
+    mat::{
+        linear::{Matrix, Mat2, Mat2f, Mat3, Mat3f},
+        hc::{HcMatrix, HcMat2, HcMat2f, HcMat3, HcMat3f},
+    },
+    space::{Space, ModelSpace, WorldSpace, ViewSpace, ProjSpace},
+    spherical::{SphericalDir, SphericalPos},
     vec::{
-        point::{Point, Point2, Point2f, Point2d, Point3, Point3f, Point3d, point2, point3},
-        vector::{
-            Vector, Vec2, Vec2f, Vec2d, Vec3, Vec3f, Vec3d, Vec4, Vec4f, Vec4d, vec2, vec3, vec4,
-        },
+        hc::{HcPoint, HcPoint2, HcPoint2f, HcPoint3, HcPoint3f},
+        point::{Point, Point2, Point2f, Point3, Point3f, point2, point3},
+        vector::{Vector, Vec2, Vec2f, Vec3, Vec3f, vec2, vec3},
     },
 };
+
+/// Helper utilities for matrices.
+pub mod matrix {
+    pub use crate::mat::{
+        linear::{Col, Row},
+        hc::{HcCol, HcRow},
+    };
+}
 
 
 /// A scalar type in the context of this library.
@@ -83,7 +159,7 @@ where
 /// functions of this library. It is used whenever `Scalar` is not sufficient,
 /// which is basically whenever a function does not make sense for integers.
 /// This trait is implemented for at least `f32` and `f64`.
-pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {
+pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst + approx::ApproxEq {
     fn two() -> Self {
         Self::one() + Self::one()
     }
@@ -97,7 +173,7 @@ pub trait Float: Scalar + num_traits::Float + num_traits::FloatConst {
 
 impl<T> Float for T
 where
-    T: Scalar + num_traits::Float + num_traits::FloatConst,
+    T: Scalar + num_traits::Float + num_traits::FloatConst + approx::ApproxEq,
 {}
 
 /// Returns the [cross product][wiki] `a ⨯ b`, a vector perpendicular to both
@@ -117,8 +193,13 @@ where
 /// ```
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Cross_product
-pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
-    vec3(
+pub fn cross<T: Scalar, S: Space>(
+    a: impl Into<Vec3<T, S>>,
+    b: impl Into<Vec3<T, S>>,
+) -> Vec3<T, S> {
+    let a = a.into();
+    let b = b.into();
+    Vec3::new(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x,
@@ -149,8 +230,14 @@ pub fn cross<T: Scalar>(a: Vec3<T>, b: Vec3<T>) -> Vec3<T> {
 /// ```
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Dot_product
-pub fn dot<T: Scalar, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> T {
+pub fn dot<T: Scalar, const N: usize, S: Space>(
+    a: impl Into<Vector<T, N, S>>,
+    b: impl Into<Vector<T, N, S>>,
+) -> T {
     assert!(N != 0, "the dot product of 0-dimensional vectors is not useful");
+
+    let a = a.into();
+    let b = b.into();
 
     let mut out = a[0] * b[0];
     for i in 1..N {
@@ -183,7 +270,13 @@ pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
 /// assert_eq!(angle_between(vec2(-2.0, 0.0), vec2(3.0, 0.0)), Radians(PI));       // 180°
 /// assert_eq!(angle_between(vec2(0.2, 0.0), vec2(0.0, 7.3)), Radians(PI / 2.0));  // 90°
 /// ```
-pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>) -> Radians<T> {
+pub fn angle_between<T: Float, const N: usize, S: Space>(
+    a: impl Into<Vector<T, N, S>>,
+    b: impl Into<Vector<T, N, S>>,
+) -> Radians<T> {
+    let a = a.into();
+    let b = b.into();
+
     debug_assert!(!a.is_zero());
     debug_assert!(!b.is_zero());
 
@@ -198,12 +291,21 @@ pub fn angle_between<T: Float, const N: usize>(a: Vector<T, N>, b: Vector<T, N>)
     Radians::acos(cos_angle)
 }
 
-/// Clamps `val` into the range `min..=max`.
+/// Clamps `val` into the given range `min..=max`.
 ///
 /// The trait bound *should* technically be `Ord`, but that's inconvenient when
-/// dealing with floats. When you pass a `NaN` you will get a strange result.
-pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
-    assert!(min < max);
+/// dealing with floats. Panics when passed a NaN.
+pub fn clamp<T: PartialOrd>(val: T, range: RangeInclusive<T>) -> T {
+    let (min, max) = range.into_inner();
+    assert!(
+        min.partial_cmp(&max).is_some(),
+        "non-comparable value (NaN?) in range passed to `clamp`",
+    );
+    assert!(
+        val.partial_cmp(&min).is_some(),
+        "non-comparable value (NaN?) passed as 'val' to `clamp`",
+    );
+    assert!(min < max, "'min' is larger than 'max'");
 
     match () {
         () if val < min => min,
@@ -252,11 +354,11 @@ where
 ///     vec3(0.7071067811865475, 0.7071067811865475, 0.0),  // sqrt(2) / 2
 /// );
 /// ```
-pub fn slerp<T: Float, const N: usize>(
-    a: Vector<T, N>,
-    b: Vector<T, N>,
+pub fn slerp<T: Float, const N: usize, S: Space>(
+    a: Vector<T, N, S>,
+    b: Vector<T, N, S>,
     factor: T,
-) -> Vector<T, N> {
+) -> Vector<T, N, S> {
     let angle = angle_between(a, b);
 
     // The general formula `sin(x * t) / sin(x)` is problematic for very small

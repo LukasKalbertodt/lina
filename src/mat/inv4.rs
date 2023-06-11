@@ -37,7 +37,8 @@
 //!   <https://www.geometrictools.com/Documentation/LaplaceExpansionTheorem.pdf>
 //!
 
-use crate::{Matrix, Float};
+use crate::Float;
+use super::linear::MatrixStorage;
 
 
 struct IntermediateResult<F: Float> {
@@ -50,7 +51,7 @@ struct IntermediateResult<F: Float> {
     t0123: F,
 }
 
-fn step_one<F: Float>(m: &Matrix<F, 4, 4>) -> IntermediateResult<F> {
+fn step_one<F: Float>(m: &MatrixStorage<F, 4, 4>) -> IntermediateResult<F> {
     let t2323 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
     let t1323 = m[1][2] * m[3][3] - m[3][2] * m[1][3];
     let t1223 = m[1][2] * m[2][3] - m[2][2] * m[1][3];
@@ -67,12 +68,12 @@ fn step_one<F: Float>(m: &Matrix<F, 4, 4>) -> IntermediateResult<F> {
     IntermediateResult { det, t2323, t1323, t1223, t0323, t0223, t0123 }
 }
 
-pub(super) fn det<F: Float>(m: &Matrix<F, 4, 4>) -> F {
+pub(super) fn det<F: Float>(m: &MatrixStorage<F, 4, 4>) -> F {
     let r = step_one(m);
     r.det
 }
 
-pub(super) fn inv<F: Float>(m: &Matrix<F, 4, 4>) -> Option<Matrix<F, 4, 4>> {
+pub(super) fn inv<F: Float>(m: &MatrixStorage<F, 4, 4>) -> Option<MatrixStorage<F, 4, 4>> {
     let IntermediateResult { det, t2323, t1323, t1223, t0323, t0223, t0123 } = step_one(m);
     if det.is_zero() {
         return None;
@@ -91,32 +92,33 @@ pub(super) fn inv<F: Float>(m: &Matrix<F, 4, 4>) -> Option<Matrix<F, 4, 4>> {
     let t0113 = m[0][1] * m[1][3] - m[1][1] * m[0][3];
     let t0112 = m[0][1] * m[1][2] - m[1][1] * m[0][2];
 
-    let out = Matrix::from_rows([
+    let d = det.recip();
+    let cols = [
         [
-              (m[1][1] * t2323 - m[2][1] * t1323 + m[3][1] * t1223),
-            - (m[1][0] * t2323 - m[2][0] * t1323 + m[3][0] * t1223),
-              (m[1][0] * t2313 - m[2][0] * t1313 + m[3][0] * t1213),
-            - (m[1][0] * t2312 - m[2][0] * t1312 + m[3][0] * t1212),
+            (m[1][1] * t2323 - m[2][1] * t1323 + m[3][1] * t1223) * d,
+          - (m[0][1] * t2323 - m[2][1] * t0323 + m[3][1] * t0223) * d,
+            (m[0][1] * t1323 - m[1][1] * t0323 + m[3][1] * t0123) * d,
+          - (m[0][1] * t1223 - m[1][1] * t0223 + m[2][1] * t0123) * d,
         ],
         [
-            - (m[0][1] * t2323 - m[2][1] * t0323 + m[3][1] * t0223),
-              (m[0][0] * t2323 - m[2][0] * t0323 + m[3][0] * t0223),
-            - (m[0][0] * t2313 - m[2][0] * t0313 + m[3][0] * t0213),
-              (m[0][0] * t2312 - m[2][0] * t0312 + m[3][0] * t0212),
+            - (m[1][0] * t2323 - m[2][0] * t1323 + m[3][0] * t1223) * d,
+              (m[0][0] * t2323 - m[2][0] * t0323 + m[3][0] * t0223) * d,
+            - (m[0][0] * t1323 - m[1][0] * t0323 + m[3][0] * t0123) * d,
+              (m[0][0] * t1223 - m[1][0] * t0223 + m[2][0] * t0123) * d,
         ],
         [
-              (m[0][1] * t1323 - m[1][1] * t0323 + m[3][1] * t0123),
-            - (m[0][0] * t1323 - m[1][0] * t0323 + m[3][0] * t0123),
-              (m[0][0] * t1313 - m[1][0] * t0313 + m[3][0] * t0113),
-            - (m[0][0] * t1312 - m[1][0] * t0312 + m[3][0] * t0112),
+              (m[1][0] * t2313 - m[2][0] * t1313 + m[3][0] * t1213) * d,
+            - (m[0][0] * t2313 - m[2][0] * t0313 + m[3][0] * t0213) * d,
+              (m[0][0] * t1313 - m[1][0] * t0313 + m[3][0] * t0113) * d,
+            - (m[0][0] * t1213 - m[1][0] * t0213 + m[2][0] * t0113) * d,
         ],
         [
-            - (m[0][1] * t1223 - m[1][1] * t0223 + m[2][1] * t0123),
-              (m[0][0] * t1223 - m[1][0] * t0223 + m[2][0] * t0123),
-            - (m[0][0] * t1213 - m[1][0] * t0213 + m[2][0] * t0113),
-              (m[0][0] * t1212 - m[1][0] * t0212 + m[2][0] * t0112),
+            - (m[1][0] * t2312 - m[2][0] * t1312 + m[3][0] * t1212) * d,
+              (m[0][0] * t2312 - m[2][0] * t0312 + m[3][0] * t0212) * d,
+            - (m[0][0] * t1312 - m[1][0] * t0312 + m[3][0] * t0112) * d,
+              (m[0][0] * t1212 - m[1][0] * t0212 + m[2][0] * t0112) * d,
         ],
-    ]);
+    ];
 
-    Some(out * det.recip())
+    Some(cols)
 }

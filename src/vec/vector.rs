@@ -1,52 +1,35 @@
+use std::marker::PhantomData;
+
 use bytemuck::{Pod, Zeroable};
 
 use crate::{
-    Point, Scalar, Float,
-    named_scalar::{HasX, HasY, HasZ, HasW},
+    Dir, Point, Scalar, Float, Space, WorldSpace,
+    named_scalar::{HasX, HasY, HasZ},
 };
 
 
-/// An `N`-dimensional vector with scalar type `T`. This represents
-/// a *displacement* in space.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+/// A *displacement* in `N`-dimensional space with scalar type `T`.
 #[repr(transparent)]
-pub struct Vector<T: Scalar, const N: usize>(pub(crate) [T; N]);
+pub struct Vector<T: Scalar, const N: usize, S: Space = WorldSpace>(
+    pub(crate) [T; N],
+    PhantomData<S>,
+);
 
-/// A 2-dimensional vector.
-pub type Vec2<T> = Vector<T, 2>;
-/// A 3-dimensional vector.
-pub type Vec3<T> = Vector<T, 3>;
-/// A 4-dimensional vector.
-pub type Vec4<T> = Vector<T, 4>;
+/// A *displacement* in 2-dimensional space.
+pub type Vec2<T, S = WorldSpace> = Vector<T, 2, S>;
+/// A *displacement* in 3-dimensional space.
+pub type Vec3<T, S = WorldSpace> = Vector<T, 3, S>;
 
-/// A 2-dimensional vector with scalar type `f32`.
-pub type Vec2f = Vec2<f32>;
-/// A 3-dimensional vector with scalar type `f32`.
-pub type Vec3f = Vec3<f32>;
-/// A 4-dimensional vector with scalar type `f32`.
-pub type Vec4f = Vec4<f32>;
-
-/// A 2-dimensional vector with scalar type `f64`.
-pub type Vec2d = Vec2<f64>;
-/// A 3-dimensional vector with scalar type `f64`.
-pub type Vec3d = Vec3<f64>;
-/// A 4-dimensional vector with scalar type `f64`.
-pub type Vec4d = Vec4<f64>;
+/// A *displacement* in 2-dimensional space with scalar type `f32`.
+pub type Vec2f<S = WorldSpace> = Vec2<f32, S>;
+/// A *displacement* in 3-dimensional space with scalar type `f32`.
+pub type Vec3f<S = WorldSpace> = Vec3<f32, S>;
 
 
-/// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
-/// wrapper around an array with `repr(transparent)`.
-unsafe impl<T: Scalar + Zeroable, const N: usize> Zeroable for Vector<T, N> {}
-
-/// The struct is marked as `repr(transparent)` so is guaranteed to have the
-/// same layout as `[T; N]`. And `bytemuck` itself has an impl for arrays where
-/// `T: Pod`.
-unsafe impl<T: Scalar + Pod, const N: usize> Pod for Vector<T, N> {}
-
-impl<T: Scalar, const N: usize> Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
     /// Returns the zero vector.
     pub fn zero() -> Self {
-        Self([(); N].map(|_| T::zero()))
+        std::array::from_fn(|_| T::zero()).into()
     }
 
     /// Returns `true` if this vector is the zero vector (all components 0).
@@ -96,26 +79,19 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
         out
     }
 
-    /// Returns a unit vector in w direction.
-    ///
-    /// ```
-    /// assert_eq!(lina::Vec4f::unit_w(), lina::vec4(0.0, 0.0, 0.0, 1.0));
-    /// ```
-    pub fn unit_w() -> Self
+    pub fn to_dir(self) -> Dir<T, N, S>
     where
-        Self: HasW<Scalar = T>,
+        T: Float,
     {
-        let mut out = Self::zero();
-        *out.w_mut() = T::one();
-        out
+        Dir::from_vec(self)
     }
 
     /// Converts this vector into a point without changing the component values.
     /// Semantically equivalent to `Point::origin() + self`. Please think twice
     /// before using this method as it blindly changes the semantics of your
     /// value.
-    pub fn to_point(self) -> Point<T, N> {
-        Point(self.0)
+    pub fn to_point(self) -> Point<T, N, S> {
+        self.0.into()
     }
 
     /// Returns the *squared* length of this vector. This is faster than
@@ -179,46 +155,74 @@ impl<T: Scalar, const N: usize> Vector<T, N> {
     shared_methods!(Vector, "vector", "vec2", "vec3");
 }
 
-impl<T: Scalar> Vector<T, 2> {
+impl<T: Scalar, S: Space> Vector<T, 2, S> {
     shared_methods2!(Vector, "vector");
 }
 
-impl<T: Scalar> Vector<T, 3> {
+impl<T: Scalar, S: Space> Vector<T, 3, S> {
     shared_methods3!(Vector, "vector");
-}
-
-impl<T: Scalar> Vector<T, 4> {
-    /// Returns a 4D vector from the given coordinates.
-    pub fn new(x: T, y: T, z: T, w: T) -> Self {
-        Self([x, y, z, w])
-    }
 }
 
 shared_impls!(Vector, "vector", "Vec");
 
-/// Shorthand for `Vec2::new(...)`.
-pub fn vec2<T: Scalar>(x: T, y: T) -> Vec2<T> {
+/// Shorthand for `Vec2::new(...)`, but with fixed `S = Generic`.
+pub const fn vec2<T: Scalar>(x: T, y: T) -> Vec2<T> {
     Vec2::new(x, y)
 }
 
-/// Shorthand for `Vec3::new(...)`.
-pub fn vec3<T: Scalar>(x: T, y: T, z: T) -> Vec3<T> {
+/// Shorthand for `Vec3::new(...)`, but with fixed `S = Generic`.
+pub const fn vec3<T: Scalar>(x: T, y: T, z: T) -> Vec3<T> {
     Vec3::new(x, y, z)
 }
 
-/// Shorthand for `Vec4::new(...)`.
-pub fn vec4<T: Scalar>(x: T, y: T, z: T, w: T) -> Vec4<T> {
-    Vec4::new(x, y, z, w)
+
+// =============================================================================================
+// ===== Trait impls
+// =============================================================================================
+
+impl<T: Scalar + std::hash::Hash, const N: usize, S: Space> std::hash::Hash for Vector<T, N, S> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state)
+    }
 }
 
-impl<T: Scalar, const N: usize> ops::Add<Self> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> PartialEq for Vector<T, N, S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq(&other.0)
+    }
+}
+impl<T: Scalar + Eq, const N: usize, S: Space> Eq for Vector<T, N, S> {}
+
+impl<T: Scalar, const N: usize, S: Space> Clone for Vector<T, N, S> {
+    fn clone(&self) -> Self {
+        Self(self.0, self.1)
+    }
+}
+impl<T: Scalar, const N: usize, S: Space> Copy for Vector<T, N, S> {}
+
+
+/// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
+/// wrapper around an array with `repr(transparent)`.
+unsafe impl<T: Scalar + Zeroable, const N: usize, S: Space> Zeroable for Vector<T, N, S> {}
+
+/// The struct is marked as `repr(transparent)` so is guaranteed to have the
+/// same layout as `[T; N]`. And `bytemuck` itself has an impl for arrays where
+/// `T: Pod`.
+unsafe impl<T: Scalar + Pod, const N: usize, S: Space> Pod for Vector<T, N, S> {}
+
+
+// =============================================================================================
+// ===== Operator impls
+// =============================================================================================
+
+impl<T: Scalar, const N: usize, S: Space> ops::Add<Self> for Vector<T, N, S> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         self.zip_map(rhs, |l, r| l + r)
     }
 }
 
-impl<T: Scalar, const N: usize> ops::AddAssign<Self> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::AddAssign<Self> for Vector<T, N, S> {
     fn add_assign(&mut self, rhs: Self) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs += rhs;
@@ -226,14 +230,14 @@ impl<T: Scalar, const N: usize> ops::AddAssign<Self> for Vector<T, N> {
     }
 }
 
-impl<T: Scalar, const N: usize> ops::Sub<Self> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::Sub<Self> for Vector<T, N, S> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         self.zip_map(rhs, |l, r| l - r)
     }
 }
 
-impl<T: Scalar, const N: usize> ops::SubAssign<Self> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::SubAssign<Self> for Vector<T, N, S> {
     fn sub_assign(&mut self, rhs: Self) {
         for (lhs, rhs) in IntoIterator::into_iter(&mut self.0).zip(rhs.0) {
             *lhs -= rhs;
@@ -241,18 +245,18 @@ impl<T: Scalar, const N: usize> ops::SubAssign<Self> for Vector<T, N> {
     }
 }
 
-impl<T: Scalar + ops::Neg, const N: usize> ops::Neg for Vector<T, N>
+impl<T: Scalar + ops::Neg, const N: usize, S: Space> ops::Neg for Vector<T, N, S>
 where
     <T as ops::Neg>::Output: Scalar,
 {
-    type Output = Vector<<T as ops::Neg>::Output, N>;
+    type Output = Vector<<T as ops::Neg>::Output, N, S>;
     fn neg(self) -> Self::Output {
         self.map(|c| -c)
     }
 }
 
 /// Scalar multipliation: `vector * scalar`.
-impl<T: Scalar, const N: usize> ops::Mul<T> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::Mul<T> for Vector<T, N, S> {
     type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
         self.map(|c| c * rhs)
@@ -265,9 +269,9 @@ impl<T: Scalar, const N: usize> ops::Mul<T> for Vector<T, N> {
 macro_rules! impl_scalar_mul {
     ($($ty:ident),*) => {
         $(
-            impl<const N: usize> ops::Mul<Vector<$ty, N>> for $ty {
-                type Output = Vector<$ty, N>;
-                fn mul(self, rhs: Vector<$ty, N>) -> Self::Output {
+            impl<const N: usize, S: Space> ops::Mul<Vector<$ty, N, S>> for $ty {
+                type Output = Vector<$ty, N, S>;
+                fn mul(self, rhs: Vector<$ty, N, S>) -> Self::Output {
                     rhs * self
                 }
             }
@@ -278,7 +282,7 @@ macro_rules! impl_scalar_mul {
 impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
 
 /// Scalar multipliation: `vector *= scalar`.
-impl<T: Scalar, const N: usize> ops::MulAssign<T> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::MulAssign<T> for Vector<T, N, S> {
     fn mul_assign(&mut self, rhs: T) {
         for c in &mut self.0 {
             *c *= rhs;
@@ -287,7 +291,7 @@ impl<T: Scalar, const N: usize> ops::MulAssign<T> for Vector<T, N> {
 }
 
 /// Scalar division: `vector / scalar`.
-impl<T: Scalar, const N: usize> ops::Div<T> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::Div<T> for Vector<T, N, S> {
     type Output = Self;
     fn div(self, rhs: T) -> Self::Output {
         self.map(|c| c / rhs)
@@ -295,7 +299,7 @@ impl<T: Scalar, const N: usize> ops::Div<T> for Vector<T, N> {
 }
 
 /// Scalar division: `vector /= scalar`.
-impl<T: Scalar, const N: usize> ops::DivAssign<T> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> ops::DivAssign<T> for Vector<T, N, S> {
     fn div_assign(&mut self, rhs: T) {
         for c in &mut self.0 {
             *c /= rhs;
@@ -303,7 +307,7 @@ impl<T: Scalar, const N: usize> ops::DivAssign<T> for Vector<T, N> {
     }
 }
 
-impl<T: Scalar, const N: usize> std::iter::Sum<Self> for Vector<T, N> {
+impl<T: Scalar, const N: usize, S: Space> std::iter::Sum<Self> for Vector<T, N, S> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Self::zero(), |acc, x| acc + x)
     }

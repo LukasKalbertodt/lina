@@ -1,7 +1,7 @@
 //! Transformation matrices for common transformations.
 //!
 //! - **Linear** transformations:
-//!   - Scale: [`scale_cc`], [`scale_hc`], [`scale_nonuniform_cc`], [`scale_nonuniform_hc`]
+//!   - Scale: [`scale`] and [`scale_nonuniform`]
 //!
 //! - **Affine** transformations:
 //!   - [`translate`]
@@ -9,69 +9,19 @@
 //!
 //! - **Perspective projection**: [`perspective`]
 //!
-//!
-//! # Cartesian and Homogeneous coordinates
-//!
-//! An N×N matrix can only represent *linear* transformations in N-dimensional
-//! space. To represent other transformations with matrices, homogeneous
-//! coordinates are used. This requires us to add one dimension to our matrix:
-//! an N×N matrix can now represent linear, affine and perspective
-//! transformations in N − 1 dimensional space.
-//!
-//! In this library, a *homogenous transformation matrix* describes a matrix
-//! that is intended to transform vectors in homogeneous coordinates. In
-//! contrast, a *linear transformation matrix* is one that is intended to
-//! transform vectors in standard, cartesian coordinates.
-//!
-//! All functions for linear transformations have two versions: `_cc` for
-//! cartesian coordinates and `_hc` for homogeneous coordinates. Using
-//! homogeneous coordinates for linear transformations is not necessary, except
-//! if you want to combine it with other non-linear transformations. That's
-//! what the `_hc` versions are for.
 
 use std::ops::RangeInclusive;
 
-use crate::{Float, Mat4, Matrix, Point3, Radians, Scalar, Vec3, Vector, cross, dot};
+use crate::{
+    cross, dot,
+    Float, Scalar, Vector, Matrix, Point3, Radians, Vec3, HcMatrix, HcMat3,
+    WorldSpace, ViewSpace, ProjSpace, Space, Mat3, Dir3,
+};
 
 
-/// *Homogeneous* transformation matrix that scales all `N` axis by `factor`.
+/// Linear transformation matrix that scales all `N` axis by `factor`.
 ///
-/// For the cartesian coordinate version, see [`scale_cc`]. Example for `Mat4`
-/// (with `f` being `factor`):
-///
-/// ```text
-/// ⎡ f 0 0 0 ⎤
-/// ⎢ 0 f 0 0 ⎥
-/// ⎢ 0 0 f 0 ⎥
-/// ⎣ 0 0 0 1 ⎦
-/// ```
-///
-/// # Example
-///
-/// ```
-/// use lina::{Mat4f, transform, vec4};
-///
-/// let m = transform::scale_hc::<f32, 3>(3.5);
-///
-/// assert_eq!(m, Mat4f::from_rows([
-///     [3.5, 0.0, 0.0, 0.0],
-///     [0.0, 3.5, 0.0, 0.0],
-///     [0.0, 0.0, 3.5, 0.0],
-///     [0.0, 0.0, 0.0, 1.0],
-/// ]));
-/// assert_eq!(m * vec4(1.0, 2.0, 3.0, 1.0), vec4(3.5, 7.0, 10.5, 1.0));
-/// ```
-#[cfg(feature = "nightly")]
-pub fn scale_hc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, { N + 1 }, { N + 1 }> {
-    let mut diag = [factor; N + 1];
-    diag[N] = T::one();
-    Matrix::from_diagonal(diag)
-}
-
-/// *Linear* transformation matrix that scales all `N` axis by `factor`.
-///
-/// For the homogeneous coordinate version, see [`scale_hc`]. Example for `Mat3`
-/// (with `f` being `factor`):
+/// Example for `Mat3` (with `f` being `factor`):
 ///
 /// ```text
 /// ⎡ f 0 0 ⎤
@@ -84,62 +34,21 @@ pub fn scale_hc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, { N + 1 }, { 
 /// ```
 /// use lina::{Mat3f, transform, vec3};
 ///
-/// let m = transform::scale_cc(3.5);
+/// let m = transform::scale(3.5);
 ///
 /// assert_eq!(m, Mat3f::from_rows([
 ///     [3.5, 0.0, 0.0],
 ///     [0.0, 3.5, 0.0],
 ///     [0.0, 0.0, 3.5],
 /// ]));
-/// assert_eq!(m * vec3(1.0, 2.0, 3.0), vec3(3.5, 7.0, 10.5));
+/// assert_eq!(m.transform(vec3(1.0, 2.0, 3.0)), vec3(3.5, 7.0, 10.5));
 /// ```
-pub fn scale_cc<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N> {
+pub fn scale<T: Scalar, const N: usize>(factor: T) -> Matrix<T, N, N, WorldSpace, WorldSpace> {
     Matrix::from_diagonal([factor; N])
 }
 
-/// *Homogeneous* transformation matrix that scales each axis according to
-/// `factors`.
+/// Linear transformation matrix that scales each axis according to `factors`.
 ///
-/// For the cartesian coordinate version, see [`scale_nonuniform_cc`]. Example
-/// for `Mat4` (with `factors` being `[x, y, z]`):
-///
-/// ```text
-/// ⎡ x 0 0 0 ⎤
-/// ⎢ 0 y 0 0 ⎥
-/// ⎢ 0 0 z 0 ⎥
-/// ⎣ 0 0 0 1 ⎦
-/// ```
-///
-/// # Example
-///
-/// ```
-/// use lina::{Mat4f, transform, vec4};
-///
-/// let m = transform::scale_nonuniform_hc([2.0f32, 3.0, 8.0]);
-///
-/// assert_eq!(m, Mat4f::from_rows([
-///     [2.0, 0.0, 0.0, 0.0],
-///     [0.0, 3.0, 0.0, 0.0],
-///     [0.0, 0.0, 8.0, 0.0],
-///     [0.0, 0.0, 0.0, 1.0],
-/// ]));
-/// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(20.0, 60.0, 240.0, 1.0));
-/// ```
-#[cfg(feature = "nightly")]
-pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
-    factors: impl Into<Vector<T, N>>
-) -> Matrix<T, { N + 1 }, { N + 1 }> {
-    let mut out = Matrix::identity();
-    let factors = factors.into();
-    for i in 0..N {
-        out[i][i] = factors[i];
-    }
-    out
-}
-
-/// *Linear* transformation matrix that scales each axis according to `factors`.
-///
-/// For the homogeneous coordinate version, see [`scale_nonuniform_hc`].
 /// Equivalent to [`Matrix::from_diagonal`]. Example for `Mat3` (with `factors`
 /// being `[x, y, z]`):
 ///
@@ -154,25 +63,99 @@ pub fn scale_nonuniform_hc<T: Scalar, const N: usize>(
 /// ```
 /// use lina::{Mat3f, transform, vec3};
 ///
-/// let m = transform::scale_nonuniform_cc([2.0f32, 3.0, 8.0]);
+/// let m = transform::scale_nonuniform([2.0f32, 3.0, 8.0]);
 ///
 /// assert_eq!(m, Mat3f::from_rows([
 ///     [2.0, 0.0, 0.0],
 ///     [0.0, 3.0, 0.0],
 ///     [0.0, 0.0, 8.0],
 /// ]));
-/// assert_eq!(m * vec3(10.0, 20.0, 30.0), vec3(20.0, 60.0, 240.0));
+/// assert_eq!(m.transform(vec3(10.0, 20.0, 30.0)), vec3(20.0, 60.0, 240.0));
 /// ```
-pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
-    factors: impl Into<Vector<T, N>>,
-) -> Matrix<T, N, N> {
+pub fn scale_nonuniform<T: Scalar, const N: usize>(
+    factors: [T; N],
+) -> Matrix<T, N, N, WorldSpace, WorldSpace> {
     Matrix::from_diagonal(factors)
 }
 
-
-/// *Homogeneous* transformation matrix that translates according to `v`.
+/// 3D Rotation around the x-axis by `angle` (using the right-hand rule).
 ///
-/// Example for `Mat4` (with `v` being `[x, y, z]`):
+/// ```text
+/// ⎡ 1       0        0 ⎤
+/// ⎢ 0  cos(θ)  -sin(θ) ⎥
+/// ⎣ 0  sin(θ)   cos(θ) ⎦
+/// ```
+pub fn rotate3d_around_x<T: Float>(
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, WorldSpace, WorldSpace> {
+    let (sin, cos) = angle.into().sin_cos();
+    Matrix::from_rows([
+        [ T::one(), T::zero(), T::zero()],
+        [T::zero(),       cos,      -sin],
+        [T::zero(),       sin,       cos],
+    ])
+}
+
+/// 3D Rotation around the y-axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡  cos(θ)   0  sin(θ) ⎤
+/// ⎢       0   1       0 ⎥
+/// ⎣ -sin(θ)   0  cos(θ) ⎦
+/// ```
+pub fn rotate3d_around_y<T: Float>(
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, WorldSpace, WorldSpace> {
+    let (sin, cos) = angle.into().sin_cos();
+    Matrix::from_rows([
+        [      cos, T::zero(),       sin],
+        [T::zero(), T::one(),  T::zero()],
+        [     -sin, T::zero(),       cos],
+    ])
+}
+
+/// 3D Rotation around the z-axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡ cos(θ)  -sin(θ)  0 ⎤
+/// ⎢ sin(θ)   cos(θ)  0 ⎥
+/// ⎣      0        0  1 ⎦
+/// ```
+pub fn rotate3d_around_z<T: Float>(
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, WorldSpace, WorldSpace> {
+    let (sin, cos) = angle.into().sin_cos();
+    Matrix::from_rows([
+        [      cos,      -sin, T::zero()],
+        [      sin,       cos, T::zero()],
+        [T::zero(), T::zero(),  T::one()],
+    ])
+}
+
+/// 3D Rotation around the given axis by `angle` (using the right-hand rule).
+///
+/// ```text
+/// ⎡ cos(θ)  -sin(θ)  0 ⎤
+/// ⎢ sin(θ)   cos(θ)  0 ⎥
+/// ⎣      0        0  1 ⎦
+/// ```
+pub fn rotate3d_around<T: Float, S: Space>(
+    axis: Dir3<T, S>,
+    angle: impl Into<Radians<T>>,
+) -> Mat3<T, S, S> {
+    let (sin, cos) = angle.into().sin_cos();
+    let omc = T::one() - cos;
+    let [x, y, z] = axis.to_array();
+    Matrix::from_rows([
+        [x * x * omc + cos    , x * y * omc - z * sin, x * z * omc + y * sin],
+        [y * x * omc + z * sin, y * y * omc + cos    , y * z * omc - x * sin],
+        [z * x * omc - y * sin, z * y * omc + x * sin, z * z * omc + cos    ],
+    ])
+}
+
+/// Affine transformation matrix that translates according to `v`.
+///
+/// Example for `HcMat3` (with `v` being `[x, y, z]`):
 ///
 /// ```text
 /// ⎡ 1 0 0 x ⎤
@@ -184,31 +167,26 @@ pub fn scale_nonuniform_cc<T: Scalar, const N: usize>(
 /// # Example
 ///
 /// ```
-/// use lina::{Mat4f, transform, vec4};
+/// use lina::{HcMat3f, transform, vec3, point3};
 ///
-/// let m = transform::translate([2.0f32, 3.0, 8.0]);
+/// let m = transform::translate(vec3(2.0, 3.0, 8.0));
 ///
-/// assert_eq!(m, Mat4f::from_rows([
+/// assert_eq!(m, HcMat3f::from_rows([
 ///     [1.0, 0.0, 0.0, 2.0],
 ///     [0.0, 1.0, 0.0, 3.0],
 ///     [0.0, 0.0, 1.0, 8.0],
 ///     [0.0, 0.0, 0.0, 1.0],
 /// ]));
-/// assert_eq!(m * vec4(10.0, 20.0, 30.0, 1.0), vec4(12.0, 23.0, 38.0, 1.0));
+/// assert_eq!(m.transform(point3(10.0, 20.0, 30.0)), point3(12.0, 23.0, 38.0));
 /// ```
-#[cfg(feature = "nightly")]
-pub fn translate<T: Scalar, const N: usize>(
-    v: impl Into<Vector<T, N>>
-) -> Matrix<T, { N + 1 }, { N + 1 }> {
-    let mut m = Matrix::identity();
-    let v = v.into();
-    for i in 0..N {
-        m[N][i] = v[i];
-    }
-    m
+pub fn translate<T: Scalar, const N: usize, S: Space>(
+    v: Vector<T, N, S>,
+) -> HcMatrix<T, N, N, S, S> {
+    HcMatrix::from_parts(Matrix::identity(), v, Vector::zero(), T::one())
 }
 
-/// *Homogeneous* transformation from world space into camera/view space.
+/// Affine transformation from world space into camera/view space, typically
+/// called the "view matrix".
 ///
 /// In view space, the camera is at the origin, +x points right, +y points up.
 /// This view space is right-handed, and thus, +z points outside of the screen
@@ -251,7 +229,11 @@ pub fn translate<T: Scalar, const N: usize>(
 /// the `up` vector over time. For example, if the player moves the
 /// mouse/controller you don't just adjust the look direction, but also the up
 /// vector.
-pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> Mat4<T> {
+pub fn look_into<T: Float, S: Space>(
+    eye: Point3<T, S>,
+    direction: Vec3<T, S>,
+    up: Vec3<T, S>,
+) -> HcMat3<T, S, ViewSpace> {
     // This function is unlikely to be called often, so we improve developer
     // experience by having these checks and normalizations.
     assert!(!direction.is_zero(), "direction vector must not be the zero vector");
@@ -272,22 +254,17 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
     // ⎢ r.y  u.x  d.x  eye.x ⎥
     // ⎢ r.z  u.x  d.x  eye.x ⎥
     // ⎣   0    0    0      1 ⎦
-    Matrix::from_rows([
-        [      r.x,       r.y,       r.z, -dot(eye, r)],
-        [      u.x,       u.y,       u.z, -dot(eye, u)],
-        [     -d.x,      -d.y,      -d.z,  dot(eye, d)],
-        [T::zero(), T::zero(), T::zero(),     T::one()],
-    ])
+    let linear = Matrix::from_rows([
+        [ r.x,  r.y,  r.z],
+        [ u.x,  u.y,  u.z],
+        [-d.x, -d.y, -d.z],
+    ]);
+    let translation = Vec3::new(-dot(eye, r), -dot(eye, u), dot(eye, d));
+    HcMat3::from_parts(linear, translation, Vector::zero(), T::one())
 }
 
-/// *Homogeneous* transformation for perspective projection from view space to
-/// NDC.
-///
-/// Note that unlike most other homogeneous transformation matrices, this matrix
-/// does not necessarily keep `w = 1` in transformed vectors. So you might need
-/// to devide the transformed vector by `w`, also called the "perspective
-/// divide". You can use [`Matrix::transform_hc_vec`] or
-/// [`Matrix::transform_hc_point`] to perform that divide for you.
+/// Homogeneous transformation for perspective projection from view space to
+/// NDC/projection space.
 ///
 /// View space is assumed to be right-handed, i.e. +y pointing up and -z
 /// pointing into the screen (satisfied by [`look_into`]). In NDC, `x/w` and
@@ -324,10 +301,10 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
 /// defaults" for your application. Use values fitting for your use case.)
 ///
 /// ```
-/// use lina::{Degrees, transform, Mat4f, vec4};
+/// use lina::{Degrees, transform, HcMat3f};
 ///
 /// let m = transform::perspective(Degrees(90.0), 2.0, 0.1..=f32::INFINITY, 1.0..=0.0);
-/// assert_eq!(m, Mat4f::from_rows([
+/// assert_eq!(m, HcMat3f::from_rows([
 ///     [0.5, 0.0,  0.0, 0.0],
 ///     [0.0, 1.0,  0.0, 0.0],
 ///     [0.0, 0.0,  0.0, 0.1],
@@ -335,7 +312,7 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
 /// ]));
 ///
 /// let m = transform::perspective(Degrees(90.0), 1.0, 0.1..=100.0, 0.0..=1.0);
-/// assert_eq!(m, Mat4f::from_rows([
+/// assert_eq!(m, HcMat3f::from_rows([
 ///     [1.0, 0.0,       0.0,        0.0],
 ///     [0.0, 1.0,       0.0,        0.0],
 ///     [0.0, 0.0, -1.001001, -0.1001001],
@@ -356,9 +333,9 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
 /// Flip the `z` sign of all your points *before* transforming with this matrix.
 ///
 /// ```
-/// use lina::{Degrees, Mat4f, transform};
+/// use lina::{Degrees, HcMat3f, transform, ViewSpace};
 ///
-/// let flip_z_sign = Mat4f::from_diagonal([1.0, 1.0, -1.0, 1.0]);
+/// let flip_z_sign = <HcMat3f<ViewSpace, ViewSpace>>::from_diagonal([1.0, 1.0, -1.0, 1.0]);
 /// let rh_proj_matrix = transform::perspective(Degrees(90.0), 2.0, 0.1..=100.0, 1.0..=0.0);
 /// let lh_proj_matrix = flip_z_sign.and_then(rh_proj_matrix);
 /// ```
@@ -368,9 +345,9 @@ pub fn look_into<T: Float>(eye: Point3<T>, direction: Vec3<T>, up: Vec3<T>) -> M
 /// Flip the `y` sign of all your points *after* transforming with this matrix.
 ///
 /// ```
-/// use lina::{Degrees, Mat4f, transform};
+/// use lina::{Degrees, HcMat3f, transform, ProjSpace};
 ///
-/// let flip_y_sign = Mat4f::from_diagonal([1.0, -1.0, 1.0, 1.0]);
+/// let flip_y_sign = <HcMat3f<ProjSpace, ProjSpace>>::from_diagonal([1.0, -1.0, 1.0, 1.0]);
 /// let y_up_proj_matrix = transform::perspective(Degrees(90.0), 2.0, 0.1..=100.0, 1.0..=0.0);
 /// let y_down_proj_matrix = y_up_proj_matrix.and_then(flip_y_sign);
 /// ```
@@ -379,13 +356,13 @@ pub fn perspective<T: Float>(
     aspect_ratio: T,
     depth_range_in: RangeInclusive<T>,
     depth_range_out: RangeInclusive<T>,
-) -> Mat4<T> {
+) -> HcMat3<T, ViewSpace, ProjSpace> {
     let vertical_fov = vertical_fov.into();
     assert!(vertical_fov.0 < T::PI(), "`vertical_fov` has to be < π radians/180°");
     assert!(vertical_fov.0 > T::zero(), "`vertical_fov` has to be > 0");
     assert!(aspect_ratio > T::zero(), "`aspect_ratio` needs to be positive");
 
-    let t = (vertical_fov / (T::one() + T::one())).tan();
+    let t = (vertical_fov / T::two()).tan();
     let sy = T::one() / t;
     let sx = sy / aspect_ratio;
 
@@ -405,12 +382,14 @@ pub fn perspective<T: Float>(
         b = (near_in * far_in * (far_out - near_out)) / (near_in - far_in);
     }
 
-    Matrix::from_rows([
-        [       sx, T::zero(), T::zero(), T::zero()],
-        [T::zero(),        sy, T::zero(), T::zero()],
-        [T::zero(), T::zero(),         a,         b],
-        [T::zero(), T::zero(), -T::one(), T::zero()],
-    ])
+    //  ⎡ sx,   0,   0,   0 ⎤
+    //  ⎢  0,  sy,   0,   0 ⎥
+    //  ⎢  0,   0,   a,   b ⎥
+    //  ⎣  0,   0,  -1,   0 ⎦
+    let mut out = HcMat3::from_diagonal_parts([sx, sy, a], T::zero());
+    out.set_elem(2, 3, b);
+    out.set_elem(3, 2, -T::one());
+    out
 }
 
 #[cfg(test)]

@@ -4,7 +4,11 @@ use crate::Float;
 
 
 macro_rules! shared_methods {
-    () => {
+    ($ty:ident) => {
+        pub fn zero() -> Self {
+            Self(T::zero())
+        }
+
         pub fn half_turn() -> Self {
             Self::full_turn() / T::two()
         }
@@ -22,6 +26,9 @@ macro_rules! shared_methods {
         pub fn tan(self) -> T {
             Radians::from(self).0.tan()
         }
+        pub fn sin_cos(self) -> (T, T) {
+            Radians::from(self).0.sin_cos()
+        }
 
         pub fn asin(v: T) -> Self {
             Radians(v.asin()).into()
@@ -34,6 +41,22 @@ macro_rules! shared_methods {
         }
 
         /// Returns the angle normalized into the range `0..Self::full_turn()`.
+        ///
+        /// ```
+        #[doc = concat!("use lina::{assert_approx_eq, ", stringify!($ty), "};")]
+        ///
+        #[doc = concat!("let q = ", stringify!($ty), "::quarter_turn();")]
+        /// assert_approx_eq!(ulps <= 4; (q * -4.0).normalized(), q * 0.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -3.0).normalized(), q * 1.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -2.0).normalized(), q * 2.0);
+        /// assert_approx_eq!(ulps <= 4; (q * -1.0).normalized(), q * 3.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 0.0).normalized(), q * 0.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 1.0).normalized(), q * 1.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 2.0).normalized(), q * 2.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 3.0).normalized(), q * 3.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 4.0).normalized(), q * 0.0);
+        /// assert_approx_eq!(ulps <= 4; (q * 5.0).normalized(), q * 1.0);
+        /// ```
         #[must_use = "to normalize in-place, use `normalize`, not `normalized`"]
         pub fn normalized(self) -> Self {
             let rem = self.0 % Self::full_turn().0;
@@ -71,7 +94,7 @@ impl<T: Float> Radians<T> {
         Degrees(self.0.to_degrees())
     }
 
-    shared_methods!();
+    shared_methods!(Radians);
 }
 
 impl<T: Float> Degrees<T> {
@@ -85,7 +108,7 @@ impl<T: Float> Degrees<T> {
         Radians(self.0.to_radians())
     }
 
-    shared_methods!();
+    shared_methods!(Degrees);
 }
 
 impl<T: Float> From<Degrees<T>> for Radians<T> {
@@ -147,6 +170,13 @@ macro_rules! impl_ops {
         impl<T: Float> ops::DivAssign<T> for $ty<T> {
             fn div_assign(&mut self, rhs: T) {
                 self.0 /= rhs;
+            }
+        }
+
+        impl<T: Float> ops::Div<$ty<T>> for $ty<T> {
+            type Output = T;
+            fn div(self, rhs: $ty<T>) -> Self::Output {
+                self.0 / rhs.0
             }
         }
 

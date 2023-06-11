@@ -5,60 +5,57 @@
 [<img alt="docs.rs" src="https://img.shields.io/crates/v/lina?color=blue&label=docs&style=for-the-badge" height="23">](https://docs.rs/lina)
 
 
-`lina` is yet another linear algebra library with a focus on 3D applications
-like games, i.e. low-dimensional vectors and matrices.
+`lina` is a linear algebra library leaning very heavily into strong typing. Its
+focus is on 3D applications like games, i.e. low-dimensional vectors and
+matrices.
 
-One special feature is the heavy use of const generics to make vectors, points
-and matrices generic over their dimensions, while still allowing scalar access
-via `.x`, `.y`, `.z` and `.w`. This has several advantages like a reduced API
-surface and easier to understand [docs](https://docs.rs/lina).
+Notable features setting `lina` apart from other similar libraries:
 
-For some features (e.g. `Vector<T, N>::extend(T) -> Vector<T, N + 1>`), a nightly compiler is required.
-You can use `lina` with a stable compiler by disabling the `nightly` feature.
+- Usage of const generics, while still allowing scalar access via `.x`, `.y`,
+  `.z` and `.w`.
+- Separate types for homogeneous coordinates (`HcPoint` and `HcMatrix`).
+- Most types have a `Space` parameter to represent the *logical space* the
+  vector, point, ... lives in.
+- Distinction between locations (`Point`) and displacements (`Vector`).
 
-**Features**:
+The last three of these illustrate what is meant by "leaning heavily into strong typing".
+For motivation and examples, please read [this document](https://docs.rs/lina/latest/lina/docs/strong_typing/).
+In fact, this is all still a bit of an experiment, but so far I am very happy with the results in practice!
+However, I'm sure this is not for everyone and many would prefer a different API.
 
-- Vectors and points (strongly typed *locations* in space) with generic dimension and scalar type
-- Matrices with generic dimensions and element type
-- Strongly typed angles: `Degrees` and `Radians`
+Luckily, there exist many other libraries in the Rust ecosystem.
+To be clear: `lina` is not *better* than
+[`cgmath`](https://crates.io/crates/cgmath),
+[`nalgebra`](https://nalgebra.org/),
+[`glam`](https://crates.io/crates/glam/),
+[`ultraviolet`](https://crates.io/crates/ultraviolet)
+[`vek`](https://crates.io/crates/vek), etc.
+It is simply different, with an API that better fits my taste – and maybe yours.
+
+
+**Additional Features**:
+
+- Vectors, points, matrices
 - Commonly used transformation matrices
-- Spherical coordinates: `SphericalPos` and `NormedSphericalPos`
+- Operators overloaded as you would expect
+- Strongly typed angles: `Degrees` and `Radians`
+- Spherical coordinates: `SphericalPos` and `SphericalDir`
 - Several helper functions: `atan2`, `clamp`, `lerp`, `slerp`, ...
-- Auxiliary documentation about topics like computer graphics, linear algebra, ...
+- Approximate float equality (including `assert_approx_eq!`)
 
-**Still missing** (but planned):
-
-- Rotors and everything related to rotations
-- SIMD
-    - Using SIMD is currently not feasible as there is no way to specify
-      alignments for the generic `Point`, `Vector` and `Matrix` types. If Rust
-      ever offers more alignment control, I will revisit SIMD.
-    - But: this might not matter too much as long as you do not perform lots of
-      operations on the CPU. The GPU is better at it anyway!
+The only major thing that I'd still like to add in the future is rotors.
+`lina` offers the standard translation matrices, but rotors can be better for representing and composing rotations.
 
 
 See [**the documentation**](https://docs.rs/lina) for more information.
 
 
-## Why yet another of these libraries?!
-
-What about
-[`cgmath`](https://crates.io/crates/cgmath),
-[`nalgebra`](https://nalgebra.org/),
-[`glam`](https://crates.io/crates/glam/),
-[`ultraviolet`](https://crates.io/crates/ultraviolet)
-[`vek`](https://crates.io/crates/vek), ...?
-Those are all fine libraries, but I was not 100% happy with either of them.
-So I wrote my own!
-`lina` is not *better* than these other libraries, just has a different API that better fits my taste.
-
-
 ## Status of this project
 
-`lina` is still young, but I already use it in a project of mine.
-For the foreseeable future, I will shape `lina` exactly to *my* liking for use in said project.
-But of course, I'm happy about feedback, suggestions and people finding use in `lina`.
-Pull requests are generally welcome, but please talk to me first as I might just decline PRs that don't fit my vision for `lina`.
+`lina` is is certainly usable and is quite feature rich.
+I actively use it in a game project, which also motivated most API design decisions.
+But `lina` is not used by many other projects, and there might still be some non-minor API changes.
+
 
 
 <br />
