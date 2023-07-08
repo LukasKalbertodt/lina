@@ -263,7 +263,7 @@ pub fn look_into<T: Float, S: Space>(
     HcMat3::from_parts(linear, translation, Vector::zero(), T::one())
 }
 
-/// Homogeneous transformation for perspective projection from view space to
+/// Homogeneous transformation for *perspective* projection from view space to
 /// NDC/projection space.
 ///
 /// View space is assumed to be right-handed, i.e. +y pointing up and -z
@@ -390,6 +390,89 @@ pub fn perspective<T: Float>(
     out.set_elem(2, 3, b);
     out.set_elem(3, 2, -T::one());
     out
+}
+
+/// Homogeneous transformation for *orthographic* projection from view space to
+/// NDC/projection space.
+///
+/// With orthographic projection, also called parallel projection, things
+/// further from the camera don't get smaller. All "view rays" are parallel.
+/// It's the limit of pulling the camera back and zooming in at the same time.
+/// It's eseentially unsuitable for first-person cameras as we humans are not
+/// really used to this kind of projection. Instead, its most common use in
+/// games is for shadow mapping. But "top down" (e.g. strategy) games could
+/// make use of this projection for the main camera as well.
+///
+/// View space is assumed to be right-handed, i.e. +y pointing up and -z
+/// pointing into the screen (satisfied by [`look_into`]). In NDC, `x` and `y`
+/// are in range -1 to 1 and denote the horizontal and vertical screen
+/// position, respectively. The +x axis points to the right, the +y axis points
+/// up. `z` represents the depth and is in range `depth_range_out`.
+///
+/// Unlike with [`perspective`], this matrix maps `z` linearly from
+/// `depth_range_in` to `depth_range_out`. Consequently, you cannot use
+/// infinity for any of those values. On the other hand, you can now pass 0 as
+/// near plane. Also note that the "reverse depth + float buffer"-trick does
+/// not make sense with this matrix; you likely want an integer depth buffer as
+/// this provides constant precision.
+///
+/// This matrix maps points inside one axis aligned box to another. The
+/// following table shows the dimensions of these boxes, which depend on the
+/// arguments to this function:
+///
+/// |     | Input Box        | Output Box        |
+/// | --- | ---------------- | ----------------- |
+/// | `x` | `left..=right`   | `-1..1`           |
+/// | `y` | `bottom..=top`   | `-1..1`           |
+/// | `z` | `depth_range_in` | `depth_range_out` |
+///
+/// Note: if your camera (the input to the view matrix) is already at the center
+/// of your projection, `left = -right` and `bottom = -top`. Having the
+/// flexibility to set all these bounds independently means you don't have to
+/// correctly position your camera, which can be convenient in some
+/// situations.
+///
+/// For using this with a different view or NDC space, see [`perspective`].
+///
+/// # Example
+///
+/// ```
+/// use lina::{Degrees, transform, HcMat3f};
+///
+/// let m = transform::ortho(-25.0, 25.0, -12.5, 12.5, 0.0..=100.0, 0.0..=1.0);
+/// assert_eq!(m, HcMat3f::from_rows([
+///     [0.04,  0.0,   0.0, 0.0],
+///     [ 0.0, 0.08,   0.0, 0.0],
+///     [ 0.0,  0.0, -0.01, 0.0],
+///     [ 0.0,  0.0,   0.0, 1.0],
+/// ]));
+/// ```
+pub fn ortho<T: Float>(
+    left: T,
+    right: T,
+    bottom: T,
+    top: T,
+    depth_range_in: RangeInclusive<T>,
+    depth_range_out: RangeInclusive<T>,
+) -> HcMat3<T, ViewSpace, ProjSpace> {
+    let (near_in, far_in) = depth_range_in.into_inner();
+    let (near_out, far_out) = depth_range_out.into_inner();
+
+    let zero = T::zero();
+    let one = T::one();
+    let two = T::two();
+
+    let width = right - left;
+    let height = top - bottom;
+    let z_factor = -(far_out - near_out) / (far_in - near_in);
+    let z_constant = near_out - (near_in * (far_out - near_out)) / (far_in - near_in);
+
+    HcMat3::from_rows([
+        [two / width,         zero,     zero, -(right + left) / width ],
+        [       zero, two / height,     zero, -(top + bottom) / height],
+        [       zero,         zero, z_factor,               z_constant],
+        [       zero,         zero,     zero,                      one],
+    ])
 }
 
 #[cfg(test)]
