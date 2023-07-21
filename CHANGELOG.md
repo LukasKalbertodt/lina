@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.1] - 2023-07-21
+
+- Added `transform::ortho`
+
 ## [0.2.0] - 2023-06-11
 
 **Summary**: lots has changed, including lots of breaking changes.
@@ -79,7 +83,9 @@ and `HcPoint` and `HcMatrix` have been added, which replace situations where pre
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/LukasKalbertodt/lina/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/LukasKalbertodt/lina/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/LukasKalbertodt/lina/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/LukasKalbertodt/lina/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/LukasKalbertodt/lina/compare/v0.1.2...v0.1.3
