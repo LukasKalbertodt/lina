@@ -251,8 +251,8 @@ pub fn look_into<T: Float, S: Space>(
     // This is the inverse of this:
     //
     // ⎡ r.x  u.x  d.x  eye.x ⎤
-    // ⎢ r.y  u.x  d.x  eye.x ⎥
-    // ⎢ r.z  u.x  d.x  eye.x ⎥
+    // ⎢ r.y  u.y  d.y  eye.y ⎥
+    // ⎢ r.z  u.z  d.z  eye.z ⎥
     // ⎣   0    0    0      1 ⎦
     let linear = Matrix::from_rows([
         [ r.x,  r.y,  r.z],
