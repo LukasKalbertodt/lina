@@ -383,3 +383,12 @@ pub fn slerp<T: Float, const N: usize, S: Space>(
 
     a * factor_a + b * factor_b
 }
+
+/// Projects `v` onto `target`, returning `target · (v · target)`.
+pub fn project_onto<T: Float, const N: usize, S: Space>(
+    v: impl Into<Vector<T, N, S>>,
+    target: impl Into<Vector<T, N, S>>,
+) -> Vector<T, N, S> {
+    let target = target.into();
+    target * dot(v.into(), target)
+}
