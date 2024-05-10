@@ -133,12 +133,6 @@ pub fn rotate3d_around_z<T: Float>(
 }
 
 /// 3D Rotation around the given axis by `angle` (using the right-hand rule).
-///
-/// ```text
-/// ⎡ cos(θ)  -sin(θ)  0 ⎤
-/// ⎢ sin(θ)   cos(θ)  0 ⎥
-/// ⎣      0        0  1 ⎦
-/// ```
 pub fn rotate3d_around<T: Float, S: Space>(
     axis: Dir3<T, S>,
     angle: impl Into<Radians<T>>,
