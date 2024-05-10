@@ -147,6 +147,40 @@ pub fn rotate3d_around<T: Float, S: Space>(
     ])
 }
 
+/// 3D rotation to align `from` with `to`, i.e. `M * from = to`.
+///
+/// Panics if `from == -to`, as in that case, the rotation is ambigious/not well
+/// defined.
+///
+/// ```should_panic
+/// use lina::{vec3, transform};
+///
+/// let d = vec3(1.0, 2.0, 0.0).to_dir();
+/// let m = transform::rotate3d_aligning(d, -d);
+/// ```
+pub fn rotate3d_aligning<T: Float, S: Space>(
+    from: Dir3<T, S>,
+    to: Dir3<T, S>,
+) -> Mat3<T, S, S> {
+    // TODO: this is an exact check, and below there is another exact check to
+    // catch more cases of this going wrong. But this should really use an
+    // approx_eq test.
+    assert!(from != -to, "`from == -to` in `rotate3d_aligning`");
+
+    // Compare https://math.stackexchange.com/a/476311/340615
+    let v = cross(from, to);
+    let c = dot(from, to);
+    let skew_mat = Mat3::from_rows([
+        [T::zero(), -v.z, v.y],
+        [v.z, T::zero(), -v.x],
+        [-v.y, v.x, T::zero()],
+    ]);
+
+    let denom = T::one() + c;
+    assert!(!denom.is_zero(), "`from == -to` in `rotate3d_aligning`");
+    Mat3::identity() + skew_mat + (skew_mat * skew_mat) * (T::one() / denom)
+}
+
 /// Affine transformation matrix that translates according to `v`.
 ///
 /// Example for `HcMat3` (with `v` being `[x, y, z]`):
