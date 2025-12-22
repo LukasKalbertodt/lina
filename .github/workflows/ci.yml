@@ -11,9 +11,9 @@ env:
 jobs:
   check-stable:
     name: 'Build & test'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Build
       run: cargo build
     - name: Run tests
