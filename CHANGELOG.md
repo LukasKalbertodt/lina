@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-12-22
+
+- Add `project_onto` helper function (`target · (v · target)`)
+- Add `transform::rotate3d_aligning` helper function
+- Fix two matrices in `transform` documentation
+- Fix license SPDX syntax in `Cargo.toml`
+
 ## [0.2.1] - 2023-07-21
 
 - Added `transform::ortho`
@@ -83,7 +90,8 @@ and `HcPoint` and `HcMatrix` have been added, which replace situations where pre
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/LukasKalbertodt/lina/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/LukasKalbertodt/lina/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/LukasKalbertodt/lina/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/LukasKalbertodt/lina/compare/v0.1.4...v0.1.5
