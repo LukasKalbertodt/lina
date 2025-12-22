@@ -11,7 +11,7 @@ Linear algebra library with a focus on 3D applications like games
 documentation = "https://docs.rs/lina/"
 repository = "https://github.com/LukasKalbertodt/lina/"
 readme = "README.md"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 
 keywords = ["linear-algebra", "gamedev", "computer-graphics", "math"]
 categories = ["game-development", "graphics", "mathematics", "rendering"]
