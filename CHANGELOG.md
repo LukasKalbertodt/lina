@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-06-01
+- Add `smoothstep` & `linearstep`
+- Add `reflect`
+- Add `to_f32` and `to_f64` to matrix and angle types
+- Derive a bunch of traits for provided space types
+- Specify that matrices are stored in column-major order
+
+
 ## [0.2.2] - 2025-12-22
 
 - Add `project_onto` helper function (`target · (v · target)`)
@@ -90,7 +98,8 @@ and `HcPoint` and `HcMatrix` have been added, which replace situations where pre
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/LukasKalbertodt/lina/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/LukasKalbertodt/lina/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/LukasKalbertodt/lina/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/LukasKalbertodt/lina/compare/v0.1.5...v0.2.0
