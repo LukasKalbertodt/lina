@@ -392,3 +392,24 @@ pub fn project_onto<T: Float, const N: usize, S: Space>(
     let target = target.into();
     target * dot(v.into(), target)
 }
+
+/// Reflects `incoming` off a surface with the given `normal`, returning
+/// `incoming - 2 · (incoming · normal) · normal`.
+///
+/// When `incoming` represents the direction of incoming light, then this
+/// returns `outgoing` representing the direction of the light being reflected.
+///
+/// ```
+/// use lina::{Dir3f, Vec3f};
+///
+/// let normal = <Dir3f>::unit_z();
+/// let incoming = Vec3f::new(1.0, 1.5, -1.0);
+/// let reflected = lina::reflect(incoming, normal);
+/// lina::assert_approx_eq!(ulps <= 4; reflected, Vec3f::new(1.0, 1.5, 1.0));
+/// ```
+pub fn reflect<T: Float, const N: usize, S: Space>(
+    incoming: Vector<T, N, S>,
+    normal: Dir<T, N , S>,
+) -> Vector<T, N, S> {
+    incoming - normal.to_unit_vec() * dot(incoming, normal) * T::two()
+}
