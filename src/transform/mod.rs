@@ -410,14 +410,14 @@ pub fn perspective<T: Float>(
         b = (near_in * far_in * (far_out - near_out)) / (near_in - far_in);
     }
 
-    //  ⎡ sx,   0,   0,   0 ⎤
-    //  ⎢  0,  sy,   0,   0 ⎥
-    //  ⎢  0,   0,   a,   b ⎥
-    //  ⎣  0,   0,  -1,   0 ⎦
-    let mut out = HcMat3::from_diagonal_parts([sx, sy, a], T::zero());
-    out.set_elem(2, 3, b);
-    out.set_elem(3, 2, -T::one());
-    out
+    let z = T::zero();
+    let o = T::one();
+    HcMat3::from_rows([
+        [sx,  z,  z, z],
+        [ z, sy,  z, z],
+        [ z,  z,  a, b],
+        [ z,  z, -o, z],
+    ])
 }
 
 /// Homogeneous transformation for *orthographic* projection from view space to
