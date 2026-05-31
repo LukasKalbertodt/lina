@@ -62,6 +62,14 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, World
 /// [hc-wiki]: https://en.wikipedia.org/wiki/Homogeneous_coordinates#Use_in_computer_graphics_and_computer_vision
 ///
 ///
+/// ## Memory layout
+///
+/// The matrix is stored in *column-major* order. In memory, the whole first
+/// column is stored first, followed by the second, and so on. WGSL and GLSL
+/// both use column-major matrices as well, so you can just use the [`Pod`]
+/// impl or [`as_bytes`][Self::as_bytes] to pass this to a shader via `wgpu`,
+/// for example.
+///
 /// ## `fmt::Debug` output
 ///
 /// Setting the alternative flag `#` for debug output is recommended to have a
