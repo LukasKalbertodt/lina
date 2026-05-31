@@ -1,10 +1,11 @@
 use std::{array, fmt, ops, marker::PhantomData};
 use bytemuck::{Pod, Zeroable};
+use num_traits::NumCast;
 
 use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, WorldSpace, dot, Dir};
 
 
-/// A linear transformatin matrix with `C` columns and `R` rows. Represents a
+/// A linear transformation matrix with `C` columns and `R` rows. Represents a
 /// linear transformation on cartesian coordinates from `Src` to `Dst`.
 ///
 /// This type does not implement `ops::Index[Mut]`. Instead, there are two main
@@ -463,6 +464,22 @@ impl<T: Scalar, const C: usize, const R: usize, Src: Space, Dst: Space> Matrix<T
         F: FnMut(T, U) -> O,
     {
         Matrix::new_impl(array::from_fn(|i| array::from_fn(|j| f(self.0[i][j], other.0[i][j]))))
+    }
+
+    /// Casts scalars to `f32`.
+    pub fn to_f32(self) -> Matrix<f32, C, R, Src, Dst>
+    where
+        T: NumCast,
+    {
+        self.map(|s| num_traits::cast(s).unwrap())
+    }
+
+    /// Casts scalars to `f64`.
+    pub fn to_f64(self) -> Matrix<f64, C, R, Src, Dst>
+    where
+        T: NumCast,
+    {
+        self.map(|s| num_traits::cast(s).unwrap())
     }
 
     /// Returns a byte slice of this matrix, representing the raw column-major

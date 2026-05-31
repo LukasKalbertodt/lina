@@ -1,4 +1,5 @@
 use std::{fmt, ops};
+use num_traits::NumCast;
 
 use crate::Float;
 
@@ -70,6 +71,22 @@ macro_rules! shared_methods {
         /// Normalizes this angle *in-place* into the range `0..Self::full_turn()`.
         pub fn normalize(&mut self) {
             *self = (*self).normalized();
+        }
+
+        /// Casts itself to `f32`.
+        pub fn to_f32(self) -> $ty<f32>
+        where
+            T: NumCast,
+        {
+            $ty(num_traits::cast(self.0).unwrap())
+        }
+
+        /// Casts itself to `f64`.
+        pub fn to_f64(self) -> $ty<f64>
+        where
+            T: NumCast,
+        {
+            $ty(num_traits::cast(self.0).unwrap())
         }
     };
 }

@@ -1,6 +1,7 @@
 use std::{array, ops, fmt, marker::PhantomData};
 
 use bytemuck::{Zeroable, Pod};
+use num_traits::NumCast;
 
 use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 
@@ -352,6 +353,22 @@ impl<
             }
         }
         out
+    }
+
+    /// Casts scalars to `f32`.
+    pub fn to_f32(self) -> HcMatrix<f32, C, R, Src, Dst>
+    where
+        T: NumCast,
+    {
+        self.map(|s| num_traits::cast(s).unwrap())
+    }
+
+    /// Casts scalars to `f64`.
+    pub fn to_f64(self) -> HcMatrix<f64, C, R, Src, Dst>
+    where
+        T: NumCast,
+    {
+        self.map(|s| num_traits::cast(s).unwrap())
     }
 
     /// Returns a byte slice of this matrix, representing the raw column-major
