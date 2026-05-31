@@ -35,6 +35,7 @@ pub trait Space: 'static {}
 /// Note that this has no special semantics in `lina` and is just provided for
 /// your convenience, as this is a very common space one wants to distinguish.
 /// The exact semantics are up to you.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ModelSpace {}
 impl Space for ModelSpace {}
 
@@ -43,6 +44,7 @@ impl Space for ModelSpace {}
 /// Note that this has no special semantics in `lina` and is just provided for
 /// your convenience, as this is a very common space one wants to distinguish.
 /// The exact semantics are up to you.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum WorldSpace {}
 impl Space for WorldSpace {}
 
@@ -52,6 +54,7 @@ impl Space for WorldSpace {}
 /// Note that this has no special semantics in `lina` and is just provided for
 /// your convenience, as this is a very common space one wants to distinguish.
 /// The exact semantics are up to you.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ViewSpace {}
 impl Space for ViewSpace {}
 
@@ -60,5 +63,6 @@ impl Space for ViewSpace {}
 /// Note that this has no special semantics in `lina` and is just provided for
 /// your convenience, as this is a very common space one wants to distinguish.
 /// The exact semantics are up to you.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProjSpace {}
 impl Space for ProjSpace {}
