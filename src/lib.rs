@@ -413,3 +413,67 @@ pub fn reflect<T: Float, const N: usize, S: Space>(
 ) -> Vector<T, N, S> {
     incoming - normal.to_unit_vec() * dot(incoming, normal) * T::two()
 }
+
+/// Linearly remaps `x` from `range` to `0..=1`.
+///
+/// This is just `(x - min) / (max - min)` clamped to `0..=1`. Also see
+/// [`smoothstep`].
+///
+/// ```text
+/// 1.0 ┤                         ······
+///     │                       ·
+///     │                     ·
+///     │                   ·
+///     │                 ·
+/// 0.0 ┼ ···············
+///     └───────────────┬─────────┬─────────→ x
+///                    min       max
+/// ```
+///
+/// ```
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep(-2.8, 3.0..7.0), 0.0);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 2.9, 3.0..7.0), 0.0);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 3.0, 3.0..7.0), 0.0);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 3.1, 3.0..7.0), 0.025);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 5.0, 3.0..7.0), 0.5);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 6.0, 3.0..7.0), 0.75);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 7.0, 3.0..7.0), 1.0);
+/// lina::assert_approx_eq!(ulps <= 8; lina::linearstep(98.3, 3.0..7.0), 1.0);
+/// ```
+///
+pub fn linearstep<T: Float>(x: T, range: ops::Range<T>) -> T {
+    clamp((x - range.start) / (range.end - range.start), T::zero()..=T::one())
+}
+
+
+/// Smoothly remaps `x` from `range` to `0..=1`, via smooth Hermite
+/// interpolation.
+///
+/// This is `t² · (3 - 2t)` where [`t = linearstep(x, range)`][linearstep]. See
+/// <https://en.wikipedia.org/wiki/Smoothstep>. A little something like this:
+///
+/// ```text
+/// 1.0 ┤                        ..······
+///     │                      .˙
+///     │                     ·
+///     │                    ·
+///     │                  .˙
+/// 0.0 ┼ ···············˙˙
+///     └───────────────┬──────────┬─────────→ x
+///                    min        max
+/// ```
+///
+/// ```
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep(-2.8, 3.0..7.0), 0.0);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 2.9, 3.0..7.0), 0.0);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 3.0, 3.0..7.0), 0.0);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 3.1, 3.0..7.0), 0.00184375);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 5.0, 3.0..7.0), 0.5);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 6.0, 3.0..7.0), 0.84375);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 7.0, 3.0..7.0), 1.0);
+/// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep(98.3, 3.0..7.0), 1.0);
+/// ```
+pub fn smoothstep<T: Float>(x: T, range: ops::Range<T>) -> T {
+    let t = linearstep(x, range);
+    t * t * (T::three() - T::two() * t)
+}
