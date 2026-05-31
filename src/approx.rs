@@ -250,7 +250,7 @@ impl<T: ApproxEq<Tolerance = T> + Float, S: Space> ApproxEq for SphericalDir<T, 
 /// The mode and parameters of the comparison are passed first, e.g.:
 /// - `assert_approx_eq!(ulps <= 4; a, b)`
 /// - `assert_approx_eq!(rel <= 40 * f32::EPSILON; a, b)`
-/// - `assert_approx_eq!(abs <= 001; a, b)`
+/// - `assert_approx_eq!(abs <= 0.01; a, b)`
 ///
 /// The only reason to use this over `assert!(ApproxEq::...)` is better error
 /// messages.
