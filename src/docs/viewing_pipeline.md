@@ -137,12 +137,13 @@ assumes a right-handed view space.
 
 Left-handed versions of these functions are not offered in this library
 because the choice is arbitrary and you can easily get a left-handed
-version yourself. For the view matrix, just pass `-direction` as direction
-to `look_into`. To get a projection matrix that works with a left-handed
-view space, just flip the sign of your view space as a transformation
-before the projection matrix. That means your projection matrix would be
-`transform::perspective(...) * flip` where `flip` is this matrix (e.g. via
-`Mat4::from_diagonal([1, 1, -1, 1])`:
+version yourself: just flip the sign of the z coordinate. For the view
+matrix, do that *after* the transformation of `look_into`, i.e. your view
+matrix would be `flip * transform::look_into(...)`. To get a projection matrix 
+that works with a left-handed view space, flip the sign *before* the projection 
+matrix. That means your projection matrix would be 
+`transform::perspective(...) * flip`. In both cases, `flip` is this matrix
+(e.g. via `HcMat3::from_diagonal([1.0, 1.0, -1.0, 1.0])`):
 
 ```text
 ⎡ 1  0  0  0 ⎤
