@@ -168,23 +168,35 @@ pub fn rotate3d_aligning<T: Float, S: Space>(
     from: Dir3<T, S>,
     to: Dir3<T, S>,
 ) -> Mat3<T, S, S> {
-    // TODO: this is an exact check, and below there is another exact check to
-    // catch more cases of this going wrong. But this should really use an
-    // approx_eq test.
-    assert!(from != -to, "`from == -to` in `rotate3d_aligning`");
-
     // Compare https://math.stackexchange.com/a/476311/340615
     let v = cross(from, to);
     let c = dot(from, to);
+
+    // Mathematically, `v` is perpendicular to `from`, but due to rounding
+    // errors, it isn't exactly. For almost opposite directions (where `v` is
+    // tiny), the resulting tilt is significant and gets amplified a lot below.
+    // So we remove the component of `v` parallel to `from`.
+    let v = v - from * dot(v, from);
     let skew_mat = Mat3::from_rows([
         [T::zero(), -v.z, v.y],
         [v.z, T::zero(), -v.x],
         [-v.y, v.x, T::zero()],
     ]);
 
-    let denom = T::one() + c;
-    assert!(!denom.is_zero(), "`from == -to` in `rotate3d_aligning`");
-    Mat3::identity() + skew_mat + (skew_mat * skew_mat) * (T::one() / denom)
+    // The factor for the squared skew matrix is `(1 - c) / |v|²`, which is
+    // equal to `1 / (1 + c)` since `|v|² = 1 - c²`. Numerically, `1 + c`
+    // suffers from catastrophic cancellation when `from` and `to` point in
+    // almost opposite directions, resulting in a matrix that's not even a
+    // rotation anymore. `|v|²` is way more precise in that case. On the other
+    // hand, `1 - c` and `|v|²` are imprecise for almost equal directions.
+    let factor = if c >= T::zero() {
+        T::one() / (T::one() + c)
+    } else {
+        let len2 = v.length2();
+        assert!(!len2.is_zero(), "`from == -to` in `rotate3d_aligning`");
+        (T::one() - c) / len2
+    };
+    Mat3::identity() + skew_mat + (skew_mat * skew_mat) * factor
 }
 
 /// Affine transformation matrix that translates according to `v`.
