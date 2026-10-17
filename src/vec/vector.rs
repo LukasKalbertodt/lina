@@ -96,7 +96,7 @@ impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
 
     /// Returns the *squared* length of this vector. This is faster than
     /// [`length`][Self::length] as no sqrt operation is required. And since
-    /// the square root is continious, if you only need to compare two lengths,
+    /// the square root is continuous, if you only need to compare two lengths,
     /// you can use this method.
     pub fn length2(&self) -> T {
         self.0.iter().map(|&c| c * c).fold(T::zero(), |acc, e| acc + e)
@@ -255,7 +255,7 @@ where
     }
 }
 
-/// Scalar multipliation: `vector * scalar`.
+/// Scalar multiplication: `vector * scalar`.
 impl<T: Scalar, const N: usize, S: Space> ops::Mul<T> for Vector<T, N, S> {
     type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
@@ -281,7 +281,7 @@ macro_rules! impl_scalar_mul {
 
 impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
 
-/// Scalar multipliation: `vector *= scalar`.
+/// Scalar multiplication: `vector *= scalar`.
 impl<T: Scalar, const N: usize, S: Space> ops::MulAssign<T> for Vector<T, N, S> {
     fn mul_assign(&mut self, rhs: T) {
         for c in &mut self.0 {

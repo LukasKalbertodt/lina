@@ -15,12 +15,12 @@ use crate::{Float, Scalar, Matrix, Vector, Point, HcPoint, Space, WorldSpace};
 ///   (your normal XYZ space), or
 /// - as a linear transformation of [homogeneous coordinates][hc-wiki].
 ///
-/// In the vast majority of cases, in 3D application anyway, it is more useful
+/// In the vast majority of cases, in 3D applications anyway, it is more useful
 /// to think about the former interpretation, as you are usually interested in
 /// your normal XYZ space. So in addition to linear transformations (which can
 /// already be fully represented by [`Matrix`]), translations and projective
 /// transformation can be represented by `HcMatrix`. The term "affine
-/// transformation" describes the set of linear transformation and
+/// transformation" describes the set of linear transformations and
 /// translations.
 ///
 /// The const parameters of this type represent the dimension of the cartesian

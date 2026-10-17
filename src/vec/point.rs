@@ -31,7 +31,7 @@ impl<T: Scalar, const N: usize, S: Space> Point<T, N, S> {
     /// Returns the *squared* distance between `self` and `other`, i.e.
     /// `|self - other|²`. If you only need to compare two distances, this can
     /// be used as a faster alternative to [`distance_from`][Self::distance_from],
-    /// since the sqrt function is continious.
+    /// since the sqrt function is continuous.
     ///
     /// ```
     /// use lina::point2;

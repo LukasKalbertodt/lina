@@ -80,7 +80,7 @@ impl<T: Scalar, const N: usize, S: Space> Dir<T, N, S> {
         bytemuck::bytes_of(self)
     }
 
-    /// Returns the components of this unit vector as arary.
+    /// Returns the components of this unit vector as array.
     pub fn to_array(self) -> [T; N] {
         self.into()
     }

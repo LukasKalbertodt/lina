@@ -36,7 +36,7 @@ use crate::{
 /// Again: what we want is to "ignore the rounding errors". Most of the time,
 /// the magnitude of the rounding error is proportional to the magnitude of the
 /// number itself. In these cases, using ULPs or a relative tolerance works
-/// well. However, sometimes the error is not propertional to the number'S
+/// well. However, sometimes the error is not proportional to the number's
 /// magnitude, which is the tricky part. In those cases, you have to estimate
 /// the error manually from the inputs and intermediate results.
 ///
@@ -47,7 +47,7 @@ use crate::{
 /// - **Real to float**: converting any (exact) decimal number into a float
 ///     requires rounding most of the time. The closest representable float is
 ///     picked, and since the gaps between representable floats are proportional
-///     to the floats magnitude, the error is too.
+///     to the float's magnitude, the error is too.
 /// - **Multiplication/division**: generally, this scales the error nicely, such
 ///     that the error of the result is also proportional to the magnitude of
 ///     the result.
@@ -55,8 +55,8 @@ use crate::{
 ///     proportionality. Imagine two huge floats with errors proportional to
 ///     their magnitude and having almost the same value (e.g. being just a few
 ///     representable floats apart). Subtracting one from the other gives a
-///     number close to zero, as the numbers very almost the same. However, the
-///     error is still propertional to the inputs, and not to the result! For
+///     number close to zero, as the numbers are almost the same. However, the
+///     error is still proportional to the inputs, and not to the result! For
 ///     example, the result of `123456789.0f32 - 123456788.0f32` is `8.0`! This
 ///     is also what's known as [catastrophic cancellation][3].
 ///

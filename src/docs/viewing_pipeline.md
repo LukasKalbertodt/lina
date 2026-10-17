@@ -36,7 +36,7 @@ through a few different *coordinate systems* or *spaces* in this order:
     is used for depth testing and such things.
 
 - **screen space**: 2D space with `x` and `y` being horizontal and vertical
-    position in pixel units. Converting NDC to screen space is straight forward
+    position in pixel units. Converting NDC to screen space is straightforward
     and is done internally by your graphics API.
 
 *Aside*: what about **Clip space?** This coordinate system is essentially
@@ -80,7 +80,7 @@ perform any calculations in view space.
 ## NDC differences between APIs
 
 Unfortunately, the exact properties/requirements of NDC depend on the
-graphic API you are using. The common properties are:
+graphics API you are using. The common properties are:
 
 - `x` and `y` are in range -1 to 1 (inclusive) and describe the horizontal
   and vertical position on the screen, respectively.
@@ -121,7 +121,7 @@ That leaves the choice of z-direction. Usually, -z points inside the screen
 and +z points out of the screen. This is called a *right-handed coordinate
 system* because you can use your right hand's thumb (+x), index finger
 (+y) and middle finger (+z) at right angles to one another to represent the
-axis of this space. The alternative is the left-handed coordinate system
+axes of this space. The alternative is the left-handed coordinate system
 where +z points inside the screen and -z points out of it.
 
 What's important is that **the choice does not matter** as long as you use

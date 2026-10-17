@@ -19,7 +19,7 @@ use crate::{
 };
 
 
-/// Linear transformation matrix that scales all `N` axis by `factor`.
+/// Linear transformation matrix that scales all `N` axes by `factor`.
 ///
 /// Example for `Mat3` (with `f` being `factor`):
 ///
@@ -149,7 +149,7 @@ pub fn rotate3d_around<T: Float, S: Space>(
 
 /// 3D rotation to align `from` with `to`, i.e. `M * from = to`.
 ///
-/// Panics if `from == -to`, as in that case, the rotation is ambigious/not well
+/// Panics if `from == -to`, as in that case, the rotation is ambiguous/not well
 /// defined.
 ///
 /// ```should_panic
@@ -218,7 +218,7 @@ pub fn translate<T: Scalar, const N: usize, S: Space>(
 ///
 /// In view space, the camera is at the origin, +x points right, +y points up.
 /// This view space is right-handed, and thus, +z points outside of the screen
-/// and -z points into the screen. Please see [the part on handedness in the
+/// and -z points into the screen. Please see [the part on handedness in
 /// these docs][hand-docs] for more information. The returned matrix only
 /// translates and rotates, meaning that sizes and angles are unchanged
 /// compared to world space.
@@ -426,7 +426,7 @@ pub fn perspective<T: Float>(
 /// With orthographic projection, also called parallel projection, things
 /// further from the camera don't get smaller. All "view rays" are parallel.
 /// It's the limit of pulling the camera back and zooming in at the same time.
-/// It's eseentially unsuitable for first-person cameras as we humans are not
+/// It's essentially unsuitable for first-person cameras as we humans are not
 /// really used to this kind of projection. Instead, its most common use in
 /// games is for shadow mapping. But "top down" (e.g. strategy) games could
 /// make use of this projection for the main camera as well.

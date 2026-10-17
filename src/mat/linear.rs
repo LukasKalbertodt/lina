@@ -51,7 +51,7 @@ use crate::{Point, Scalar, Vector, Float, cross, HcMatrix, HcPoint, Space, World
 /// Mathematically, this composition is *matrix multiplication*: `A * B` results
 /// in a matrix that represents the combined transformation of *first* `B`,
 /// *then* `A`. Matrix multiplication is not commutative, i.e. the order of
-/// operands matters. And it's also in an non-intuitive order, with the
+/// operands matters. And it's also in a non-intuitive order, with the
 /// rightmost transformation being applied first. For that reason, you can also
 /// use [`Matrix::and_then`] instead of the overloaded operator `*`. Use what
 /// you think is easier to read.

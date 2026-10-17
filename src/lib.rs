@@ -28,7 +28,7 @@
 //!     - Use `in_space` or `with_spaces` methods to cast/reinterpret the space parameter.
 //!     - Recommendation: make type aliases for specific types used in your app,
 //!       e.g. `type HelioPoint = Point<f64, 3, HelioSpace>`.
-//! - Most types have an `as_bytes` method to pass them to graphic APIs.
+//! - Most types have an `as_bytes` method to pass them to graphics APIs.
 //! - Other features:
 //!     - Strongly typed angles: [`Degrees`] and [`Radians`]
 //!     - Useful functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], [`cross`], [`dot`], ...
@@ -75,14 +75,14 @@
 //! are implemented for a small number of fixed dimensions via macro. But worry
 //! not! For one, these are just a few functions without which `lina` can still
 //! be used without a problem. Further, for the 3D graphics use case, all
-//! relevant functions exist, as one is almost never converned with anything
+//! relevant functions exist, as one is almost never concerned with anything
 //! with more than 4 dimensions. So the only relevant disadvantage of this is
 //! that the docs look less nice, as there are repetitions of the same
 //! function.
 //!
 //! One further consequence of this is the choice that the const parameters of
 //! `HcPoint` and `HcMatrix` don't reflect the number of values/rows/columns,
-//! but the the dimension of the space in which the point lives/which the
+//! but the dimension of the space in which the point lives/which the
 //! transformation transforms. E.g. `HcPoint<3>` represents a 3D point, by
 //! storing 4 numbers.
 //!
@@ -217,7 +217,7 @@ pub fn cross<T: Scalar, S: Space>(
 /// the angle between the two vectors.
 ///
 /// Another way to think about the dot product is to imagine one vector being
-/// projected onto the other one. The dot product is incredible useful in many
+/// projected onto the other one. The dot product is incredibly useful in many
 /// scenarios.
 ///
 /// This function panics if `N = 0` as dot products of 0-dimensional vectors
@@ -419,13 +419,13 @@ pub fn slerp<T: Float, const N: usize, S: Space>(
 
     // The general formula `sin(x * t) / sin(x)` is problematic for very small
     // `x` as for x=0, we would divide by 0. In math world, all is hunky dory:
-    // in the limit x->0, the value approaches `t`. But with floats, this is
+    // in the limit x->0, the value approaches `t`. But with floats, this
     // breaks.
     //
     // Luckily, in a fairly large region around x=0, floats do produce the
     // correct value `t`. By checking for `f32` and `f64`, the machine epsilon
-    // is a good treshold. The general formula already yields exactly `t` for
-    // `T::epsilon()`. So while the branch is unfortunate, but this actually
+    // is a good threshold. The general formula already yields exactly `t` for
+    // `T::epsilon()`. So while the branch is unfortunate, this actually
     // results in the correct value for all angles.
     let (factor_a, factor_b) = if angle.0 < T::epsilon() {
         (T::one() - factor, factor)

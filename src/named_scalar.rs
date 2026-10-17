@@ -1,4 +1,4 @@
-//! Helper types and traits to access specific coordinates of vectors of points
+//! Helper types and traits to access specific coordinates of vectors or points
 //! by name (`x`, `y`, `z` and `w`).
 //!
 //! This only works with a small set of vectors/points with specific dimension.
@@ -73,7 +73,7 @@ pub struct View4<T> {
 // `Zeroable` impls for "view" types are sound:
 //
 // - They are inhabited: structs plus bound `T: Zeroable`.
-// - They only consists of `Zeroable` fields, thus zero bit pattern is fine.
+// - They only consist of `Zeroable` fields, thus zero bit pattern is fine.
 unsafe impl<T: Zeroable> Zeroable for View2<T> {}
 unsafe impl<T: Zeroable> Zeroable for View3<T> {}
 unsafe impl<T: Zeroable> Zeroable for View4<T> {}
@@ -124,21 +124,21 @@ pub trait HasX {
     fn x_mut(&mut self) -> &mut Self::Scalar;
 }
 
-/// Vectors or points that have an `y` component.
+/// Vectors or points that have a `y` component.
 pub trait HasY {
     type Scalar;
     fn y(&self) -> &Self::Scalar;
     fn y_mut(&mut self) -> &mut Self::Scalar;
 }
 
-/// Vectors or points that have an `z` component.
+/// Vectors or points that have a `z` component.
 pub trait HasZ {
     type Scalar;
     fn z(&self) -> &Self::Scalar;
     fn z_mut(&mut self) -> &mut Self::Scalar;
 }
 
-/// Vectors or points that have an `w` component.
+/// Vectors or points that have a `w` component.
 pub trait HasW {
     type Scalar;
     fn w(&self) -> &Self::Scalar;

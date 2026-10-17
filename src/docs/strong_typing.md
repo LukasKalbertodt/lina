@@ -19,7 +19,7 @@ means.
 
 Think of `Point`s as an (absolute) *location* in space and of `Vector`s as a
 (relative) *displacement* in space. There is a really nice analogy to two types
-in the standard library:[`Instant`][std::time::Instant] (absolute location in
+in the standard library: [`Instant`][std::time::Instant] (absolute location in
 time) and [`Duration`][std::time::Duration] (relative displacement in time).
 
 |   | In time | In space |
@@ -62,12 +62,12 @@ Sometimes, a vector-like thing can be considered both, a location or
 displacement. For example, let's say you have a 3D model of a fox. All those
 vertex positions of the model are points in 3D space, i.e. a location. But now
 you want to place that model in your 3D scene. The fox has a 3D position in
-your world. But to arrive at the final vertex positions, you have two add two
+your world. But to arrive at the final vertex positions, you have to add two
 positions?! Well, of course the model positions can be seen as a displacement
 relative to an artificial model origin. Or the fox's position in your scene can
 be seen as displacement from the scene origin.
 
-For those reasons, `lina` allows you to easily cast between these to kinds via
+For those reasons, `lina` allows you to easily cast between these two kinds via
 [`Point::to_vec`] and [`Vector::to_point`]. Before using those, briefly think
 whether what you are doing makes sense, though.
 
@@ -79,7 +79,7 @@ represent affine and projective transformations as matrices. While numerically
 identical, there is a big semantic difference between a `Point<4>` (a location
 in 4D space, represented with 4 cartesian coordinates) and `HcPoint<3>`
 (a location in 3D space, represented with 4 homogeneous coordinates).
-Similarly, a homogeneous transformation matrix is numerical identical to a
+Similarly, a homogeneous transformation matrix is numerically identical to a
 linear one of dimension N+1, but they represent vastly different things.
 
 In most libraries, these things are not distinguished. And to be fair, for most
@@ -90,18 +90,18 @@ saying "both contain 16 floats, why have different types?" can be extended
 to "`Vec<u8>` and `String` have the same memory layout, why have different
 types?"
 
-In the end, this is always an API design decision and a balance act between the
-advantages and disadvantages of strong typing. `lina` made its choice and
+In the end, this is always an API design decision and a balancing act between
+the advantages and disadvantages of strong typing. `lina` made its choice and
 hopefully, that will avoid some logic errors and make writing some code easier
 (e.g. not needing to remember dividing by w).
 
 
 ## Semantic `Space` parameter
 
-Almost all types in `lina` contain one or two `S: Space` parameters. For,
+Almost all types in `lina` contain one or two `S: Space` parameters. For
 [`Point`], [`Vector`], [`HcPoint`], [`SphericalPos`] and
 [`SphericalDir`], it indicates in which *semantic space* this point or
-vector lives. Similarly, for [`Matrix`] and [`HcMatrix`], the two parameter
+vector lives. Similarly, for [`Matrix`] and [`HcMatrix`], the two parameters
 indicate from and into which semantic space the transformation transforms.
 
 [The viewing pipeline docs][viewing_pipeline] show typical examples of different

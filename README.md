@@ -25,7 +25,7 @@ To be clear: `lina` is not *better* than
 [`cgmath`](https://crates.io/crates/cgmath),
 [`nalgebra`](https://nalgebra.org/),
 [`glam`](https://crates.io/crates/glam/),
-[`ultraviolet`](https://crates.io/crates/ultraviolet)
+[`ultraviolet`](https://crates.io/crates/ultraviolet),
 [`vek`](https://crates.io/crates/vek), etc.
 It is simply different, with an API that better fits my taste – and maybe yours.
 
@@ -41,7 +41,7 @@ It is simply different, with an API that better fits my taste – and maybe your
 - Approximate float equality (including `assert_approx_eq!`)
 
 The only major thing that I'd still like to add in the future is rotors.
-`lina` offers the standard translation matrices, but rotors can be better for representing and composing rotations.
+`lina` offers the standard transformation matrices, but rotors can be better for representing and composing rotations.
 
 
 See [**the documentation**](https://docs.rs/lina) for more information.
@@ -49,7 +49,7 @@ See [**the documentation**](https://docs.rs/lina) for more information.
 
 ## Status of this project
 
-`lina` is is certainly usable and is quite feature rich.
+`lina` is certainly usable and is quite feature rich.
 I actively use it in a game project, which also motivated most API design decisions.
 But `lina` is not used by many other projects, and there might still be some non-minor API changes.
 

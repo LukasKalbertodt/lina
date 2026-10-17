@@ -21,7 +21,7 @@ use crate::{Scalar, Space, WorldSpace, Point};
 /// transformations of N-dimensional points as (N+1)x(N+1) matrix. You usually
 /// only ever encounter them in that context.
 ///
-/// The most important functions of this type is to convert from and to
+/// The most important function of this type is to convert from and to
 /// [`Point`] via the `From` impls or [`Self::to_point`].
 ///
 /// ```
@@ -91,7 +91,7 @@ impl<T: Scalar, const N: usize, S: Space> HcPoint<T, N, S> {
         self.coords.map(|s| s / self.weight).into()
     }
 
-    /// Reinterprets this points as being in the space `Target` instead of `S`.
+    /// Reinterprets this point as being in the space `Target` instead of `S`.
     /// Before calling this, make sure this operation makes semantic sense and
     /// don't just use it to get rid of compiler errors.
     pub const fn in_space<Target: Space>(self) -> HcPoint<T, N, Target> {
@@ -170,8 +170,8 @@ impl<T: Scalar, const N: usize, S: Space> Copy for HcPoint<T, N, S> {}
 unsafe impl<T: Scalar + Zeroable, const N: usize, S: Space> Zeroable for HcPoint<T, N, S> {}
 
 /// This type, with the `T: Pod` bounds, satisfies all properties required by
-/// `Pod`. All bit patterns are allowed, no padding bytes, trivially inhabiteda
-/// nad `repr(C)`.
+/// `Pod`. All bit patterns are allowed, no padding bytes, trivially inhabited
+/// and `repr(C)`.
 unsafe impl<T: Scalar + Pod, const N: usize, S: Space> Pod for HcPoint<T, N, S> {}
 
 impl<T: Scalar, const N: usize, S: Space> ops::Index<usize> for HcPoint<T, N, S> {
