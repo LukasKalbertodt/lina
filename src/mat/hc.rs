@@ -742,15 +742,6 @@ impl<T, const N: usize> ops::IndexMut<usize> for NPlusOneArray<T, N> {
     }
 }
 
-impl<T: Pod + Scalar, const N: usize> AsRef<[T]> for NPlusOneArray<T, N>
-where
-    [T]: Pod,
-{
-    fn as_ref(&self) -> &[T] {
-        bytemuck::cast_ref(self)
-    }
-}
-
 
 // =============================================================================================
 // ===== `Row` and `Col` proxies
