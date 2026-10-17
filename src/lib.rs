@@ -299,7 +299,8 @@ pub fn angle_between<T: Float, const N: usize, S: Space>(
 /// Clamps `val` into the given range `min..=max`.
 ///
 /// The trait bound *should* technically be `Ord`, but that's inconvenient when
-/// dealing with floats. Panics when passed a NaN or if `min > max`.
+/// dealing with floats. Panics if `min > max` or if `min` or `max` is NaN. If
+/// `val` is NaN, this panics in debug mode and returns NaN in release mode.
 ///
 /// ```
 /// use lina::clamp;
@@ -311,15 +312,21 @@ pub fn angle_between<T: Float, const N: usize, S: Space>(
 /// ```
 pub fn clamp<T: PartialOrd>(val: T, range: RangeInclusive<T>) -> T {
     let (min, max) = range.into_inner();
+
+    // The range is usually constant, or at least the same for all iterations
+    // of a loop, so these checks are optimized away or moved out of the loop.
     assert!(
         min.partial_cmp(&max).is_some(),
         "non-comparable value (NaN?) in range passed to `clamp`",
     );
-    assert!(
+    assert!(min <= max, "'min' is larger than 'max'");
+
+    // This, however, would be checked for every value and prevents
+    // auto-vectorization of loops, so we only check it in debug mode.
+    debug_assert!(
         val.partial_cmp(&min).is_some(),
         "non-comparable value (NaN?) passed as 'val' to `clamp`",
     );
-    assert!(min <= max, "'min' is larger than 'max'");
 
     match () {
         () if val < min => min,

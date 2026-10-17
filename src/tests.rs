@@ -55,6 +55,25 @@ fn clamp_min_larger_than_max() {
 }
 
 #[test]
+#[should_panic(expected = "in range passed to `clamp`")]
+fn clamp_nan_in_range() {
+    clamp(1.0, 0.0..=f32::NAN);
+}
+
+#[test]
+#[cfg(debug_assertions)]
+#[should_panic(expected = "passed as 'val' to `clamp`")]
+fn clamp_nan_val_debug() {
+    clamp(f32::NAN, 0.0..=1.0);
+}
+
+#[test]
+#[cfg(not(debug_assertions))]
+fn clamp_nan_val_release() {
+    assert!(clamp(f32::NAN, 0.0..=1.0).is_nan());
+}
+
+#[test]
 fn dir_debug() {
     assert_eq!(format!("{:?}", <Dir2f>::unit_y()), "Dir[0.0, 1.0]");
     assert_eq!(format!("{:?}", <Dir3f>::unit_z()), "Dir[0.0, 0.0, 1.0]");
