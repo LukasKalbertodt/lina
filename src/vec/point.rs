@@ -159,6 +159,13 @@ impl<T: Scalar, const N: usize, S: Space> Clone for Point<T, N, S> {
 
 impl<T: Scalar, const N: usize, S: Space> Copy for Point<T, N, S> {}
 
+/// Returns the origin.
+impl<T: Scalar, const N: usize, S: Space> Default for Point<T, N, S> {
+    fn default() -> Self {
+        Self::origin()
+    }
+}
+
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
 /// wrapper around an array with `repr(transparent)`.
 unsafe impl<T: Scalar + Zeroable, const N: usize, S: Space> Zeroable for Point<T, N, S> {}

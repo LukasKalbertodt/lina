@@ -1,6 +1,6 @@
 use crate::{
-    angle_between, assert_approx_eq, clamp, dot, slerp, vec2, vec3, Degrees, Dir, Dir2f, Dir3f,
-    Float, Radians, Vector, WorldSpace,
+    angle_between, assert_approx_eq, clamp, dot, point2, point3, slerp, vec2, vec3, Degrees, Dir,
+    Dir2f, Dir3f, Float, ModelSpace, Point, Radians, Vector, WorldSpace,
 };
 
 
@@ -174,4 +174,25 @@ fn slerp_opposite_f32() {
     // `angle_between` used to return NaN for these, so it's worth testing.
     let v = vec3(5.8773685f32, -2.1701226, 6.303587);
     slerp(v, -v, 0.5);
+}
+
+#[test]
+fn default_impls() {
+    assert_eq!(<Vector<f32, 3>>::default(), vec3(0.0, 0.0, 0.0));
+    assert_eq!(<Point<i32, 2>>::default(), point2(0, 0));
+    assert_eq!(<Radians<f32>>::default(), Radians(0.0));
+    assert_eq!(<Degrees<f64>>::default(), Degrees(0.0));
+
+    // The main use case: deriving `Default` for types containing these. This
+    // must work for spaces that don't implement `Default`.
+    #[derive(Default)]
+    struct Player {
+        pos: Point<f32, 3, ModelSpace>,
+        velocity: Vector<f32, 3, ModelSpace>,
+        heading: Degrees<f32>,
+    }
+    let p = Player::default();
+    assert_eq!(p.pos, point3(0.0, 0.0, 0.0).in_space());
+    assert_eq!(p.velocity, vec3(0.0, 0.0, 0.0).in_space());
+    assert_eq!(p.heading, Degrees(0.0));
 }

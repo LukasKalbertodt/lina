@@ -144,6 +144,20 @@ impl<T: Float> From<Radians<T>> for Degrees<T> {
     }
 }
 
+/// Returns 0 rad.
+impl<T: Float> Default for Radians<T> {
+    fn default() -> Self {
+        Self::zero()
+    }
+}
+
+/// Returns 0°.
+impl<T: Float> Default for Degrees<T> {
+    fn default() -> Self {
+        Self::zero()
+    }
+}
+
 macro_rules! impl_debug_display {
     ($ty:ident, $unit:literal) => {
         impl<T: Float> fmt::Debug for $ty<T> {

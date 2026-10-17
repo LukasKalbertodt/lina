@@ -201,6 +201,13 @@ impl<T: Scalar, const N: usize, S: Space> Clone for Vector<T, N, S> {
 }
 impl<T: Scalar, const N: usize, S: Space> Copy for Vector<T, N, S> {}
 
+/// Returns the zero vector.
+impl<T: Scalar, const N: usize, S: Space> Default for Vector<T, N, S> {
+    fn default() -> Self {
+        Self::zero()
+    }
+}
+
 
 /// `[T; N] where T: Zeroable` implements `Zeroable` and this is just a newtype
 /// wrapper around an array with `repr(transparent)`.
