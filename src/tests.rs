@@ -1,4 +1,4 @@
-use crate::{angle_between, assert_approx_eq, vec2, vec3, Radians};
+use crate::{angle_between, assert_approx_eq, vec2, vec3, Degrees, Radians};
 
 
 #[test]
@@ -22,4 +22,17 @@ fn angle_between_opposite_vectors() {
 
     let angle = angle_between(vec2(0.3, 0.7), vec2(-0.3, -0.7));
     assert_approx_eq!(abs <= Radians(1e-6); angle, Radians(std::f64::consts::PI));
+}
+
+
+#[test]
+fn angle_normalized_tiny_negative() {
+    // For these, `angle + full_turn` is rounded to exactly `full_turn`.
+    assert_eq!(Radians(-1e-20f64).normalized(), Radians(0.0));
+    assert_eq!(Radians(-1e-10f32).normalized(), Radians(0.0));
+    assert_eq!(Degrees(-1e-14f64).normalized(), Degrees(0.0));
+    assert_eq!(Degrees(-1e-6f32).normalized(), Degrees(0.0));
+
+    assert!(Radians(-1e-6f64).normalized() < Radians::full_turn());
+    assert!(Degrees(-1e-3f32).normalized() < Degrees::full_turn());
 }

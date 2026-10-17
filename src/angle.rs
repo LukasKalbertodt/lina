@@ -60,9 +60,13 @@ macro_rules! shared_methods {
         /// ```
         #[must_use = "to normalize in-place, use `normalize`, not `normalized`"]
         pub fn normalized(self) -> Self {
-            let rem = self.0 % Self::full_turn().0;
+            let full_turn = Self::full_turn().0;
+            let rem = self.0 % full_turn;
             if rem < T::zero() {
-                Self(rem + Self::full_turn().0)
+                // For tiny negative `rem`, the sum is rounded to exactly
+                // `full_turn`, which is outside the promised range.
+                let out = rem + full_turn;
+                if out == full_turn { Self::zero() } else { Self(out) }
             } else {
                 Self(rem)
             }
