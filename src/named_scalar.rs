@@ -14,7 +14,7 @@
 //! # Example
 //!
 //! ```
-//! use lina::{vec2, vec3, point2, point3, Vector};
+//! use lina::{vec2, vec3, point2, point3, Point, Vector};
 //!
 //! let v2 = vec2(1, 2);
 //! let v3 = vec3(1, 2, 3);
@@ -27,10 +27,12 @@
 //!
 //! let p2 = point2(1, 2);
 //! let p3 = point3(1, 2, 3);
+//! let p4 = <Point<_, 4>>::from([1, 2, 3, 4]);
 //!
 //! // You can access components by name.
 //! let _ = (p2.x, p2.y);
 //! let _ = (p3.x, p3.y, p3.z);
+//! let _ = (p4.x, p4.y, p4.z, p4.w);
 //! ```
 
 use std::ops::{Deref, DerefMut};
@@ -113,6 +115,7 @@ impl_view_deref!(Vector, 3, View3);
 impl_view_deref!(Vector, 4, View4);
 impl_view_deref!(Point, 2, View2);
 impl_view_deref!(Point, 3, View3);
+impl_view_deref!(Point, 4, View4);
 impl_view_deref!(HcPoint, 2, View2, coords);
 impl_view_deref!(HcPoint, 3, View3, coords);
 
@@ -164,15 +167,19 @@ impl_has_axis!(Vector, 3, HasX, 0, x, x_mut);
 impl_has_axis!(Vector, 4, HasX, 0, x, x_mut);
 impl_has_axis!(Point, 2, HasX, 0, x, x_mut);
 impl_has_axis!(Point, 3, HasX, 0, x, x_mut);
+impl_has_axis!(Point, 4, HasX, 0, x, x_mut);
 
 impl_has_axis!(Vector, 2, HasY, 1, y, y_mut);
 impl_has_axis!(Vector, 3, HasY, 1, y, y_mut);
 impl_has_axis!(Vector, 4, HasY, 1, y, y_mut);
 impl_has_axis!(Point, 2, HasY, 1, y, y_mut);
 impl_has_axis!(Point, 3, HasY, 1, y, y_mut);
+impl_has_axis!(Point, 4, HasY, 1, y, y_mut);
 
 impl_has_axis!(Vector, 3, HasZ, 2, z, z_mut);
 impl_has_axis!(Vector, 4, HasZ, 2, z, z_mut);
 impl_has_axis!(Point, 3, HasZ, 2, z, z_mut);
+impl_has_axis!(Point, 4, HasZ, 2, z, z_mut);
 
 impl_has_axis!(Vector, 4, HasW, 3, w, w_mut);
+impl_has_axis!(Point, 4, HasW, 3, w, w_mut);

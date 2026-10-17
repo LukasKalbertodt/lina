@@ -161,3 +161,14 @@ fn hc_point_array_conversions() {
     AsMut::<[_; 4]>::as_mut(&mut p3)[3] = 7;
     assert_eq!(p3.weight, 7);
 }
+
+#[test]
+fn point4_named_components() {
+    use crate::named_scalar::{HasW, HasX};
+
+    let mut p = <Point<_, 4>>::from([1, 2, 3, 4]);
+    assert_eq!((p.x, p.y, p.z, p.w), (1, 2, 3, 4));
+    p.w = 7;
+    assert_eq!(p, Point::from([1, 2, 3, 7]));
+    assert_eq!((*p.x(), *p.w()), (1, 7));
+}
