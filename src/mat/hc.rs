@@ -541,9 +541,16 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> HcMatrix<T, N, N, Src, D
 
     /// Returns the *trace* of the matrix, i.e. the sum of all elements on the
     /// diagonal.
+    ///
+    /// ```
+    /// use lina::{HcMat2, HcMat3f};
+    ///
+    /// assert_eq!(<HcMat3f>::identity().trace(), 4.0);
+    /// assert_eq!(<HcMat2<_>>::from_rows([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).trace(), 15);
+    /// ```
     pub fn trace(&self) -> T {
         let (l, q) = self.diagonal_parts();
-        q + l.into_iter().fold(q, |acc, e| acc + e)
+        l.into_iter().fold(q, |acc, e| acc + e)
     }
 }
 
