@@ -101,7 +101,10 @@ macro_rules! impl_for_float {
 
             fn approx_eq_rel(self, other: Self, rel_tolerance: Self::Tolerance) -> bool {
                 // Deal with infinities and zeroes.
-                if self.is_sign_positive() != other.is_sign_positive() {
+                if self.is_sign_positive() != other.is_sign_positive()
+                    || self.is_infinite()
+                    || other.is_infinite()
+                {
                     return self == other;
                 }
 
@@ -294,6 +297,17 @@ mod tests {
         assert!(!ApproxEq::approx_eq_abs(f32::NEG_INFINITY, f32::INFINITY, 100.0));
         assert!(!ApproxEq::approx_eq_rel(f32::NEG_INFINITY, f32::INFINITY, 1.0));
         assert!(!ApproxEq::approx_eq_ulps(f32::NEG_INFINITY, f32::INFINITY, 10));
+
+        assert!(ApproxEq::approx_eq_abs(f32::INFINITY, f32::INFINITY, 0.0));
+        assert!(ApproxEq::approx_eq_rel(f32::INFINITY, f32::INFINITY, 0.0));
+        assert!(ApproxEq::approx_eq_ulps(f32::INFINITY, f32::INFINITY, 0));
+        assert!(ApproxEq::approx_eq_rel(f32::NEG_INFINITY, f32::NEG_INFINITY, 0.0));
+        assert!(!ApproxEq::approx_eq_abs(f32::INFINITY, f32::MAX, 1e30));
+        assert!(!ApproxEq::approx_eq_rel(f32::INFINITY, 1.0, 0.01));
+        assert!(!ApproxEq::approx_eq_rel(1e30, f32::INFINITY, 1e-6));
+        assert!(!ApproxEq::approx_eq_rel(f32::NEG_INFINITY, -1.0, 0.01));
+        assert!(!ApproxEq::approx_eq_rel(f64::MAX, f64::INFINITY, 1.0));
+        assert!(!ApproxEq::approx_eq_ulps(f32::INFINITY, f32::MAX, 0));
 
         assert!(!ApproxEq::approx_eq_abs(3.14, f32::NAN, 100.0));
         assert!(!ApproxEq::approx_eq_rel(3.14, f32::NAN, 1.0));
