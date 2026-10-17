@@ -399,6 +399,16 @@ pub fn slerp<T: Float, const N: usize, S: Space>(
 }
 
 /// Projects `v` onto `target`, returning `target · (v · target)`.
+///
+/// `target` must have unit length (i.e. be normalized)! Otherwise, the result
+/// is scaled by `|target|²` and thus wrong.
+///
+/// ```
+/// use lina::{project_onto, vec2};
+///
+/// assert_eq!(project_onto(vec2(3.0, 4.0), vec2(1.0, 0.0)), vec2(3.0, 0.0));
+/// assert_eq!(project_onto(vec2(3.0, 4.0), vec2(0.0, -1.0)), vec2(0.0, 4.0));
+/// ```
 pub fn project_onto<T: Float, const N: usize, S: Space>(
     v: impl Into<Vector<T, N, S>>,
     target: impl Into<Vector<T, N, S>>,
