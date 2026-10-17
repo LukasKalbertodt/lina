@@ -260,10 +260,8 @@ pub fn atan2<T: Float>(y: T, x: T) -> Radians<T> {
 /// Returns the angle between the two given vectors. Returns garbage if either
 /// vector has length 0.
 ///
-/// If you already know the vectors are normalized, it's faster to manually
-/// calculate `Radians::acos(dot(a, b))`, as this skips calculating the
-/// vectors' lengths.
-///
+/// This is precise for all angles, including ones very close to 0 or π
+/// (unlike `acos(cos θ)`, the obvious formula).
 ///
 /// ```
 /// use lina::{angle_between, vec2, Radians};
@@ -283,17 +281,45 @@ pub fn angle_between<T: Float, const N: usize, S: Space>(
     debug_assert!(!a.is_zero());
     debug_assert!(!b.is_zero());
 
-    let mut cos_angle = dot(a, b) / (a.length() * b.length());
-
-    // Unfortunately, due to float precision, `cos_angle` is sometimes
-    // slightly above 1 or below -1. And taking the `acos` of it then would
-    // result in NaN.
-    if cos_angle > T::one() {
-        cos_angle = T::one();
-    } else if cos_angle < -T::one() {
-        cos_angle = -T::one();
+    // `acos(cos θ)` is very imprecise for angles close to 0 or π; same goes for
+    // `asin(sin θ)` for angles near π/2. So instead, we calculate
+    // `|a| |b| sin θ` and `|a| |b| cos θ` independently and pass both to
+    // `atan2`.
+    //
+    // `|a| |b| cos θ` is simply `dot(a, b)` of course. `|a| |b| sin θ` is the
+    // magnitude of the wedge product `a ∧ b` (the generalization of the cross
+    // product to all dimensions), whose components are all `aᵢ bⱼ - aⱼ bᵢ` with
+    // `i < j`.
+    fn wedge2_and_dot<T: Float, const N: usize, S: Space>(
+        a: Vector<T, N, S>,
+        b: Vector<T, N, S>,
+    ) -> (T, T) {
+        let mut wedge2 = T::zero();
+        for i in 0..N {
+            for j in (i + 1)..N {
+                let m = a[i] * b[j] - a[j] * b[i];
+                wedge2 += m * m;
+            }
+        }
+        (wedge2, dot(a, b))
     }
-    Radians::acos(cos_angle)
+
+    let (mut wedge2, mut dot_ab) = wedge2_and_dot(a, b);
+
+    // `wedge2 + dot_ab²` equals `|a|² |b|²`. If that is extremely small or
+    // large (or NaN), the squares above lost precision due to underflow or
+    // overflowed. The angle doesn't depend on the lengths, so in that rare
+    // case, we scale both vectors to have a largest component of 1 and try
+    // again. Checking this before calculating the wedge product would make
+    // the common case slower.
+    let ab2 = wedge2 + dot_ab * dot_ab;
+    let min = T::min_positive_value() / (T::epsilon() * T::epsilon());
+    if !(ab2 >= min && ab2 <= T::max_value()) {
+        let scaled = |v: Vector<T, N, S>| v / v.iter().fold(T::zero(), |max, c| max.max(c.abs()));
+        (wedge2, dot_ab) = wedge2_and_dot(scaled(a), scaled(b));
+    }
+
+    atan2(wedge2.sqrt(), dot_ab)
 }
 
 /// Clamps `val` into the given range `min..=max`.
