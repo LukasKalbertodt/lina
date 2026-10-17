@@ -600,7 +600,7 @@ super::impl_scalar_mul!(HcMatrix => f32, f64, u8, u16, u32, u64, u128, usize, i8
 // ===== Matrix * matrix multiplication (composition)
 // =============================================================================================
 
-/// `matrix * matrix` multiplication. You can also use [`Matrix::and_then`].
+/// `matrix * matrix` multiplication. You can also use [`HcMatrix::and_then`].
 impl<
     T: Scalar,
     const C: usize,

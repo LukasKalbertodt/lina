@@ -28,7 +28,7 @@
 //!     - Use `in_space` or `with_spaces` methods to cast/reinterpret the space parameter.
 //!     - Recommendation: make type aliases for specific types used in your app,
 //!       e.g. `type HelioPoint = Point<f64, 3, HelioSpace>`.
-//! - Most types have a `to_bytes` method to pass them to graphic APIs.
+//! - Most types have an `as_bytes` method to pass them to graphic APIs.
 //! - Other features:
 //!     - Strongly typed angles: [`Degrees`] and [`Radians`]
 //!     - Useful functions: [`atan2`], [`clamp`], [`lerp`], [`slerp`], [`cross`], [`dot`], ...

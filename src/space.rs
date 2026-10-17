@@ -17,10 +17,10 @@
 ///
 /// Also see [`crate::docs::strong_typing`] for more information.
 ///
-/// This trait is just a marker trait, not containing anything interesting. Taim
-/// provides a few implementations that might be useful. But you are also
-/// encouraged to create your own spaces if the provided ones don't fit your
-/// use case. Adding a new space is super trivial. I would recommend also
+/// This trait is just a marker trait, not containing anything interesting.
+/// `lina` provides a few implementations that might be useful. But you are
+/// also encouraged to create your own spaces if the provided ones don't fit
+/// your use case. Adding a new space is super trivial. I would recommend also
 /// making the space type uninhabited, i.e. `enum Name {}`.
 ///
 /// Note that this trait does not necessarily represent any mathematical

@@ -102,12 +102,12 @@ impl<T: Scalar, S: Space> Dir2<T, S> {
         Self(Vec2::new(x, y))
     }
 
-    /// Returns `(1, 0, 0)`.
+    /// Returns `(1, 0)`.
     pub fn unit_x() -> Self {
         Self(Vector::unit_x())
     }
 
-    /// Returns `(0, 1, 0)`.
+    /// Returns `(0, 1)`.
     pub fn unit_y() -> Self {
         Self(Vector::unit_y())
     }
