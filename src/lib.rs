@@ -299,7 +299,16 @@ pub fn angle_between<T: Float, const N: usize, S: Space>(
 /// Clamps `val` into the given range `min..=max`.
 ///
 /// The trait bound *should* technically be `Ord`, but that's inconvenient when
-/// dealing with floats. Panics when passed a NaN.
+/// dealing with floats. Panics when passed a NaN or if `min > max`.
+///
+/// ```
+/// use lina::clamp;
+///
+/// assert_eq!(clamp(0.7, 0.0..=1.0), 0.7);
+/// assert_eq!(clamp(-3, -2..=2), -2);
+/// assert_eq!(clamp(3, -2..=2), 2);
+/// assert_eq!(clamp(1.5, 0.3..=0.3), 0.3);
+/// ```
 pub fn clamp<T: PartialOrd>(val: T, range: RangeInclusive<T>) -> T {
     let (min, max) = range.into_inner();
     assert!(
@@ -310,7 +319,7 @@ pub fn clamp<T: PartialOrd>(val: T, range: RangeInclusive<T>) -> T {
         val.partial_cmp(&min).is_some(),
         "non-comparable value (NaN?) passed as 'val' to `clamp`",
     );
-    assert!(min < max, "'min' is larger than 'max'");
+    assert!(min <= max, "'min' is larger than 'max'");
 
     match () {
         () if val < min => min,

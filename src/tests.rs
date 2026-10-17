@@ -1,4 +1,4 @@
-use crate::{angle_between, assert_approx_eq, vec2, vec3, Degrees, Radians};
+use crate::{angle_between, assert_approx_eq, clamp, vec2, vec3, Degrees, Radians};
 
 
 #[test]
@@ -35,4 +35,18 @@ fn angle_normalized_tiny_negative() {
 
     assert!(Radians(-1e-6f64).normalized() < Radians::full_turn());
     assert!(Degrees(-1e-3f32).normalized() < Degrees::full_turn());
+}
+
+#[test]
+fn clamp_empty_range() {
+    assert_eq!(clamp(1.0, 1.0..=1.0), 1.0);
+    assert_eq!(clamp(-4.0, 1.0..=1.0), 1.0);
+    assert_eq!(clamp(9.0, 1.0..=1.0), 1.0);
+    assert_eq!(clamp(5, 3..=3), 3);
+}
+
+#[test]
+#[should_panic(expected = "'min' is larger than 'max'")]
+fn clamp_min_larger_than_max() {
+    clamp(1.0, 2.0..=1.0);
 }
