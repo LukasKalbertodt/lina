@@ -4,6 +4,7 @@
 
 use crate::{
     Vector, Scalar, Point, Radians, Float, Degrees, Matrix, SphericalPos, SphericalDir, Space, HcMatrix,
+    Dir, HcPoint,
 };
 
 /// Types that can be checked for approximate equality. Useful for floats.
@@ -11,6 +12,9 @@ use crate::{
 /// The impls for vectors and other composite types simply check if all
 /// components/elements are approximately equal. In particular, the distance
 /// between two points is *not* used to check their approximate equality.
+/// Similarly, for [`HcPoint`], all stored values (coordinates and weight) are
+/// compared, so different representations of the same point (e.g. `(1, 2; 1)`
+/// and `(2, 4; 2)`) are *not* considered approximately equal.
 ///
 /// # Background
 /// Float equality is an extremely tricky topic and lots has been written about
@@ -132,7 +136,7 @@ impl_for_float!(f64);
 
 
 macro_rules! impl_for_vec_point {
-    ($ty:ident) => {
+    ($ty:ident, $len:expr) => {
         impl<T, const N: usize, S: Space> ApproxEq for $ty<T, N, S>
         where
             T: ApproxEq<Tolerance = T> + Scalar,
@@ -140,22 +144,24 @@ macro_rules! impl_for_vec_point {
             type Tolerance = T;
 
             fn approx_eq_abs(self, other: Self, abs_tolerance: Self::Tolerance) -> bool {
-                (0..N).all(|i| T::approx_eq_abs(self[i], other[i], abs_tolerance))
+                (0..$len).all(|i| T::approx_eq_abs(self[i], other[i], abs_tolerance))
             }
 
             fn approx_eq_rel(self, other: Self, rel_tolerance: Self::Tolerance) -> bool {
-                (0..N).all(|i| T::approx_eq_rel(self[i], other[i], rel_tolerance))
+                (0..$len).all(|i| T::approx_eq_rel(self[i], other[i], rel_tolerance))
             }
 
             fn approx_eq_ulps(self, other: Self, max_steps_apart: u32) -> bool {
-                (0..N).all(|i| T::approx_eq_ulps(self[i], other[i], max_steps_apart))
+                (0..$len).all(|i| T::approx_eq_ulps(self[i], other[i], max_steps_apart))
             }
         }
     };
 }
 
-impl_for_vec_point!(Vector);
-impl_for_vec_point!(Point);
+impl_for_vec_point!(Vector, N);
+impl_for_vec_point!(Point, N);
+impl_for_vec_point!(Dir, N);
+impl_for_vec_point!(HcPoint, N + 1);
 
 macro_rules! impl_for_angles {
     ($ty:ident) => {
@@ -325,5 +331,36 @@ mod tests {
         assert!( ApproxEq::approx_eq_rel(0.6000000000000001, 0.6, f64::EPSILON));
         assert!(!ApproxEq::approx_eq_ulps(0.6000000000000001, 0.6, 0));
         assert!( ApproxEq::approx_eq_ulps(0.6000000000000001, 0.6, 1));
+    }
+
+    #[test]
+    fn dir() {
+        let a = <crate::Dir3f>::new(1.0, 2.0, 3.0);
+        let b = <crate::Dir3f>::new(1.0, 2.0, 3.000001);
+        let c = <crate::Dir3f>::new(1.0, 2.0, 4.0);
+        assert!(a.approx_eq_ulps(a, 0));
+        assert!(a.approx_eq_ulps(b, 10));
+        assert!(!a.approx_eq_ulps(c, 10));
+        assert!(a.approx_eq_abs(b, 1e-6));
+        assert!(!a.approx_eq_abs(c, 1e-6));
+        assert!(a.approx_eq_rel(b, 4.0 * f32::EPSILON));
+        assert!(!a.approx_eq_rel(c, 4.0 * f32::EPSILON));
+        crate::assert_approx_eq!(ulps <= 10; a, b);
+    }
+
+    #[test]
+    fn hc_point() {
+        let a = <crate::HcPoint3f>::new([1.0, 2.0, 3.0], 0.5);
+        let b = <crate::HcPoint3f>::new([1.0, 2.0, 3.0], 0.50000006);
+        let c = <crate::HcPoint3f>::new([2.0, 4.0, 6.0], 1.0);
+        assert!(a.approx_eq_ulps(a, 0));
+        assert!(a.approx_eq_ulps(b, 1));
+        assert!(!a.approx_eq_ulps(b, 0));
+        assert!(!a.approx_eq_ulps(c, 10));
+        assert!(a.approx_eq_abs(b, 1e-6));
+        assert!(!a.approx_eq_abs(c, 1e-6));
+        assert!(a.approx_eq_rel(b, f32::EPSILON));
+        assert!(!a.approx_eq_rel(c, f32::EPSILON));
+        crate::assert_approx_eq!(abs <= 1e-6; a, b);
     }
 }
