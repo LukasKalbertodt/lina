@@ -227,6 +227,7 @@ impl<T: Scalar, const N: usize, S: Space> PartialEq for Dir<T, N, S> {
         self.0 == other.0
     }
 }
+impl<T: Scalar + Eq, const N: usize, S: Space> Eq for Dir<T, N, S> {}
 impl<T: Scalar + Hash, const N: usize, S: Space> Hash for Dir<T, N, S> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.0.hash(state);

@@ -60,3 +60,10 @@ fn dir_debug() {
     assert_eq!(format!("{:?}", <Dir3f>::unit_z()), "Dir[0.0, 0.0, 1.0]");
     assert_eq!(format!("{:?}", <Dir<f32, 1, WorldSpace>>::from_vec([-2.0].into())), "Dir[-1.0]");
 }
+
+#[test]
+fn dir_eq() {
+    fn assert_eq_impl<T: Eq>(_: T) {}
+    assert_eq_impl(<Dir<i32, 3, WorldSpace>>::unit_x());
+    assert_eq_impl(<Dir<i8, 2, WorldSpace>>::new_unchecked(0, -1));
+}
