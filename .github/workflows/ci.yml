@@ -18,3 +18,9 @@ jobs:
       run: cargo build
     - name: Run tests
       run: cargo test
+    - name: Run tests in release mode
+      run: cargo test --release
+    - name: Build docs
+      run: cargo doc --no-deps
+      env:
+        RUSTDOCFLAGS: --deny warnings
