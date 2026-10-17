@@ -245,7 +245,9 @@ macro_rules! impl_np1 {
     };
 }
 
+impl_np1!(1, 2);
 impl_np1!(2, 3);
+impl_np1!(3, 4);
 
 
 impl<T: Scalar, const N: usize, S: Space> fmt::Debug for HcPoint<T, N, S> {

@@ -1,4 +1,4 @@
-use crate::{Point, Point3f, Vec2, Vec3, Vec3f, point2, point3, vec2, vec3, Vector};
+use crate::{HcPoint, Point, Point3f, Vec2, Vec3, Vec3f, point2, point3, vec2, vec3, Vector};
 
 #[test]
 fn add_point_vec() {
@@ -129,4 +129,31 @@ fn extend() {
     assert_eq!(<Vector<_, 1>>::from([1]).extend(2), Vector::from([1, 2]));
     assert_eq!(<Vector<_, 2>>::from([1, 2]).extend(3), Vector::from([1, 2, 3]));
     assert_eq!(<Vector<_, 3>>::from([1, 2, 3]).extend(4), Vector::from([1, 2, 3, 4]));
+}
+
+#[test]
+fn hc_point_array_conversions() {
+    let p1 = <HcPoint<_, 1>>::new([1], 2);
+    let p2 = <HcPoint<_, 2>>::new([1, 2], 3);
+    let p3 = <HcPoint<_, 3>>::new([1, 2, 3], 4);
+
+    assert_eq!(p1.to_array(), [1, 2]);
+    assert_eq!(p2.to_array(), [1, 2, 3]);
+    assert_eq!(p3.to_array(), [1, 2, 3, 4]);
+
+    assert_eq!(<[_; 2]>::from(p1), [1, 2]);
+    assert_eq!(<[_; 3]>::from(p2), [1, 2, 3]);
+    assert_eq!(<[_; 4]>::from(p3), [1, 2, 3, 4]);
+
+    assert_eq!(<HcPoint<_, 1>>::from([1, 2]), p1);
+    assert_eq!(<HcPoint<_, 2>>::from([1, 2, 3]), p2);
+    assert_eq!(<HcPoint<_, 3>>::from([1, 2, 3, 4]), p3);
+
+    assert_eq!(AsRef::<[_; 2]>::as_ref(&p1), &[1, 2]);
+    assert_eq!(AsRef::<[_; 3]>::as_ref(&p2), &[1, 2, 3]);
+    assert_eq!(AsRef::<[_; 4]>::as_ref(&p3), &[1, 2, 3, 4]);
+
+    let mut p3 = p3;
+    AsMut::<[_; 4]>::as_mut(&mut p3)[3] = 7;
+    assert_eq!(p3.weight, 7);
 }
