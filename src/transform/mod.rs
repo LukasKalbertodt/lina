@@ -2,12 +2,18 @@
 //!
 //! - **Linear** transformations:
 //!   - Scale: [`scale`] and [`scale_nonuniform`]
+//!   - 3D rotation around a coordinate axis: [`rotate3d_around_x`],
+//!     [`rotate3d_around_y`] and [`rotate3d_around_z`]
+//!   - 3D rotation around an arbitrary axis: [`rotate3d_around`]
+//!   - 3D rotation aligning one direction with another: [`rotate3d_aligning`]
 //!
 //! - **Affine** transformations:
 //!   - [`translate`]
 //!   - [`look_into`] (world space to camera/view space; rotation + translation)
 //!
-//! - **Perspective projection**: [`perspective`]
+//! - **Projections** (view space to NDC/projection space):
+//!   - Perspective: [`perspective`]
+//!   - Orthographic: [`ortho`]
 //!
 
 use std::ops::RangeInclusive;
