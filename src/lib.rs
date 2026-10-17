@@ -450,7 +450,8 @@ pub fn reflect<T: Float, const N: usize, S: Space>(
 /// Linearly remaps `x` from `range` to `0..=1`.
 ///
 /// This is just `(x - min) / (max - min)` clamped to `0..=1`. Also see
-/// [`smoothstep`].
+/// [`smoothstep`]. If `min == max`, this is a step function returning 0 for
+/// `x < min` and 1 otherwise.
 ///
 /// ```text
 /// 1.0 ┤                         ······
@@ -472,9 +473,19 @@ pub fn reflect<T: Float, const N: usize, S: Space>(
 /// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 6.0, 3.0..7.0), 0.75);
 /// lina::assert_approx_eq!(ulps <= 8; lina::linearstep( 7.0, 3.0..7.0), 1.0);
 /// lina::assert_approx_eq!(ulps <= 8; lina::linearstep(98.3, 3.0..7.0), 1.0);
+///
+/// assert_eq!(lina::linearstep(2.9, 3.0..3.0), 0.0);
+/// assert_eq!(lina::linearstep(3.0, 3.0..3.0), 1.0);
+/// assert_eq!(lina::linearstep(3.1, 3.0..3.0), 1.0);
 /// ```
 ///
 pub fn linearstep<T: Float>(x: T, range: ops::Range<T>) -> T {
+    // Without this special case, we would calculate `0 / 0` for `x == min`.
+    // NaN is handled below, like for non-empty ranges.
+    if range.start == range.end && !x.is_nan() {
+        return if x < range.start { T::zero() } else { T::one() };
+    }
+
     clamp((x - range.start) / (range.end - range.start), T::zero()..=T::one())
 }
 
@@ -505,6 +516,9 @@ pub fn linearstep<T: Float>(x: T, range: ops::Range<T>) -> T {
 /// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 6.0, 3.0..7.0), 0.84375);
 /// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep( 7.0, 3.0..7.0), 1.0);
 /// lina::assert_approx_eq!(ulps <= 20; lina::smoothstep(98.3, 3.0..7.0), 1.0);
+///
+/// assert_eq!(lina::smoothstep(2.9, 3.0..3.0), 0.0);
+/// assert_eq!(lina::smoothstep(3.0, 3.0..3.0), 1.0);
 /// ```
 pub fn smoothstep<T: Float>(x: T, range: ops::Range<T>) -> T {
     let t = linearstep(x, range);
