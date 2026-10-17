@@ -106,6 +106,9 @@ pub mod docs;
 pub mod named_scalar;
 pub mod transform;
 
+#[cfg(test)]
+mod tests;
+
 pub use self::{
     angle::{Degrees, Radians},
     approx::ApproxEq,
@@ -282,11 +285,13 @@ pub fn angle_between<T: Float, const N: usize, S: Space>(
 
     let mut cos_angle = dot(a, b) / (a.length() * b.length());
 
-    // Unfortunately, sometimes, due to float precision, `cos_angle` is
-    // sometimes slightly above 1. And taking the `acos` of it then would
+    // Unfortunately, due to float precision, `cos_angle` is sometimes
+    // slightly above 1 or below -1. And taking the `acos` of it then would
     // result in NaN.
     if cos_angle > T::one() {
         cos_angle = T::one();
+    } else if cos_angle < -T::one() {
+        cos_angle = -T::one();
     }
     Radians::acos(cos_angle)
 }
