@@ -255,7 +255,7 @@ macro_rules! impl_scalar_mul {
     };
 }
 
-impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
+impl_scalar_mul!(f32, f64, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
 
 impl<T: Scalar, const N: usize, S: Space> ops::Div<T> for Dir<T, N, S> {
     type Output = Vector<T, N, S>;

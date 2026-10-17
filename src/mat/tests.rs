@@ -39,6 +39,10 @@ fn mul_scalar() {
     let c = from_rows([[ 3,  6,  9], [12, 15, 18]]);
     assert_eq!(a * 3, c);
     assert_eq!(3 * a, c);
+    assert_eq!(3usize * a.map(|e| e as usize), c.map(|e| e as usize));
+    assert_eq!(3isize * a.map(|e| e as isize), c.map(|e| e as isize));
+    assert_eq!(3usize * <HcMat2<usize>>::identity(), HcMat2::from_diagonal([3, 3, 3]));
+    assert_eq!(3isize * <HcMat2<isize>>::identity(), HcMat2::from_diagonal([3, 3, 3]));
 
     let mut a = a;
     a *= 3;

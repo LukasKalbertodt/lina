@@ -70,6 +70,10 @@ fn mul() {
     assert_eq!(3.0 * vec2(1.0, 2.0), vec2(3.0, 6.0));
     assert_eq!(3 * vec2(1, 2), vec2(3, 6));
     assert_eq!(3 * vec3(1, 2, 3), vec3(3, 6, 9));
+    assert_eq!(3usize * vec2(1, 2), vec2(3, 6));
+    assert_eq!(-2isize * vec3(1, 2, 3), vec3(-2, -4, -6));
+    assert_eq!(3usize * <crate::Dir2<usize>>::unit_y(), vec2(0, 3));
+    assert_eq!(-2isize * <crate::Dir2<isize>>::unit_x(), vec2(-2, 0));
 
     let mut x = vec3(0.1, 0.2, 0.3);
     x *= 10.0;
