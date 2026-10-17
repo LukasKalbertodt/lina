@@ -360,6 +360,11 @@ where
 /// same is true for `factor`: usually only the range `0..=1` makes sense, but
 /// this is not enforced. No idea if the results are useful.
 ///
+/// The vectors must also not point in opposite directions, as then, there
+/// are infinitely many shortest paths between them and the result is not
+/// defined (this is checked with a `debug_assert`). For vectors pointing in
+/// *almost* opposite directions, the result can be imprecise.
+///
 /// ```
 /// use lina::{slerp, vec3};
 ///
@@ -374,6 +379,10 @@ pub fn slerp<T: Float, const N: usize, S: Space>(
     factor: T,
 ) -> Vector<T, N, S> {
     let angle = angle_between(a, b);
+    debug_assert!(
+        angle < Radians::half_turn(),
+        "`slerp` called with vectors pointing in opposite directions",
+    );
 
     // The general formula `sin(x * t) / sin(x)` is problematic for very small
     // `x` as for x=0, we would divide by 0. In math world, all is hunky dory:

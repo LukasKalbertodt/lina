@@ -1,6 +1,6 @@
 use crate::{
-    angle_between, assert_approx_eq, clamp, vec2, vec3, Degrees, Dir, Dir2f, Dir3f, Radians,
-    WorldSpace,
+    angle_between, assert_approx_eq, clamp, slerp, vec2, vec3, Degrees, Dir, Dir2f, Dir3f,
+    Radians, WorldSpace,
 };
 
 
@@ -66,4 +66,21 @@ fn dir_eq() {
     fn assert_eq_impl<T: Eq>(_: T) {}
     assert_eq_impl(<Dir<i32, 3, WorldSpace>>::unit_x());
     assert_eq_impl(<Dir<i8, 2, WorldSpace>>::new_unchecked(0, -1));
+}
+
+#[test]
+#[cfg_attr(not(debug_assertions), ignore = "requires debug assertions")]
+#[should_panic(expected = "opposite directions")]
+fn slerp_opposite() {
+    let v = vec3(1.0, 2.0, 3.0);
+    slerp(v, -v * 2.0, 0.5);
+}
+
+#[test]
+#[cfg_attr(not(debug_assertions), ignore = "requires debug assertions")]
+#[should_panic(expected = "opposite directions")]
+fn slerp_opposite_f32() {
+    // `angle_between` used to return NaN for these, so it's worth testing.
+    let v = vec3(5.8773685f32, -2.1701226, 6.303587);
+    slerp(v, -v, 0.5);
 }
