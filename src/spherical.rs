@@ -11,7 +11,7 @@ pub struct SphericalPos<T: Float, S: Space = WorldSpace> {
     /// When created from a point/vector, the angle is in `0..=π`.
     pub theta: Radians<T>,
 
-    /// Horizontal angle φ: 0° points +x, 90° points +y, 180° points -y, 270°
+    /// Horizontal angle φ: 0° points +x, 90° points +y, 180° points -x, 270°
     /// points -y. Typical range: `0..=2π`.
     ///
     /// When created from a point/vector, the angle is in `-π..=π`.
@@ -146,7 +146,7 @@ pub struct SphericalDir<T: Float, S: Space = WorldSpace> {
     /// When created from a point/vector, the angle is in `0..=π`.
     pub theta: Radians<T>,
 
-    /// Horizontal angle φ: 0° points +x, 90° points +y, 180° points -y, 270°
+    /// Horizontal angle φ: 0° points +x, 90° points +y, 180° points -x, 270°
     /// points -y. Typical range: `0..=2π`.
     ///
     /// When created from a point/vector, the angle is in `-π..=π`.
