@@ -834,6 +834,29 @@ impl<
     }
 }
 
+macro_rules! impl_mul_by_value {
+    ($rhs:ident => $out:ident) => {
+        /// See [`Matrix::transform`].
+        impl<
+            T: Scalar,
+            const C: usize,
+            const R: usize,
+            Src: Space,
+            Dst: Space,
+        > ops::Mul<$rhs<T, C, Src>> for Matrix<T, C, R, Src, Dst> {
+            type Output = $out<T, R, Dst>;
+            fn mul(self, rhs: $rhs<T, C, Src>) -> Self::Output {
+                &self * rhs
+            }
+        }
+    };
+}
+
+impl_mul_by_value!(Vector => Vector);
+impl_mul_by_value!(Dir => Vector);
+impl_mul_by_value!(Point => Point);
+impl_mul_by_value!(HcPoint => HcPoint);
+
 
 // =============================================================================================
 // ===== `Row` and `Col` proxies

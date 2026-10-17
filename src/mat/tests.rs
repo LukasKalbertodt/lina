@@ -1,4 +1,6 @@
-use crate::{Mat2, Matrix, assert_approx_eq, Scalar, Mat3};
+use crate::{
+    Mat2, Matrix, assert_approx_eq, Scalar, Mat3, HcMat2, HcPoint, Dir2, vec2, point2,
+};
 
 
 fn from_rows<T: Scalar, const C: usize, const R: usize>(
@@ -242,4 +244,51 @@ fn inv4() {
 #[test]
 fn non_invertible4() {
     assert_eq!(<Matrix<_, 4, 4>>::from_diagonal([1.5, 0.0, 9.4, 2.0]).inverted(), None);
+}
+
+#[test]
+fn transform_by_value_and_ref() {
+    let m = <Mat2<_>>::from_rows([
+        [0.0, -2.0],
+        [3.0,  0.0],
+    ]);
+    let v = vec2(1.0, 4.0);
+    let p = point2(1.0, 4.0);
+    let d = <Dir2<_>>::unit_x();
+    let hp = HcPoint::new([1.0, 4.0], 2.0);
+
+    assert_eq!(m * v, vec2(-8.0, 3.0));
+    assert_eq!(m * v, &m * v);
+    assert_eq!(m * v, m.transform(v));
+
+    assert_eq!(m * p, point2(-8.0, 3.0));
+    assert_eq!(m * p, &m * p);
+    assert_eq!(m * p, m.transform(p));
+
+    assert_eq!(m * d, vec2(0.0, 3.0));
+    assert_eq!(m * d, &m * d);
+    assert_eq!(m * d, m.transform(d));
+
+    assert_eq!(m * hp, HcPoint::new([-8.0, 3.0], 2.0));
+    assert_eq!(m * hp, &m * hp);
+    assert_eq!(m * hp, m.transform(hp));
+}
+
+#[test]
+fn hc_transform_by_value_and_ref() {
+    let m = <HcMat2<_>>::from_rows([
+        [0.0, -2.0, 1.0],
+        [3.0,  0.0, 2.0],
+        [0.0,  0.0, 2.0],
+    ]);
+    let p = point2(1.0, 4.0);
+    let hp = HcPoint::new([1.0, 4.0], 1.0);
+
+    assert_eq!(m * p, point2(-3.5, 2.5));
+    assert_eq!(m * p, &m * p);
+    assert_eq!(m * p, m.transform(p));
+
+    assert_eq!(m * hp, HcPoint::new([-7.0, 5.0], 2.0));
+    assert_eq!(m * hp, &m * hp);
+    assert_eq!(m * hp, m.transform(hp));
 }

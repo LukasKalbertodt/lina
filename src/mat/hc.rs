@@ -669,6 +669,34 @@ impl<
     }
 }
 
+/// See [`HcMatrix::transform`].
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<Point<T, C, Src>> for HcMatrix<T, C, R, Src, Dst> {
+    type Output = Point<T, R, Dst>;
+    fn mul(self, rhs: Point<T, C, Src>) -> Self::Output {
+        &self * rhs
+    }
+}
+
+/// See [`HcMatrix::transform`].
+impl<
+    T: Scalar,
+    const C: usize,
+    const R: usize,
+    Src: Space,
+    Dst: Space,
+> ops::Mul<HcPoint<T, C, Src>> for HcMatrix<T, C, R, Src, Dst> {
+    type Output = HcPoint<T, R, Dst>;
+    fn mul(self, rhs: HcPoint<T, C, Src>) -> Self::Output {
+        &self * rhs
+    }
+}
+
 
 // =============================================================================================
 // ===== Storage utilities
