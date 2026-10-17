@@ -1,4 +1,7 @@
-use crate::{angle_between, assert_approx_eq, clamp, vec2, vec3, Degrees, Radians};
+use crate::{
+    angle_between, assert_approx_eq, clamp, vec2, vec3, Degrees, Dir, Dir2f, Dir3f, Radians,
+    WorldSpace,
+};
 
 
 #[test]
@@ -49,4 +52,11 @@ fn clamp_empty_range() {
 #[should_panic(expected = "'min' is larger than 'max'")]
 fn clamp_min_larger_than_max() {
     clamp(1.0, 2.0..=1.0);
+}
+
+#[test]
+fn dir_debug() {
+    assert_eq!(format!("{:?}", <Dir2f>::unit_y()), "Dir[0.0, 1.0]");
+    assert_eq!(format!("{:?}", <Dir3f>::unit_z()), "Dir[0.0, 0.0, 1.0]");
+    assert_eq!(format!("{:?}", <Dir<f32, 1, WorldSpace>>::from_vec([-2.0].into())), "Dir[-1.0]");
 }

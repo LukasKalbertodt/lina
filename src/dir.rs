@@ -205,7 +205,7 @@ impl<T: Float, const N: usize, S: Space> From<Dir<T, N, S>> for Vector<T, N, S> 
 }
 
 
-impl<T: Scalar, S: Space> fmt::Debug for Dir3<T, S> {
+impl<T: Scalar, const N: usize, S: Space> fmt::Debug for Dir<T, N, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Dir")?;
         crate::util::debug_list_one_line(&self.0.0, f)
