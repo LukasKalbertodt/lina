@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-10-17
+- Fix `angle_between` returning NaN for opposite vectors and make it precise for angles close to 0 or π (this also fixes `slerp` for almost opposite vectors)
+- Implement `matrix * x` (for points, vectors, ...) for matrices by value, not only by reference
+- Implement `Default` for `Vector`, `Point`, `Radians` and `Degrees` (returning 0)
+- Fix `clamp` panicking if `min == max`
+- Make `linearstep` and `smoothstep` step functions for empty ranges instead of panicking
+- Only check `val` for NaN in `clamp` in debug mode, making it a lot faster in loops (in release mode, NaN is returned)
+- Fix `rotate3d_aligning` being very imprecise (or panicking) for almost opposite directions
+- Add named component access (`.x`, `.y`, `.z`, `.w`) to `Point<_, 4>`
+- Add array conversions (`to_array`, `From`, `AsRef`, `AsMut`) to `HcPoint` with N = 1 and N = 3 (this was an oversight before)
+- Implement `Debug` for `Dir` of all dimensions (previously only 3D), and `Eq` if the scalar implements `Eq` (also oversight)
+- Implement `ApproxEq` for `Dir` and `HcPoint`
+- Fix `approx_eq_rel` treating infinity as approximately equal to all finite numbers
+- Fix `HcMatrix::trace` counting the bottom right element twice
+- Fix angle `normalized()` returning a full turn for tiny negative angles
+- Implement `scalar * x` for `usize` and `isize`
+- Document that `project_onto` requires `target` to have unit length
+- Debug assert that `slerp` is not called with opposite vectors
+- Add `#[must_use]` to `HcMatrix::transposed`
+- Fix wrong advice for left-handed view matrices in docs
+- Fix several mistakes and typos in docs
+
+
 ## [0.2.3] - 2026-06-01
 - Add `smoothstep` & `linearstep`
 - Add `reflect`
@@ -98,7 +121,8 @@ and `HcPoint` and `HcMatrix` have been added, which replace situations where pre
 - Everything
 
 
-[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/LukasKalbertodt/lina/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/LukasKalbertodt/lina/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/LukasKalbertodt/lina/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/LukasKalbertodt/lina/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/LukasKalbertodt/lina/compare/v0.2.0...v0.2.1
