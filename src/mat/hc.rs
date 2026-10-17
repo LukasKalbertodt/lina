@@ -276,6 +276,10 @@ impl<
         second * self
     }
 
+    /// Returns the transposed version of this matrix (swapping rows and
+    /// columns). You have to specify the source and target spaces of the
+    /// returned matrix manually as it's likely different from `self`, but
+    /// cannot be inferred.
     #[must_use = "does not transpose in-place"]
     pub fn transposed<NewSrc: Space, NewDst: Space>(&self) -> HcMatrix<T, R, C, NewSrc, NewDst> {
         let mut out = HcMatrix::zero();
@@ -511,16 +515,29 @@ impl<T: Scalar, const N: usize, Src: Space, Dst: Space> HcMatrix<T, N, N, Src, D
         Self::from_diagonal_parts([T::one(); N], T::one())
     }
 
+    /// Returns a matrix with the given diagonal, split into the linear part's
+    /// diagonal and the bottom right element `q`. All other elements are 0.
+    /// Unlike [`from_diagonal`][Self::from_diagonal], this is available for
+    /// any `N`.
+    ///
+    /// ```
+    /// use lina::HcMat2;
+    ///
+    /// let m = <HcMat2<_>>::from_diagonal_parts([1, 2], 3);
+    /// assert_eq!(m, HcMat2::from_diagonal([1, 2, 3]));
+    /// ```
     pub fn from_diagonal_parts(linear: [T; N], q: T) -> Self {
         let mut out = Self::zero();
         out.set_diagonal_parts(linear, q);
         out
     }
 
+    /// Returns the diagonal, split like in [`Self::from_diagonal_parts`].
     pub fn diagonal_parts(&self) -> ([T; N], T) {
         (array::from_fn(|i| self.elem(i, i)), self.elem(N, N))
     }
 
+    /// Sets the diagonal, split like in [`Self::from_diagonal_parts`].
     pub fn set_diagonal_parts(&mut self, linear: [T; N], q: T) {
         for i in 0..N {
             self.set_elem(i, i, linear[i]);

@@ -79,6 +79,7 @@ impl<T: Scalar, const N: usize, S: Space> Vector<T, N, S> {
         out
     }
 
+    /// Like [`Dir::from_vec`], i.e. panics for zero vectors.
     pub fn to_dir(self) -> Dir<T, N, S>
     where
         T: Float,
