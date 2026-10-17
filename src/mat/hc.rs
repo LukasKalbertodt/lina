@@ -276,6 +276,7 @@ impl<
         second * self
     }
 
+    #[must_use = "does not transpose in-place"]
     pub fn transposed<NewSrc: Space, NewDst: Space>(&self) -> HcMatrix<T, R, C, NewSrc, NewDst> {
         let mut out = HcMatrix::zero();
         for c in 0..=C {
